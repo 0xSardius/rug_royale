@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && echo '## docs/progress/STATUS.md' && cat docs/progress/STATUS.md && f=$(ls docs/progress/checkpoints/*.md 2>/dev/null | sort | tail -1) && [ -n \"$f\" ] && echo && echo \"## Latest checkpoint: $f\" && cat \"$f\"; exit 0"
+          }
+        ]
+      }
+    ]
+  }
+}

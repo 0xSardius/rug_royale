@@ -1,0 +1,32 @@
+{
+  "name": "rug-royale",
+  "private": true,
+  "license": "ISC",
+  "scripts": {
+    "build": "anchor build",
+    "test": "anchor build && pnpm test:ts",
+    "test:ts": "mocha -n import=tsx -t 1000000 \"tests/**/*.test.ts\"",
+    "test:rust": "cargo test -p rug_royale",
+    "lint": "prettier \"{tests,scripts,packages}/**/*.ts\" --check",
+    "lint:fix": "prettier \"{tests,scripts,packages}/**/*.ts\" -w",
+    "checkpoint": "tsx scripts/checkpoint.ts"
+  },
+  "dependencies": {
+    "@anchor-lang/core": "=1.1.2",
+    "@rug-royale/sdk": "workspace:*",
+    "@solana/spl-token": "^0.4.15",
+    "@solana/web3.js": "^1.98.4"
+  },
+  "devDependencies": {
+    "@types/bn.js": "^5.1.0",
+    "@types/chai": "^4.3.0",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^22.0.0",
+    "chai": "^4.3.4",
+    "litesvm": "0.8.0",
+    "mocha": "^11.8.0",
+    "prettier": "^2.6.2",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.3"
+  }
+}
