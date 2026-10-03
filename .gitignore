@@ -1,0 +1,15 @@
+# Secrets — never commit (PRD §14)
+.env
+.env.*
+!.env.example
+*-keypair.json
+keys/
+
+# Build output
+target/
+.anchor/
+node_modules/
+.next/
+dist/
+test-ledger/
+.DS_Store
