@@ -2,7 +2,7 @@
 
 The live picture of where the build stands. Update it whenever a task finishes, a gate passes, or a decision is made. History lives in `checkpoints/`; this file is only the present.
 
-**Last updated:** 2026-10-03 · **Latest checkpoint:** `checkpoints/20261003-2213-repo-scaffold.md`
+**Last updated:** 2026-10-03 · **Latest checkpoint:** `checkpoints/20261003-1929-repo-scaffold.md`
 **Deadline:** submit Sat 2026-10-10 (Turbin3 deadline 2026-10-11) · **Feature freeze:** Fri 2026-10-09 noon
 
 ## Daily gates (PRD §12)

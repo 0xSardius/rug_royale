@@ -40,7 +40,7 @@ const sh = (cmd: string) => {
 // Runs a verification step and returns a one-line result plus the output tail.
 const check = (label: string, cmd: string) => {
   try {
-    const out = execSync(cmd, {
+    const out = execSync(`${cmd} 2>&1`, {
       cwd: ROOT,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
