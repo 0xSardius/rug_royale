@@ -7,3 +7,4 @@ export * from "./layout";
 export * from "./mints";
 export * from "./pdas";
 export * from "./math";
+export * from "./coins";

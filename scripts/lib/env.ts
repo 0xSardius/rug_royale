@@ -3,7 +3,10 @@ import { existsSync, readFileSync, writeFileSync } from "fs";
 import os from "os";
 import path from "path";
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
+import type { CoinsFile } from "@rug-royale/sdk";
 import idl from "../../idl/rug_royale.json";
+
+export type { Coin, CoinsFile } from "@rug-royale/sdk";
 
 export const ROOT = path.join(__dirname, "../..");
 export const PROGRAM_ID = new PublicKey(idl.address);
@@ -32,34 +35,6 @@ export function loadKeypair(
 // --- coins.json -----------------------------------------------------------
 
 export const COINS_FILE = path.join(ROOT, "coins.json");
-
-/** A real StonkFun coin and the devnet demo mint standing in for it (G10). */
-export interface Coin {
-  rank: number;
-  name: string;
-  symbol: string;
-  image: string;
-  realMint: string;
-  marketCapUsd: number | null;
-  priceUsd: number | null;
-  /** Set by setup-mints.ts. */
-  demoMint: string | null;
-}
-
-export interface CoinsFile {
-  snapshotAt: string;
-  source: string;
-  network: string;
-  /** Quote token standing in for STONK. `demoMint` set by setup-mints.ts. */
-  quote: {
-    name: string;
-    symbol: string;
-    realMint: string | null;
-    demoMint: string | null;
-  };
-  /** Exactly 10, in Config.allowed_mints order. */
-  coins: Coin[];
-}
 
 export const readCoins = (): CoinsFile =>
   JSON.parse(readFileSync(COINS_FILE, "utf8"));
