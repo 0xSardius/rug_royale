@@ -17,12 +17,7 @@ import {
   Transaction,
   TransactionInstruction,
 } from "@solana/web3.js";
-import {
-  MINT_SIZE,
-  TOKEN_2022_PROGRAM_ID,
-  createInitializeMint2Instruction,
-  unpackAccount,
-} from "@solana/spl-token";
+import { TOKEN_2022_PROGRAM_ID, unpackAccount } from "@solana/spl-token";
 import { AnchorProvider, BN, Program, Wallet } from "@anchor-lang/core";
 import { FailedTransactionMetadata, LiteSVM } from "litesvm";
 import { expect } from "chai";
@@ -31,7 +26,9 @@ import {
   cancelDuelAccounts,
   closeDuelAccounts,
   createDuelAccounts,
-  findMintAuthority,
+  DEMO_DECIMALS,
+  MINT_SIZE,
+  createDemoMintIxs,
   initConfigAccounts,
   joinDuelAccounts,
   settleAccounts,
@@ -42,7 +39,7 @@ import idl from "../idl/rug_royale.json";
 import type { RugRoyale } from "../idl/rug_royale";
 
 export const PROGRAM_ID = new PublicKey(idl.address);
-export const DECIMALS = 6;
+export const DECIMALS = DEMO_DECIMALS;
 const UNIT = 10n ** BigInt(DECIMALS);
 
 // ---------------------------------------------------------------------------
@@ -338,31 +335,16 @@ export interface Mints {
 
 /** One quote mint + 10 coin mints, Token-2022, 6 decimals, authority = MintAuthority PDA (G11). */
 export async function createMints(ctx: Ctx, payer: Keypair): Promise<Mints> {
-  const [authority] = findMintAuthority(ctx.programId);
-  const rent = await ctx.sender.rentExempt(MINT_SIZE);
+  const rent = Number(await ctx.sender.rentExempt(MINT_SIZE));
   const make = async () => {
     const mint = Keypair.generate();
-    const res = await ctx.sender.send(
-      [
-        SystemProgram.createAccount({
-          fromPubkey: payer.publicKey,
-          newAccountPubkey: mint.publicKey,
-          lamports: Number(rent),
-          space: MINT_SIZE,
-          programId: TOKEN_2022_PROGRAM_ID,
-        }),
-        createInitializeMint2Instruction(
-          mint.publicKey,
-          DECIMALS,
-          authority,
-          null,
-          TOKEN_2022_PROGRAM_ID
-        ),
-      ],
-      payer,
-      [mint]
-    );
-    expectOk(res);
+    const ixs = createDemoMintIxs({
+      programId: ctx.programId,
+      payer: payer.publicKey,
+      mint: mint.publicKey,
+      rentLamports: rent,
+    });
+    expectOk(await ctx.sender.send(ixs, payer, [mint]));
     return mint.publicKey;
   };
   const quote = await make();
