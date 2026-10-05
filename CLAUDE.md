@@ -35,7 +35,11 @@ Toolchain: Anchor CLI and crates pinned to **1.1.2** (`=1.1.2` in Cargo.toml; sw
   - `math/`: pure AMM, valuation, and payout functions. Handlers call these and never inline math.
   - `errors.rs`, `events.rs`, `constants.rs` (seeds and limits).
 - `packages/sdk` (`@rug-royale/sdk`): PDA helpers, Duel byte offsets for lobby `memcmp` filters, and later the decoders plus `math.ts`, which mirrors the Rust math exactly. Scripts and the frontend import from it.
-- `tests/`: two suites sharing `tests/fixtures.ts` (planned). LiteSVM suites (`tests/*.test.ts`, one per handler plus `invariants` and `scenarios`) are exhaustive. The devnet suite (`tests/devnet/`, planned) runs against the deployed program in real time and is the one Turbin3 grades. `tests/setup.ts` loads `target/deploy/rug_royale.so` into a fresh LiteSVM. The Anchor `Program` there only *builds* instructions; send them with `svm.sendTransaction`. Warp the clock for time-dependent tests instead of sleeping.
+- `tests/`: two suites sharing `tests/fixtures.ts`. LiteSVM suites (`tests/*.test.ts`, one per handler plus `invariants` and `scenarios`) are exhaustive. The devnet suite (`tests/devnet/`, planned) runs against the deployed program in real time and is the one Turbin3 grades.
+  - Tests talk to a `Sender` (`LiteSvmSender` or `RpcSender`) through a `Ctx` from `liteCtx()` / `rpcCtx()`. Scenario helpers (`setupProtocol`, `createDuel`, `joinDuel`, `swap`, `settle`, ...) return a `TxResult`; assert with `expectOk` / `expectError(res, "WindowEnded")`.
+  - Instructions are encoded from `idl/` with `.accountsStrict(...)` using the SDK account maps (`packages/sdk/src/accounts.ts`). Anchor's client-side PDA resolution is not used, because it needs an RPC fetch for seeds that read `Duel` fields.
+  - Time: `ctx.sender.warpTo(ts)` on LiteSVM; `waitUntil(ts)` on RPC. Never sleep in LiteSVM tests.
+  - `create_duel` needs a 400k compute-unit limit (the fixture adds it).
 - `scripts/`: off-chain TS, run with `tsx`: snapshot, setup-mints, init-config, crank, sim, checkpoint.
 - `app/`: Next.js frontend (not created yet).
 
