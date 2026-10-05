@@ -6,7 +6,7 @@
     "name": "devSTONK",
     "symbol": "dSTONK",
     "realMint": "6GmAFSYs4gk3FDao5FzzySQpPZaWsa4rUJHacpMpUNgx",
-    "demoMint": null
+    "demoMint": "4fgyjcmj1MUX3HoHExLwdYYoASDQJPHsXSWAbNToJpbA"
   },
   "coins": [
     {
@@ -17,7 +17,7 @@
       "realMint": "HcRLc9VDgjLeK154xDawfb1dmVJ98DoSqcwTHGqiDeJR",
       "marketCapUsd": 46014516.57840566,
       "priceUsd": 0.047583358540071466,
-      "demoMint": null
+      "demoMint": "J21Szx4fJys71jnXZpD7Rfdcffrz9s8PPzqPV7EaHvJF"
     },
     {
       "rank": 2,
@@ -27,7 +27,7 @@
       "realMint": "HuAXPyDWDaMYFKuwQHpqL1oPnj93zdzWmtvFGzCeCUa7",
       "marketCapUsd": 37509871.26987824,
       "priceUsd": 0.03750987126987824,
-      "demoMint": null
+      "demoMint": "BYjYvsvKr5Sn8iKzCrUz2UDfLFuERg8fJ8LR34CQYEEm"
     },
     {
       "rank": 3,
@@ -37,7 +37,7 @@
       "realMint": "DEW9dSN6QpWyNthphCpMmAbZP1Q4cEKR9xQXAri98WDP",
       "marketCapUsd": 26888383.99824355,
       "priceUsd": 0.02688838399824355,
-      "demoMint": null
+      "demoMint": "9GpJa8YMcRNStf1LuGQk1BY8ZvoSE2FnBTw6q9gJAFk9"
     },
     {
       "rank": 4,
@@ -47,7 +47,7 @@
       "realMint": "8t5C4AWDg4CroMChxdo7rG2e8nJM31QG2GG7Czx9X7x2",
       "marketCapUsd": 5072229.897206525,
       "priceUsd": 0.0050722298972065245,
-      "demoMint": null
+      "demoMint": "5tVkCnXvbq3cVm8EWg1YVoC4t8Pu9hrQ2trh8BCBoUFZ"
     },
     {
       "rank": 5,
@@ -57,7 +57,7 @@
       "realMint": "4MMQY9bwkxxTtsK3W227Q5ABT6yFY8Pmn9Ze7wmAXKY8",
       "marketCapUsd": 4376263.740459818,
       "priceUsd": 0.0043762637404598185,
-      "demoMint": null
+      "demoMint": "6Cn3TL59xqfj1grGhXYTndoorKuF1DDJxRnWDqYpknwV"
     },
     {
       "rank": 6,
@@ -67,7 +67,7 @@
       "realMint": "5YX4DjUf4y2q1SpHsKvwWZ8Bfyka2DXzVerWYiJxW6UE",
       "marketCapUsd": 3790592.544873846,
       "priceUsd": 0.0037905925448738463,
-      "demoMint": null
+      "demoMint": "J3i62vMvncLYc2ZEq6zZLENgdNnWuUp5DtrvbRE1sT53"
     },
     {
       "rank": 7,
@@ -77,7 +77,7 @@
       "realMint": "6UtY9iTZMQQ5QZVrbzFnNaJntV7oySm9k97mvwnuZcxr",
       "marketCapUsd": 3565190.5888663307,
       "priceUsd": 0.003565190588866331,
-      "demoMint": null
+      "demoMint": "EKw6vFBnebF2ds64Hpd6LfyqPsWb1DeLyQa2o7TF9HFx"
     },
     {
       "rank": 8,
@@ -87,7 +87,7 @@
       "realMint": "FjTfaSH861nVcbAxdFAHTvhoSL4kyR6wgTWynuJkapht",
       "marketCapUsd": 3464370.026560759,
       "priceUsd": 0.003464370026560759,
-      "demoMint": null
+      "demoMint": "EcKz61NwxmkDVzePEASnohruqJYT4DodqyBLGjfKh6dA"
     },
     {
       "rank": 9,
@@ -97,7 +97,7 @@
       "realMint": "HTmQz7My6MehV7bjhJ6jde8nDND1yvsz68d24LP7YgUQ",
       "marketCapUsd": 3220217.2040449632,
       "priceUsd": 0.003220217204044963,
-      "demoMint": null
+      "demoMint": "36TGL7oiQ5Ndb6a8XqKawk44awdXQTRt1uzoFvoXe4X6"
     },
     {
       "rank": 10,
@@ -107,7 +107,7 @@
       "realMint": "8RVBk8vxLiUHueLUW1f4izFVqN3nWippLhkohKg6EGkS",
       "marketCapUsd": 2457515.0633524423,
       "priceUsd": 0.002457515063352442,
-      "demoMint": null
+      "demoMint": "7suBcjUNqu7f43JBwn6pTR9Fddsz4ZLMUd6XeCrZaxg9"
     }
   ]
 }
