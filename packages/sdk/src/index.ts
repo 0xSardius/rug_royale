@@ -6,3 +6,4 @@ export * from "./idl";
 export * from "./layout";
 export * from "./mints";
 export * from "./pdas";
+export * from "./math";
