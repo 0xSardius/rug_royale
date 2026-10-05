@@ -34,8 +34,26 @@ pub struct InitConfigArgs {
     pub swap_fee_bps: u16,
 }
 
-pub fn handle_init_config(_ctx: Context<InitConfig>, _args: InitConfigArgs) -> Result<()> {
-    // TODO(Sidharth): checks in PRD §6.1 order, then write Config (bumps from ctx.bumps;
-    // mint_authority_bump via Pubkey::find_program_address([MINT_AUTHORITY_SEED])).
+pub fn handle_init_config(ctx: Context<InitConfig>, args: InitConfigArgs) -> Result<()> {
+    // TODO(Sidharth): checks in PRD §6.1 order (RakeTooHigh, FeeTooHigh, InvalidWindowSet,
+    // InvalidTierSet, InvalidMintList, pool_seed_ratio >= 1) before the writes below.
+    // The writes are here already so every other handler's `config` seeds check passes in tests.
+    let (_, mint_authority_bump) =
+        Pubkey::find_program_address(&[MINT_AUTHORITY_SEED], ctx.program_id);
+    ctx.accounts.config.set_inner(Config {
+        admin: ctx.accounts.admin.key(),
+        treasury: args.treasury,
+        quote_mint: args.quote_mint,
+        allowed_mints: args.allowed_mints,
+        tiers: args.tiers,
+        windows: args.windows,
+        pool_seed_ratio: args.pool_seed_ratio,
+        settler_tip_lamports: args.settler_tip_lamports,
+        max_entry_lamports: args.max_entry_lamports,
+        rake_bps: args.rake_bps,
+        swap_fee_bps: args.swap_fee_bps,
+        bump: ctx.bumps.config,
+        mint_authority_bump,
+    });
     Ok(())
 }
