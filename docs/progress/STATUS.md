@@ -3,7 +3,7 @@
 The live picture of where the build stands. Update it whenever a task finishes, a gate passes, or a decision is made. History lives in `checkpoints/`; this file is only the present.
 
 **Last updated:** 2026-10-05 · **Plan:** `BUILD_PLAN.md` · **Latest checkpoint:** `checkpoints/20261005-2308-plan-rebaseline.md`
-**Deadline:** submit Sat 2026-10-10 (PRD says Turbin3 deadline 2026-10-11; confirm) · **Feature freeze:** Fri 2026-10-09 noon · **Demo day:** week of Oct 12
+**Deadline:** Turbin3 due Sun 2026-10-11 (confirmed); our target is Sat 2026-10-10, leaving a day to review · **Feature freeze:** Fri 2026-10-09 noon · **Demo day:** week of Oct 12
 **Graded (see `docs/turbin3_requirements.md`):** devnet deploy + ID in README · full test suite passing **on devnet** + screenshot in README · architecture documented in README · <5 min presentation (≤5 slides) showing devnet tests · individual reflections
 
 ## Daily gates (re-baselined in `BUILD_PLAN.md`, 2026-10-05)
@@ -70,12 +70,12 @@ Status values: `todo` · `doing` · `review` · `done`.
 - **StonkFun API endpoint.** Verify the path at stonkfun.xyz/developers (PRD §10).
 - **Devnet windows.** Proposal: `[30, 120, 300, 900]` instead of `[120, 300, 600, 900]`, so the devnet suite runs in about 2 min. `Config` is permanent, so decide by **Tue Oct 6**, before `init-config.ts` runs. Needs Sidharth's and Yamin's OK.
 - **Account-struct PR.** Proposal: Justin drafts all 8 today for the IDL freeze; owners review. Needs Sidharth's and Yamin's OK.
-- **Submission deadline.** The PRD says Oct 11; the Turbin3 brief only names demo week (Oct 12+). Confirm the repo deadline.
 
 ## Decision log
 
 Newest first. Anything that changes the PRD gets a line here **and** an edit to `docs/prd.md`.
 
+- 2026-10-05: Official deadline confirmed as Oct 11. We submit Oct 10 and keep Oct 11 for review.
 - 2026-10-05: Turbin3 brief received (`docs/turbin3_requirements.md`). Added a **devnet test suite** alongside LiteSVM; README must hold the architecture (Mermaid) and a devnet-test screenshot; frontend ranks below the devnet suite and README. Plan re-baselined in `BUILD_PLAN.md`; PRD §12/§13 updated.
 - 2026-10-05: Justin is the only devnet deployer; the program keypair is not shared.
 - 2026-10-03: Pinned Anchor **1.1.2** (installed locally; 1.2.0 exists). Crates pinned with `=1.1.2` so CLI and crate versions match.
