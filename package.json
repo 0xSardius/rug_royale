@@ -9,7 +9,8 @@
     "test:rust": "cargo test -p rug_royale",
     "lint": "prettier \"{tests,scripts,packages}/**/*.ts\" --check",
     "lint:fix": "prettier \"{tests,scripts,packages}/**/*.ts\" -w",
-    "checkpoint": "tsx scripts/checkpoint.ts"
+    "checkpoint": "tsx scripts/checkpoint.ts",
+    "idl": "anchor build && cp target/idl/rug_royale.json target/types/rug_royale.ts idl/"
   },
   "dependencies": {
     "@anchor-lang/core": "=1.1.2",
