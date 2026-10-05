@@ -191,7 +191,7 @@ Each handler does one state transition. Checks run in the order listed so tests 
 ### 6.1 `init_config` (REQ01)
 
 - **Signer:** admin (payer). **Args:** every `Config` field except bumps.
-- **Checks:** `rake_bps <= 1000` (`RakeTooHigh`); `swap_fee_bps <= 1000` (`FeeTooHigh`); windows non-zero and ascending (`InvalidWindowSet`); tiers non-zero (`InvalidTierSet`); 10 distinct allowed mints, none equal to `quote_mint` (`InvalidMintList`); `pool_seed_ratio >= 1`.
+- **Checks:** `rake_bps <= 1000` (`RakeTooHigh`); `swap_fee_bps <= 1000` (`FeeTooHigh`); windows non-zero and ascending (`InvalidWindowSet`); tiers non-zero (`InvalidTierSet`); 10 distinct allowed mints, none equal to `quote_mint` (`InvalidMintList`); `pool_seed_ratio >= 1` (`InvalidSeedRatio`).
 - **Effect:** `Config` initialized. No event.
 
 ### 6.2 `create_duel` (REQ02)
@@ -297,7 +297,7 @@ The sum of all payouts equals `pot` exactly, and escrow holds only its rent afte
 
 ## 8. Errors and events
 
-One `RugRoyaleError` enum with these 31 variants, in this order so error codes stay stable for the client.
+One `RugRoyaleError` enum with these 32 variants, in this order so error codes stay stable for the client. `InvalidSeedRatio` was added 2026-10-05 and is appended after `MathOverflow` (code 6031) rather than grouped, so no existing code shifts.
 
 | Group | Errors |
 | --- | --- |
@@ -308,6 +308,7 @@ One `RugRoyaleError` enum with these 31 variants, in this order so error codes s
 | Swap | `NotAParticipant`, `WrongPool`, `InsufficientBankroll`, `SlippageExceeded`, `ZeroAmount`, `ZeroOutput` |
 | Cleanup | `DuelStillLive`, `AlreadyClosed`, `EscrowNotEmpty` |
 | Math | `MathOverflow` |
+| Config (appended) | `InvalidSeedRatio` |
 
 Events are notifications only; the client reads state from accounts (RT-7, RT-8): `DuelCreated`, `PrizeSponsored`, `DuelJoined`, `SwapExecuted`, `DuelSettled`, `DuelCancelled`, `DuelClosed`. Fields are listed per handler in Section 6.
 

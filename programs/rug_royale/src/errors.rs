@@ -72,4 +72,7 @@ pub enum RugRoyaleError {
     // Math
     #[msg("Math overflow")]
     MathOverflow,
+    // Appended 2026-10-05 (PRD §8): init_config's pool_seed_ratio >= 1 check.
+    #[msg("Pool seed ratio must be at least 1")]
+    InvalidSeedRatio,
 }

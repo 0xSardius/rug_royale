@@ -36,7 +36,7 @@ pub struct InitConfigArgs {
 
 pub fn handle_init_config(ctx: Context<InitConfig>, args: InitConfigArgs) -> Result<()> {
     // TODO(Sidharth): checks in PRD §6.1 order (RakeTooHigh, FeeTooHigh, InvalidWindowSet,
-    // InvalidTierSet, InvalidMintList, pool_seed_ratio >= 1) before the writes below.
+    // InvalidTierSet, InvalidMintList, InvalidSeedRatio) before the writes below.
     // The writes are here already so every other handler's `config` seeds check passes in tests.
     let (_, mint_authority_bump) =
         Pubkey::find_program_address(&[MINT_AUTHORITY_SEED], ctx.program_id);

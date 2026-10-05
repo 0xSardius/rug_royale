@@ -2577,6 +2577,11 @@ export type RugRoyale = {
       "code": 6030,
       "name": "mathOverflow",
       "msg": "Math overflow"
+    },
+    {
+      "code": 6031,
+      "name": "invalidSeedRatio",
+      "msg": "Pool seed ratio must be at least 1"
     }
   ],
   "types": [

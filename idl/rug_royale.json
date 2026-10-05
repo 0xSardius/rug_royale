@@ -2571,6 +2571,11 @@
       "code": 6030,
       "name": "MathOverflow",
       "msg": "Math overflow"
+    },
+    {
+      "code": 6031,
+      "name": "InvalidSeedRatio",
+      "msg": "Pool seed ratio must be at least 1"
     }
   ],
   "types": [
