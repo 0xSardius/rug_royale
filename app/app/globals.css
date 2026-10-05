@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+/*
+ * Neo-brutalist tokens (see brand.md). Components use these via Tailwind classes
+ * (bg-card, border-border, shadow-brutal, ...); never hardcode colors in components.
+ */
+:root {
+  --background: #fff8e7;
+  --foreground: #0a0a0a;
+  --card: #ffffff;
+  --card-foreground: #0a0a0a;
+  --muted: #f1e9d2;
+  --muted-foreground: #4a4a4a;
+  --primary: #ffd400;
+  --primary-foreground: #0a0a0a;
+  --accent: #ff4fa3;
+  --accent-foreground: #0a0a0a;
+  --win: #22d37a;
+  --win-foreground: #0a0a0a;
+  --rug: #ff3b2f;
+  --rug-foreground: #0a0a0a;
+  --devnet: #ff9f1c;
+  --devnet-foreground: #0a0a0a;
+  --border: #0a0a0a;
+  --ring: #2f6bff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #121212;
+    --foreground: #fff8e7;
+    --card: #1d1d1d;
+    --card-foreground: #fff8e7;
+    --muted: #2a2a2a;
+    --muted-foreground: #c9c2ae;
+    --border: #fff8e7;
+    --ring: #7aa2ff;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-win: var(--win);
+  --color-win-foreground: var(--win-foreground);
+  --color-rug: var(--rug);
+  --color-rug-foreground: var(--rug-foreground);
+  --color-devnet: var(--devnet);
+  --color-devnet-foreground: var(--devnet-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --font-sans: var(--font-space-grotesk);
+  --font-mono: var(--font-jetbrains-mono);
+  --shadow-brutal-sm: 2px 2px 0 0 var(--border);
+  --shadow-brutal: 4px 4px 0 0 var(--border);
+  --shadow-brutal-lg: 6px 6px 0 0 var(--border);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* Wallet adapter modal: match the brutalist look. */
+.wallet-adapter-modal-wrapper {
+  border: 3px solid var(--border);
+  border-radius: 0 !important;
+  box-shadow: var(--shadow-brutal-lg);
+  font-family: var(--font-space-grotesk);
+}
+.wallet-adapter-button {
+  font-family: var(--font-space-grotesk);
+}
