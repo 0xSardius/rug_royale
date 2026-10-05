@@ -1,0 +1,113 @@
+{
+  "snapshotAt": "2026-10-05T23:44:53.626Z",
+  "source": "https://www.stonkfun.xyz/api/public/v1/tokens?sort=marketCap (excluding STONK)",
+  "network": "mainnet-beta",
+  "quote": {
+    "name": "devSTONK",
+    "symbol": "dSTONK",
+    "realMint": "6GmAFSYs4gk3FDao5FzzySQpPZaWsa4rUJHacpMpUNgx",
+    "demoMint": null
+  },
+  "coins": [
+    {
+      "rank": 1,
+      "name": "Anonymous Cat",
+      "symbol": "ZCAT",
+      "image": "https://gateway.irys.xyz/7uFsXwyuyzKDiqdda4L2cq3DcpcdRqYhwe4m8ZoVJ1BQ",
+      "realMint": "HcRLc9VDgjLeK154xDawfb1dmVJ98DoSqcwTHGqiDeJR",
+      "marketCapUsd": 46014516.57840566,
+      "priceUsd": 0.047583358540071466,
+      "demoMint": null
+    },
+    {
+      "rank": 2,
+      "name": "Nullmask",
+      "symbol": "MASK",
+      "image": "https://gateway.irys.xyz/7Dbdj8EPHEmf3bmRGnZMdeYTbDcKy7qGwrpDuqVzeKii",
+      "realMint": "HuAXPyDWDaMYFKuwQHpqL1oPnj93zdzWmtvFGzCeCUa7",
+      "marketCapUsd": 37509871.26987824,
+      "priceUsd": 0.03750987126987824,
+      "demoMint": null
+    },
+    {
+      "rank": 3,
+      "name": "Super Inu",
+      "symbol": "SI",
+      "image": "https://axiomtrading.sfo3.cdn.digitaloceanspaces.com/7ovByu4CKE2ogdbYTRx8o9z1XarkNMA3hXyxThWamoon.webp",
+      "realMint": "DEW9dSN6QpWyNthphCpMmAbZP1Q4cEKR9xQXAri98WDP",
+      "marketCapUsd": 26888383.99824355,
+      "priceUsd": 0.02688838399824355,
+      "demoMint": null
+    },
+    {
+      "rank": 4,
+      "name": "Sand Kitten",
+      "symbol": "SNDK",
+      "image": "https://gateway.irys.xyz/HxsrBJD2n1VDMJ6KfdhMGxT7VRB53ym84gq1QBPfjM9P",
+      "realMint": "8t5C4AWDg4CroMChxdo7rG2e8nJM31QG2GG7Czx9X7x2",
+      "marketCapUsd": 5072229.897206525,
+      "priceUsd": 0.0050722298972065245,
+      "demoMint": null
+    },
+    {
+      "rank": 5,
+      "name": "ALLINU",
+      "symbol": "ALLINU",
+      "image": "https://axiomtrading.sfo3.cdn.digitaloceanspaces.com/3jt62QcVQvTu2gCCYFWPBnVNgQ2uv5fVxkSa9hFepump.webp",
+      "realMint": "4MMQY9bwkxxTtsK3W227Q5ABT6yFY8Pmn9Ze7wmAXKY8",
+      "marketCapUsd": 4376263.740459818,
+      "priceUsd": 0.0043762637404598185,
+      "demoMint": null
+    },
+    {
+      "rank": 6,
+      "name": "Stonkitten",
+      "symbol": "STONKITTY",
+      "image": "https://gateway.irys.xyz/GTxT8Nptm91ovhAdsbXCGNsbejgHquBHvpzBXj2Rq9E6",
+      "realMint": "5YX4DjUf4y2q1SpHsKvwWZ8Bfyka2DXzVerWYiJxW6UE",
+      "marketCapUsd": 3790592.544873846,
+      "priceUsd": 0.0037905925448738463,
+      "demoMint": null
+    },
+    {
+      "rank": 7,
+      "name": "NearKat",
+      "symbol": "NEARKAT",
+      "image": "https://gateway.irys.xyz/EiwGr8C8Jf1MqrB1GbCCEjNXzXpr1NNhcitM6u39DQEA",
+      "realMint": "6UtY9iTZMQQ5QZVrbzFnNaJntV7oySm9k97mvwnuZcxr",
+      "marketCapUsd": 3565190.5888663307,
+      "priceUsd": 0.003565190588866331,
+      "demoMint": null
+    },
+    {
+      "rank": 8,
+      "name": "DividendCoin",
+      "symbol": "DIVI",
+      "image": "https://gateway.irys.xyz/FT9XVQdFwpkKMfEvi2rEKwEP7mNbXgtXvNUk2B3dWA9v",
+      "realMint": "FjTfaSH861nVcbAxdFAHTvhoSL4kyR6wgTWynuJkapht",
+      "marketCapUsd": 3464370.026560759,
+      "priceUsd": 0.003464370026560759,
+      "demoMint": null
+    },
+    {
+      "rank": 9,
+      "name": "RuneScape Gold",
+      "symbol": "GP",
+      "image": "https://gateway.irys.xyz/5wTHVjcQcbpWaKGLe2w8T1hpGoQsLAxhTvSMpXuKHPUx",
+      "realMint": "HTmQz7My6MehV7bjhJ6jde8nDND1yvsz68d24LP7YgUQ",
+      "marketCapUsd": 3220217.2040449632,
+      "priceUsd": 0.003220217204044963,
+      "demoMint": null
+    },
+    {
+      "rank": 10,
+      "name": "KNOTS",
+      "symbol": "KNOTS",
+      "image": "https://gateway.irys.xyz/3KNgu99JvZ961wXUxcZ8LXDXjaWK4651Wo9oUZSA5U4L",
+      "realMint": "8RVBk8vxLiUHueLUW1f4izFVqN3nWippLhkohKg6EGkS",
+      "marketCapUsd": 2457515.0633524423,
+      "priceUsd": 0.002457515063352442,
+      "demoMint": null
+    }
+  ]
+}
