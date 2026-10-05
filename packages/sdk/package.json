@@ -6,6 +6,7 @@
   "types": "src/index.ts",
   "dependencies": {
     "@solana/spl-token": "^0.4.15",
-    "@solana/web3.js": "^1.98.4"
+    "@solana/web3.js": "^1.98.4",
+    "@anchor-lang/core": "=1.1.2"
   }
 }

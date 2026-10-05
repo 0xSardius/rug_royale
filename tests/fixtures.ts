@@ -29,6 +29,9 @@ import {
   DEMO_DECIMALS,
   MINT_SIZE,
   createDemoMintIxs,
+  decodeConfig,
+  decodeDuel,
+  decodePool,
   initConfigAccounts,
   joinDuelAccounts,
   settleAccounts,
@@ -307,23 +310,18 @@ export async function tokenBalance(ctx: Ctx, ata: PublicKey): Promise<bigint> {
   return unpackAccount(ata, info, TOKEN_2022_PROGRAM_ID).amount;
 }
 
-export async function fetchDuel(ctx: Ctx, duel: PublicKey) {
-  const data = await ctx.sender.accountData(duel);
-  if (!data) throw new Error(`duel ${duel.toBase58()} not found`);
-  return ctx.program.coder.accounts.decode("duel", data);
+async function mustRead(ctx: Ctx, pk: PublicKey, what: string) {
+  const data = await ctx.sender.accountData(pk);
+  if (!data) throw new Error(`${what} ${pk.toBase58()} not found`);
+  return data;
 }
 
-export async function fetchPool(ctx: Ctx, pool: PublicKey) {
-  const data = await ctx.sender.accountData(pool);
-  if (!data) throw new Error(`pool ${pool.toBase58()} not found`);
-  return ctx.program.coder.accounts.decode("pool", data);
-}
-
-export async function fetchConfig(ctx: Ctx, config: PublicKey) {
-  const data = await ctx.sender.accountData(config);
-  if (!data) throw new Error(`config ${config.toBase58()} not found`);
-  return ctx.program.coder.accounts.decode("config", data);
-}
+export const fetchDuel = async (ctx: Ctx, duel: PublicKey) =>
+  decodeDuel(await mustRead(ctx, duel, "duel"));
+export const fetchPool = async (ctx: Ctx, pool: PublicKey) =>
+  decodePool(await mustRead(ctx, pool, "pool"));
+export const fetchConfig = async (ctx: Ctx, config: PublicKey) =>
+  decodeConfig(await mustRead(ctx, config, "config"));
 
 // ---------------------------------------------------------------------------
 // Setup: mints and config
