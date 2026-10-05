@@ -12,7 +12,8 @@
     "checkpoint": "tsx scripts/checkpoint.ts",
     "idl": "anchor build && cp target/idl/rug_royale.json target/types/rug_royale.ts idl/",
     "snapshot": "tsx scripts/snapshot.ts",
-    "setup-mints": "tsx scripts/setup-mints.ts"
+    "setup-mints": "tsx scripts/setup-mints.ts",
+    "math:vectors": "tsx scripts/gen-math-vectors.ts"
   },
   "dependencies": {
     "@anchor-lang/core": "=1.1.2",

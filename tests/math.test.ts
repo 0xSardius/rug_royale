@@ -1,3 +1,5 @@
+import { readFileSync } from "fs";
+import path from "path";
 import { expect } from "chai";
 import {
   buyOut,
@@ -9,6 +11,10 @@ import {
   swapQuote,
 } from "@rug-royale/sdk";
 import { rng } from "../scripts/lib/rng";
+import {
+  MATH_VECTORS_PATH,
+  generateMathVectors,
+} from "../scripts/lib/math-vectors";
 
 const U = 1_000_000n; // 6 decimals
 
@@ -145,5 +151,16 @@ describe("math (PRD §7)", () => {
         ).to.equal(p.pot);
       }
     });
+  });
+});
+
+describe("math vectors", () => {
+  it("committed vectors match math.ts (run `pnpm math:vectors` after changing the math)", () => {
+    const committed = JSON.parse(
+      readFileSync(path.join(__dirname, "..", MATH_VECTORS_PATH), "utf8")
+    );
+    expect(committed).to.deep.equal(
+      JSON.parse(JSON.stringify(generateMathVectors()))
+    );
   });
 });
