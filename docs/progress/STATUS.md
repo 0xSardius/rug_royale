@@ -2,19 +2,21 @@
 
 The live picture of where the build stands. Update it whenever a task finishes, a gate passes, or a decision is made. History lives in `checkpoints/`; this file is only the present.
 
-**Last updated:** 2026-10-03 · **Latest checkpoint:** `checkpoints/20261003-1929-repo-scaffold.md`
-**Deadline:** submit Sat 2026-10-10 (Turbin3 deadline 2026-10-11) · **Feature freeze:** Fri 2026-10-09 noon
+**Last updated:** 2026-10-05 · **Plan:** `BUILD_PLAN.md` · **Latest checkpoint:** `checkpoints/20261003-1929-repo-scaffold.md`
+**Deadline:** submit Sat 2026-10-10 (PRD says Turbin3 deadline 2026-10-11; confirm) · **Feature freeze:** Fri 2026-10-09 noon · **Demo day:** week of Oct 12
+**Graded (see `docs/turbin3_requirements.md`):** devnet deploy + ID in README · full test suite passing **on devnet** + screenshot in README · architecture documented in README · <5 min presentation (≤5 slides) showing devnet tests · individual reflections
 
-## Daily gates (PRD §12)
+## Daily gates (re-baselined in `BUILD_PLAN.md`, 2026-10-05)
 
 - [x] Sat Oct 3: decisions locked (G1, G3, G9, split), repo scaffold, `CLAUDE.md`
-- [ ] Sun Oct 4: all 8 handlers stubbed with full account structs; **IDL frozen**
-- [ ] Mon Oct 5: first devnet deploy (partial)
-- [ ] Tue Oct 6: full LiteSVM suite green
-- [ ] Wed Oct 7: end-to-end duel on devnet by script
-- [ ] Thu Oct 8: end-to-end duel in the browser; safety video take
-- [ ] Fri Oct 9: bug bash (win, tie, freeroll, cancel, late settle); freeze at noon; final video
-- [ ] Sat Oct 10: README, video linked, submitted
+- [ ] ~~Sun Oct 4: IDL frozen~~ slipped to Mon
+- [ ] Mon Oct 5: account structs merged, **IDL frozen**, stub program on devnet, math unit tests green
+- [ ] Tue Oct 6: create → join → swap passes in LiteSVM; fixtures can target devnet; devnet windows decided
+- [ ] Wed Oct 7: full LiteSVM suite green; devnet suite happy path passes
+- [ ] Thu Oct 8: full devnet suite green + screenshot; browser duel; safety recording
+- [ ] Fri Oct 9: bug bash; freeze at noon; README with Mermaid architecture; 5-slide deck
+- [ ] Sat Oct 10: final recordings; repo submitted
+- [ ] Demo week (Oct 12+): rehearsal under 5 min; individual reflections submitted
 
 ## Work by owner
 
@@ -29,39 +31,53 @@ Status values: `todo` · `doing` · `review` · `done`.
 | `sponsor_prize` + tests | 6.3 | todo |
 | `cancel_duel` + tests | 6.7 | todo |
 | `close_duel` (burn + close) + tests | 6.8 | todo |
-| Invariants I8–I11, I13 | 9 | todo |
+| Invariants I1, I8, I13 | 9 | todo |
+| Devnet suite: cancel, freeroll, no-wait error cases | 9 | todo |
+| Slide deck (with Yamin), demo script | — | todo |
 
 ### Yamin: math and trading
 | Item | PRD | Status |
 | --- | --- | --- |
 | `math/` amm, valuation, payout + Rust unit tests | 7 | todo |
 | `swap` + tests; I3–I5 | 6.5, 9 | todo |
-| `settle` + payout tests; I1, I2, I6, I7; scenarios 1–5 | 6.6, 9 | todo |
+| `settle` + payout tests; I2, I6, I7, I11; scenarios 1–5 | 6.6, 9 | todo |
+| `swap` invariants I9, I10 | 9 | todo |
+| Devnet suite: tie + payout-exactness cases | 9 | todo |
 | `sim.ts`, tune `pool_seed_ratio` / fee | 10 | todo |
+| Slide deck (with Sidharth) | — | todo |
 
 ### Justin: SDK, scripts, frontend, demo
 | Item | PRD | Status |
 | --- | --- | --- |
 | Repo scaffold, `CLAUDE.md`, checkpoint system | 4, 14 | done |
 | SDK: PDAs, lobby offsets | 4, 5 | done |
-| SDK: decoders, `math.ts` mirror (I12) | 7, 9 | todo |
+| Account structs for all 8 handlers (IDL freeze PR, pending OK) | 6 | todo |
+| Test fixtures: LiteSVM + RPC senders | 9 | todo |
+| Devnet deploy of stub program | 13 | todo |
+| SDK: decoders, `ix.ts`, `math.ts` mirror (I12) | 7, 9 | todo |
 | `snapshot.ts`, `setup-mints.ts` | 10 | todo |
 | `init-config.ts`, `crank.ts` | 10 | todo |
+| Devnet suite: harness + happy path; README screenshot | 9, 13 | todo |
 | Frontend: shell, wallet, lobby, create | 11 | todo |
 | Frontend: duel page states 1–5, result popup | 11 | todo |
-| README, demo video | 13 | todo |
+| README: program ID, test screenshot, Mermaid architecture | 13 | todo |
+| Recordings: devnet test run, browser duel | 13 | todo |
 
 ## Open questions
 
-- **Program keypair.** `target/deploy/rug_royale-keypair.json` is gitignored. Program ID `5USpVpECZNcq4ZjRUyATb9ykcSRzZ29vHDwNMYFwNJWE` comes from Justin's local key; share that keypair out of band before the first devnet deploy, or everyone else's `anchor build` will produce a different ID.
+- **Program keypair.** The plan is for Justin to deploy to devnet once, which locks in `5USpVpECZNcq4ZjRUyATb9ykcSRzZ29vHDwNMYFwNJWE`. Justin is the only deployer, so the keypair isn't shared. Teammates build and test with the ID already in `declare_id!` and **must not run `anchor keys sync`**.
 - **`pool_seed_ratio >= 1` error.** PRD §6.1 requires the check but §8 names no error for it. Pick an existing variant or amend the PRD before adding a 32nd.
 - **StonkFun API endpoint.** Verify the path at stonkfun.xyz/developers (PRD §10).
-- **Video rubric.** Does Turbin3 set a length limit or required sections? Check before Thursday (PRD §13).
+- **Devnet windows.** Proposal: `[30, 120, 300, 900]` instead of `[120, 300, 600, 900]`, so the devnet suite runs in about 2 min. `Config` is permanent, so decide by **Tue Oct 6**, before `init-config.ts` runs. Needs Sidharth's and Yamin's OK.
+- **Account-struct PR.** Proposal: Justin drafts all 8 today for the IDL freeze; owners review. Needs Sidharth's and Yamin's OK.
+- **Submission deadline.** The PRD says Oct 11; the Turbin3 brief only names demo week (Oct 12+). Confirm the repo deadline.
 
 ## Decision log
 
 Newest first. Anything that changes the PRD gets a line here **and** an edit to `docs/prd.md`.
 
+- 2026-10-05: Turbin3 brief received (`docs/turbin3_requirements.md`). Added a **devnet test suite** alongside LiteSVM; README must hold the architecture (Mermaid) and a devnet-test screenshot; frontend ranks below the devnet suite and README. Plan re-baselined in `BUILD_PLAN.md`; PRD §12/§13 updated.
+- 2026-10-05: Justin is the only devnet deployer; the program keypair is not shared.
 - 2026-10-03: Pinned Anchor **1.1.2** (installed locally; 1.2.0 exists). Crates pinned with `=1.1.2` so CLI and crate versions match.
 - 2026-10-03: TS tests use `litesvm@0.8.0` (last web3.js v1 line) with the `@anchor-lang/core` IDL client, run by mocha with the `tsx` loader. `litesvm@1.x` moved to `@solana/kit` and does not pair with the Anchor TS client.
 - 2026-10-03: Team confirmed G1 (program-owned Escrow), G3 (Token-2022 with no extensions), G9 (fixed Duel layout), and the owner split.

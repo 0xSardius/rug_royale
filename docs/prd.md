@@ -175,7 +175,7 @@ pub struct Escrow { pub bump: u8 }    // lamports above rent = entries + sponsor
 | --- | --- | --- |
 | Mint decimals (all demo mints) | 6 | Matches StonkFun coins |
 | `tiers` | 1,000 / 10,000 / 100,000 tokens | Size is cosmetic; ratios drive the game |
-| `windows` | 120, 300, 600, 900 s | 120 s keeps the live demo short |
+| `windows` | 120, 300, 600, 900 s (**proposed 2026-10-05:** 30, 120, 300, 900 s; pending team OK) | 120 s keeps the live demo short; a 30 s window keeps the devnet test suite near 2 minutes (Section 9) |
 | `pool_seed_ratio` | 10 | A full-bankroll buy moves price about 21% |
 | `swap_fee_bps` | 30 | Raydium-like |
 | `rake_bps` | 250 | 2.5% of a funded pot |
@@ -315,6 +315,8 @@ Events are notifications only; the client reads state from accounts (RT-7, RT-8)
 
 Done means every test below passes in LiteSVM with `anchor build` output, plus Rust unit tests for `math/`. One test file per handler, plus `invariants.ts` and `scenarios.ts`.
 
+**Two suites (added 2026-10-05).** Turbin3 requires "a complete set of tests passing on devnet" with a screenshot in the README (`docs/turbin3_requirements.md`). Everything in this section runs in LiteSVM. A second suite in `tests/devnet/` runs against the deployed program in real time and covers the happy path for all 8 handlers; the tie, freeroll, and cancel paths; and every typed error that needs no clock warp. Both suites share `tests/fixtures.ts`. See `docs/progress/BUILD_PLAN.md`.
+
 **Per handler.** One happy path and one test per typed error the handler can raise, asserting the exact error code. Every test that touches time warps the LiteSVM clock rather than sleeping.
 
 **Invariants (the tests graders and the team should trust)**
@@ -388,6 +390,8 @@ Three routes and one shared result popup. The duel page is the product; spend mo
 
 ## 12. Timeline and ownership
 
+> **Superseded 2026-10-05:** the day-by-day table below is replaced by `docs/progress/BUILD_PLAN.md`, which absorbs the Sunday slip and the Turbin3 brief. The owner split still holds.
+
 Seven build days, feature freeze at noon Friday 2026-10-09, submit Saturday 2026-10-10. The critical path is the program; the IDL freezes Sunday night so frontend and scripts never wait on it.
 
 **Split (confirmed 2026-10-03):** Sidharth owns lifecycle and escrow (`init_config`, `create_duel`, `join_duel`, `sponsor_prize`, `cancel_duel`, `close_duel`). Yamin owns the math and trading (`math/`, `swap`, `settle`, the sim), since he built the opening-race example. Justin owns `packages/sdk`, scripts, frontend, crank, README, and the demo. Each program owner reviews the other's PRs.
@@ -411,15 +415,20 @@ The MVP is done when every box below is ticked on devnet, not localnet.
 
 - [ ] `anchor build` clean, no warnings in program code; program deployed to devnet, ID in README.
 - [ ] Full LiteSVM suite and Rust math tests pass in CI on every PR.
+- [ ] Devnet suite (`tests/devnet/`) passes against the deployed program; a screenshot of the run is in the README.
 - [ ] `Config` on devnet matches Section 5 defaults (or the sim-tuned values) and the 10 demo mints.
 - [ ] Two browsers, two wallets: create, join, both swap, crank settles within 10 s of `end_ts`, winner's SOL balance rises by the prize.
 - [ ] Loser sees You Lose!, winner sees You Win!, including after a page reload.
 - [ ] A tie duel (nobody trades) and a cancelled duel both complete with exact refunds.
 - [ ] Settle button works when the crank is stopped.
-- [ ] README covers: what it is, the three assets (entry, bankroll, coin), how to run tests, deploy steps, known limits (Section 15), CU numbers, links to the architecture doc, and an implementation note that Escrow is program-owned (diagram 6.2 labels it System Program).
-- [ ] Demo video recorded, uploaded, and linked in the README and the submission.
+- [ ] README covers: what it is, the three assets (entry, bankroll, coin), the devnet program ID, the devnet test screenshot, **the architecture in the README itself** (Mermaid ports of diagrams 6.1–6.4, not just a link to the PDF), how to run both test suites, deploy steps, known limits (Section 15), CU numbers, and an implementation note that Escrow is program-owned (diagram 6.2 labels it System Program).
+- [ ] Recordings made of the devnet test run and a browser duel, as demo-day backup.
+- [ ] Deck of at most 5 slides; presentation rehearsed under 5 minutes (demo day, week of Oct 12).
+- [ ] Each member submits an individual reflection on their contribution.
 
-**Demo script (about 4 minutes, 120 s window)**
+**Demo day format (Turbin3, added 2026-10-05).** Under 5 minutes, at most 5 slides, and it **must show the devnet tests passing** (a recording is allowed). A frontend is optional. The script below needs a rewrite: open with the problem and solution, show the devnet test run, then the browser duel if time allows. Owners: Sidharth and Yamin, Fri Oct 9.
+
+**Demo script (about 4 minutes, 120 s window; to be revised)**
 
 1. Lobby: show the top-10 coin picker and the real-coin context panel; explain entry vs bankroll vs coin in one sentence.
 2. Player A creates a 0.05 SOL, 120 s duel on one coin; Player B joins from the invite link.
@@ -434,7 +443,7 @@ The MVP is done when every box below is ticked on devnet, not localnet.
 - **Safety take:** record a rough take Thursday night as soon as the browser end-to-end duel works, so a usable video exists even if Friday goes wrong.
 - **Final take:** Friday afternoon after the noon freeze, following the script above. Re-record Saturday morning only if the Friday take has a bug on screen.
 - **Prep:** fund both demo wallets, pick a coin with a clear logo, start the crank before recording, and use the 120 s window so the duel fits.
-- **Open question:** does Turbin3 set a length limit or required sections? Check the rubric before Thursday.
+- **Answered 2026-10-05:** under 5 minutes, at most 5 slides, devnet tests shown passing (see `docs/turbin3_requirements.md`).
 
 ## 14. Working rules for Claude Code
 

@@ -7,8 +7,9 @@ Rug Royale is a 1v1 trading duel on Solana and the team's Turbin3 capstone. Two 
 ## Start every session here
 
 1. Read `docs/progress/STATUS.md` (gates, owners, open questions) and the newest file in `docs/progress/checkpoints/`.
-2. The spec is `docs/prd.md`. It **wins** over `docs/architecture.pdf`, and the LOI (`docs/loi.pdf`) is background only. The LOI's rival coins, `emergency_refund`, and 9 handlers are all superseded.
-3. If a task needs a decision the PRD does not make, stop and ask. Do not invent fields, accounts, or handlers.
+2. The plan is `docs/progress/BUILD_PLAN.md`; what Turbin3 grades is in `docs/turbin3_requirements.md` (devnet deploy, a full test suite passing **on devnet**, architecture in the README).
+3. The spec is `docs/prd.md`. It **wins** over `docs/architecture.pdf`, and the LOI (`docs/loi.pdf`) is background only. The LOI's rival coins, `emergency_refund`, and 9 handlers are all superseded.
+4. If a task needs a decision the PRD does not make, stop and ask. Do not invent fields, accounts, or handlers.
 
 ## Commands
 
@@ -34,7 +35,7 @@ Toolchain: Anchor CLI and crates pinned to **1.1.2** (`=1.1.2` in Cargo.toml; sw
   - `math/`: pure AMM, valuation, and payout functions. Handlers call these and never inline math.
   - `errors.rs`, `events.rs`, `constants.rs` (seeds and limits).
 - `packages/sdk` (`@rug-royale/sdk`): PDA helpers, Duel byte offsets for lobby `memcmp` filters, and later the decoders plus `math.ts`, which mirrors the Rust math exactly. Scripts and the frontend import from it.
-- `tests/`: LiteSVM TS suites, one `*.test.ts` per handler plus `invariants` and `scenarios`. `tests/setup.ts` loads `target/deploy/rug_royale.so` into a fresh LiteSVM. The Anchor `Program` there only *builds* instructions; send them with `svm.sendTransaction`. Warp the clock for time-dependent tests instead of sleeping.
+- `tests/`: two suites sharing `tests/fixtures.ts` (planned). LiteSVM suites (`tests/*.test.ts`, one per handler plus `invariants` and `scenarios`) are exhaustive. The devnet suite (`tests/devnet/`, planned) runs against the deployed program in real time and is the one Turbin3 grades. `tests/setup.ts` loads `target/deploy/rug_royale.so` into a fresh LiteSVM. The Anchor `Program` there only *builds* instructions; send them with `svm.sendTransaction`. Warp the clock for time-dependent tests instead of sleeping.
 - `scripts/`: off-chain TS, run with `tsx`: snapshot, setup-mints, init-config, crank, sim, checkpoint.
 - `app/`: Next.js frontend (not created yet).
 
