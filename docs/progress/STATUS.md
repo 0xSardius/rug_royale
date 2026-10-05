@@ -2,7 +2,7 @@
 
 The live picture of where the build stands. Update it whenever a task finishes, a gate passes, or a decision is made. History lives in `checkpoints/`; this file is only the present.
 
-**Last updated:** 2026-10-05 · **Plan:** `BUILD_PLAN.md` · **Latest checkpoint:** `checkpoints/20261005-2308-plan-rebaseline.md`
+**Last updated:** 2026-10-05 · **Plan:** `BUILD_PLAN.md` · **Latest checkpoint:** `checkpoints/20261005-2322-idl-freeze-fixtures-devnet.md`
 **Deadline:** Turbin3 due Sun 2026-10-11 (confirmed); our target is Sat 2026-10-10, leaving a day to review · **Feature freeze:** Fri 2026-10-09 noon · **Demo day:** week of Oct 12
 **Graded (see `docs/turbin3_requirements.md`):** devnet deploy + ID in README · full test suite passing **on devnet** + screenshot in README · architecture documented in README · <5 min presentation (≤5 slides) showing devnet tests · individual reflections
 
