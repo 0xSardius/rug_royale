@@ -25,7 +25,7 @@ Status values: `todo` · `doing` · `review` · `done`.
 ### Sidharth: lifecycle and escrow
 | Item | PRD | Status |
 | --- | --- | --- |
-| `init_config` + tests | 6.1 | todo |
+| `init_config` + tests (field writes done in the stub; checks + tests todo) | 6.1 | todo |
 | `create_duel` + tests (record CU) | 6.2 | todo |
 | `join_duel` + tests | 6.4 | todo |
 | `sponsor_prize` + tests | 6.3 | todo |
@@ -51,10 +51,11 @@ Status values: `todo` · `doing` · `review` · `done`.
 | --- | --- | --- |
 | Repo scaffold, `CLAUDE.md`, checkpoint system | 4, 14 | done |
 | SDK: PDAs, lobby offsets | 4, 5 | done |
-| Account structs for all 8 handlers (IDL freeze PR, pending OK) | 6 | todo |
-| Test fixtures: LiteSVM + RPC senders | 9 | todo |
-| Devnet deploy of stub program | 13 | todo |
-| SDK: decoders, `ix.ts`, `math.ts` mirror (I12) | 7, 9 | todo |
+| Account structs for all 8 handlers (branch `idl-freeze-account-structs`, awaiting review) | 6 | review |
+| Test fixtures: LiteSVM + RPC senders (branch `test-fixtures`, stacked on the IDL branch) | 9 | review |
+| Devnet deploy of stub program (address locked; on-chain IDL upload failed, see open questions) | 13 | done |
+| SDK: account maps for all 8 ixs | 4 | review |
+| SDK: decoders, `math.ts` mirror (I12) | 7, 9 | todo |
 | `snapshot.ts`, `setup-mints.ts` | 10 | todo |
 | `init-config.ts`, `crank.ts` | 10 | todo |
 | Devnet suite: harness + happy path; README screenshot | 9, 13 | todo |
@@ -69,12 +70,16 @@ Status values: `todo` · `doing` · `review` · `done`.
 - **`pool_seed_ratio >= 1` error.** PRD §6.1 requires the check but §8 names no error for it. Pick an existing variant or amend the PRD before adding a 32nd.
 - **StonkFun API endpoint.** Verify the path at stonkfun.xyz/developers (PRD §10).
 - **Devnet windows.** Proposal: `[30, 120, 300, 900]` instead of `[120, 300, 600, 900]`, so the devnet suite runs in about 2 min. `Config` is permanent, so decide by **Tue Oct 6**, before `init-config.ts` runs. Needs Sidharth's and Yamin's OK.
-- **Account-struct PR.** Proposal: Justin drafts all 8 today for the IDL freeze; owners review. Needs Sidharth's and Yamin's OK.
+- **Account-struct PR review.** Justin drafted all 8 on `idl-freeze-account-structs` (not merged). Sidharth reviews his 6 handlers and Yamin reviews `swap`/`settle`. Design notes for review: structural checks live in the account structs; every PRD-ordered typed error stays in the handler. Vault-authority bumps come from `ctx.bumps` because `Duel` stores none.
+- **On-chain IDL upload.** `anchor deploy` / `anchor idl init` fail with "Failed to initialize IDL" (Anchor 1.x program-metadata path). Not blocking, since clients use the committed `idl/`; it only affects explorer decoding.
 
 ## Decision log
 
 Newest first. Anything that changes the PRD gets a line here **and** an edit to `docs/prd.md`.
 
+- 2026-10-05: Proceeding without waiting on the team because of the time difference. All program changes go on review branches, not `main`.
+- 2026-10-05: Stub program deployed to devnet; `5USpVpECZNcq4ZjRUyATb9ykcSRzZ29vHDwNMYFwNJWE` is locked. Upgrade authority: Justin's wallet `47mx…rqBg`.
+- 2026-10-05: `create_duel` uses about 143k CU on account inits alone; clients send a 400k compute-unit limit (PRD §6.2 note).
 - 2026-10-05: Official deadline confirmed as Oct 11. We submit Oct 10 and keep Oct 11 for review.
 - 2026-10-05: Turbin3 brief received (`docs/turbin3_requirements.md`). Added a **devnet test suite** alongside LiteSVM; README must hold the architecture (Mermaid) and a devnet-test screenshot; frontend ranks below the devnet suite and README. Plan re-baselined in `BUILD_PLAN.md`; PRD §12/§13 updated.
 - 2026-10-05: Justin is the only devnet deployer; the program keypair is not shared.
