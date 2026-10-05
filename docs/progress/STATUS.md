@@ -10,7 +10,7 @@ The live picture of where the build stands. Update it whenever a task finishes, 
 
 - [x] Sat Oct 3: decisions locked (G1, G3, G9, split), repo scaffold, `CLAUDE.md`
 - [ ] ~~Sun Oct 4: IDL frozen~~ slipped to Mon
-- [ ] Mon Oct 5: account structs merged, **IDL frozen**, stub program on devnet, math unit tests green
+- [ ] Mon Oct 5: ~~account structs merged~~ ✓, ~~**IDL frozen**~~ ✓, ~~stub program on devnet~~ ✓, math unit tests green
 - [ ] Tue Oct 6: create → join → swap passes in LiteSVM; fixtures can target devnet; devnet windows decided
 - [ ] Wed Oct 7: full LiteSVM suite green; devnet suite happy path passes
 - [ ] Thu Oct 8: full devnet suite green + screenshot; browser duel; safety recording
@@ -51,10 +51,10 @@ Status values: `todo` · `doing` · `review` · `done`.
 | --- | --- | --- |
 | Repo scaffold, `CLAUDE.md`, checkpoint system | 4, 14 | done |
 | SDK: PDAs, lobby offsets | 4, 5 | done |
-| Account structs for all 8 handlers (branch `idl-freeze-account-structs`, awaiting review) | 6 | review |
-| Test fixtures: LiteSVM + RPC senders (branch `test-fixtures`, stacked on the IDL branch) | 9 | review |
+| Account structs for all 8 handlers (merged to main; owner review as follow-up) | 6 | done |
+| Test fixtures: LiteSVM + RPC senders (merged) | 9 | done |
 | Devnet deploy of stub program (address locked; on-chain IDL upload failed, see open questions) | 13 | done |
-| SDK: account maps for all 8 ixs | 4 | review |
+| SDK: account maps for all 8 ixs (merged) | 4 | done |
 | SDK: decoders, `math.ts` mirror (I12) | 7, 9 | todo |
 | `snapshot.ts`, `setup-mints.ts` | 10 | todo |
 | `init-config.ts`, `crank.ts` | 10 | todo |
@@ -67,16 +67,17 @@ Status values: `todo` · `doing` · `review` · `done`.
 ## Open questions
 
 - **Program keypair.** The plan is for Justin to deploy to devnet once, which locks in `5USpVpECZNcq4ZjRUyATb9ykcSRzZ29vHDwNMYFwNJWE`. Justin is the only deployer, so the keypair isn't shared. Teammates build and test with the ID already in `declare_id!` and **must not run `anchor keys sync`**.
-- **`pool_seed_ratio >= 1` error.** PRD §6.1 requires the check but §8 names no error for it. Pick an existing variant or amend the PRD before adding a 32nd.
 - **StonkFun API endpoint.** Verify the path at stonkfun.xyz/developers (PRD §10).
-- **Devnet windows.** Proposal: `[30, 120, 300, 900]` instead of `[120, 300, 600, 900]`, so the devnet suite runs in about 2 min. `Config` is permanent, so decide by **Tue Oct 6**, before `init-config.ts` runs. Needs Sidharth's and Yamin's OK.
-- **Account-struct PR review.** Justin drafted all 8 on `idl-freeze-account-structs` (not merged). Sidharth reviews his 6 handlers and Yamin reviews `swap`/`settle`. Design notes for review: structural checks live in the account structs; every PRD-ordered typed error stays in the handler. Vault-authority bumps come from `ctx.bumps` because `Duel` stores none.
+- **Devnet windows.** Default `[30, 120, 300, 900]` (instead of `[120, 300, 600, 900]`), so the devnet suite runs in about 2 min. **Final Tue Oct 6 noon unless someone objects.** `Config` is permanent once `init-config.ts` runs.
+- **Account-struct review (follow-up).** Merged to `main` so nobody builds on the old stubs. Sidharth reviews his 6 handlers and Yamin reviews `swap`/`settle`. Fix anything in your handler PR; the merges are `e1f8323` / `9961df4` if a full revert is ever needed. Design notes: structural checks live in the account structs; every PRD-ordered typed error stays in the handler. Vault-authority bumps come from `ctx.bumps`.
 - **On-chain IDL upload.** `anchor deploy` / `anchor idl init` fail with "Failed to initialize IDL" (Anchor 1.x program-metadata path). Not blocking, since clients use the committed `idl/`; it only affects explorer decoding.
 
 ## Decision log
 
 Newest first. Anything that changes the PRD gets a line here **and** an edit to `docs/prd.md`.
 
+- 2026-10-05: Merged the account structs and fixtures to `main` (review as follow-up). Added `InvalidSeedRatio` (code 6031) for the `pool_seed_ratio` check: a default, open to objection until Tue noon.
+- 2026-10-05: Fallback rule: any critical-path handler without a PR by Tue Oct 6 noon gets picked up by Justin (BUILD_PLAN working agreements).
 - 2026-10-05: Proceeding without waiting on the team because of the time difference. All program changes go on review branches, not `main`.
 - 2026-10-05: Stub program deployed to devnet; `5USpVpECZNcq4ZjRUyATb9ykcSRzZ29vHDwNMYFwNJWE` is locked. Upgrade authority: Justin's wallet `47mx…rqBg`.
 - 2026-10-05: `create_duel` uses about 143k CU on account inits alone; clients send a 400k compute-unit limit (PRD §6.2 note).

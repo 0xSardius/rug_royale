@@ -31,7 +31,7 @@ The frontend is "not mandatory." We still build it because a live duel with the 
 
 Both suites share `tests/fixtures.ts` and the SDK instruction builders. The fixtures take a small sender interface (LiteSVM or RPC `Connection`), so a scenario is written once. Clock warping exists only on the LiteSVM side; devnet tests wait on real time.
 
-**Devnet windows (proposed, needs team OK before `init-config.ts` runs):** `windows = [30, 120, 300, 900]` instead of PRD §5's `[120, 300, 600, 900]`. The 30 s window keeps the devnet suite at about 2 minutes, and the demo still uses 120 s. `Config` is permanent (G12), so decide by **Tue Oct 6**.
+**Devnet windows (default, final Tue Oct 6 noon unless someone objects):** `windows = [30, 120, 300, 900]` instead of PRD §5's `[120, 300, 600, 900]`. The 30 s window keeps the devnet suite at about 2 minutes, and the demo still uses 120 s. `Config` is permanent (G12), so decide by **Tue Oct 6**.
 
 **Devnet SOL:** every test duel pays rent, and the `Duel` rent is locked forever. Keep 3–4 funded test wallets in `.env` paths and top them up daily; airdrops are rate-limited.
 
@@ -136,4 +136,6 @@ If behind, drop in this order:
 - Commit under your own name and email; the individual reflections lean on `git log`.
 - Update your rows in `STATUS.md` in the PR that does the work. Run `pnpm checkpoint <slug> --verify` when a gate passes.
 - Blocked for more than an hour? Say so in chat and take the next item on your list.
+- **Defaults with deadlines.** When a decision is posted with a default and a deadline, silence means yes. Object before the deadline or it's final.
+- **Fallback rule.** If a critical-path handler (`create_duel`, `join_duel`, `swap`, `settle`, or `math/`) has no PR up by **Tue Oct 6 noon**, Justin picks it up so the deadline holds. The owner can still review it and is credited in the PR. Say early if you're blocked; this rule is a backstop, not a takeover.
 - Justin is the only devnet deployer (the program keypair isn't shared). Nobody runs `anchor keys sync`.
