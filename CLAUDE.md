@@ -68,3 +68,7 @@ The team is three people working in parallel, so progress state lives in the rep
 - `docs/progress/STATUS.md` is the **present**: daily gates, per-owner task tables, open questions, and the decision log. Edit it in the same commit as the work it describes.
 - `docs/progress/checkpoints/` is the **history**: one append-only file per meaningful milestone, created by `pnpm checkpoint <slug> [--verify]`. The script fills in git state since the previous checkpoint and, with `--verify`, build and test results. Fill in its Summary, Decisions, and Next sections, then point STATUS's "Latest checkpoint" at it.
 - Write a checkpoint when a handler or feature lands, a daily gate passes, a decision changes the plan, or before ending a long session with work in flight.
+
+## Frozen IDL
+
+`idl/rug_royale.json` and `idl/rug_royale.ts` are the committed, frozen interface that the SDK, scripts, and frontend build against. After any change to accounts, args, or events, run `pnpm idl` (build + copy) and commit `idl/` in the same PR, and give the team a heads-up.

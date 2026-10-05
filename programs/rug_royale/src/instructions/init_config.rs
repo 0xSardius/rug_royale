@@ -1,11 +1,22 @@
 use anchor_lang::prelude::*;
 
-/// PRD §6.1 — owner: Sidharth. STUB: only the signer is declared.
-/// Full account list, checks (in PRD order) and effects are specified in PRD §6.1.
+use crate::constants::*;
+use crate::state::Config;
+
+/// PRD §6.1 — owner: Sidharth.
 #[derive(Accounts)]
 pub struct InitConfig<'info> {
     #[account(mut)]
     pub admin: Signer<'info>,
+    #[account(
+        init,
+        payer = admin,
+        space = 8 + Config::INIT_SPACE,
+        seeds = [CONFIG_SEED],
+        bump,
+    )]
+    pub config: Box<Account<'info, Config>>,
+    pub system_program: Program<'info, System>,
 }
 
 /// Every `Config` field except `admin` (the signer) and bumps.
@@ -13,9 +24,9 @@ pub struct InitConfig<'info> {
 pub struct InitConfigArgs {
     pub treasury: Pubkey,
     pub quote_mint: Pubkey,
-    pub allowed_mints: [Pubkey; crate::constants::NUM_ALLOWED_MINTS],
-    pub tiers: [u64; crate::constants::NUM_TIERS],
-    pub windows: [u32; crate::constants::NUM_WINDOWS],
+    pub allowed_mints: [Pubkey; NUM_ALLOWED_MINTS],
+    pub tiers: [u64; NUM_TIERS],
+    pub windows: [u32; NUM_WINDOWS],
     pub pool_seed_ratio: u64,
     pub settler_tip_lamports: u64,
     pub max_entry_lamports: u64,
@@ -24,5 +35,7 @@ pub struct InitConfigArgs {
 }
 
 pub fn handle_init_config(_ctx: Context<InitConfig>, _args: InitConfigArgs) -> Result<()> {
+    // TODO(Sidharth): checks in PRD §6.1 order, then write Config (bumps from ctx.bumps;
+    // mint_authority_bump via Pubkey::find_program_address([MINT_AUTHORITY_SEED])).
     Ok(())
 }
