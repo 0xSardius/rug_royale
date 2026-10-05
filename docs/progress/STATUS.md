@@ -38,7 +38,7 @@ Status values: `todo` · `doing` · `review` · `done`.
 ### Yamin: math and trading
 | Item | PRD | Status |
 | --- | --- | --- |
-| `math/` amm, valuation, payout + Rust unit tests | 7 | todo |
+| `math/` amm, valuation, payout + Rust unit tests. **Must pass `programs/rug_royale/tests/vectors/math.json`** (505 swaps, 100 valuations, 50 results, 200 payouts; load with `include_str!` + `serde_json`) | 7 | todo |
 | `swap` + tests; I3–I5 | 6.5, 9 | todo |
 | `settle` + payout tests; I2, I6, I7, I11; scenarios 1–5 | 6.6, 9 | todo |
 | `swap` invariants I9, I10 | 9 | todo |
@@ -55,7 +55,8 @@ Status values: `todo` · `doing` · `review` · `done`.
 | Test fixtures: LiteSVM + RPC senders (merged) | 9 | done |
 | Devnet deploy of stub program (address locked; on-chain IDL upload failed, see open questions) | 13 | done |
 | SDK: account maps for all 8 ixs (merged) | 4 | done |
-| SDK: decoders, `math.ts` mirror (I12) | 7, 9 | todo |
+| SDK: decoders, lobby filters, events, error messages | 4, 11 | done |
+| SDK: `math.ts` (PRD §7) + Rust test vectors (`pnpm math:vectors`) | 7, 9 | done |
 | `snapshot.ts`, `setup-mints.ts` (11 devnet mints created and verified; `coins.json` committed) | 10 | done |
 | `init-config.ts`, `crank.ts` | 10 | todo |
 | Devnet suite: harness + happy path; README screenshot | 9, 13 | todo |

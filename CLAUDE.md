@@ -23,6 +23,9 @@ cargo test -p rug_royale <name>    # single Rust test
 npx tsc --noEmit -p .              # typecheck tests, scripts, and the SDK
 pnpm lint                          # prettier check
 pnpm checkpoint <slug> [--verify]  # write a progress checkpoint (see below)
+pnpm math:vectors                  # regenerate Rust math test vectors from packages/sdk/src/math.ts
+pnpm snapshot                      # StonkFun top 10 -> coins.json (refuses once demo mints exist)
+pnpm setup-mints                   # create/verify devnet demo mints into coins.json (idempotent)
 ```
 
 Toolchain: Anchor CLI and crates pinned to **1.1.2** (`=1.1.2` in Cargo.toml; switch with `avm use 1.1.2`), Rust 1.89.0 via `rust-toolchain.toml`, pnpm workspaces. The TS client package is `@anchor-lang/core`, not `@coral-xyz/anchor`.
@@ -34,13 +37,14 @@ Toolchain: Anchor CLI and crates pinned to **1.1.2** (`=1.1.2` in Cargo.toml; sw
   - `state/`: `Config`, `Duel`, `Pool`, `Escrow`.
   - `math/`: pure AMM, valuation, and payout functions. Handlers call these and never inline math.
   - `errors.rs`, `events.rs`, `constants.rs` (seeds and limits).
-- `packages/sdk` (`@rug-royale/sdk`): PDA helpers, Duel byte offsets for lobby `memcmp` filters, and later the decoders plus `math.ts`, which mirrors the Rust math exactly. Scripts and the frontend import from it.
+- `packages/sdk` (`@rug-royale/sdk`): everything off-chain code needs (PDAs, account maps, decoders that return plain types, lobby filters, event parsing, error messages, demo-mint ixs) plus `math.ts`, the PRD §7 math that the Rust must match exactly. Scripts, tests, and the frontend import from it. `idl.ts` exposes `IDL` (camelCase, for the coder) and `IDL_JSON` (raw, for `new Program`).
+- **Math parity (I12):** `math.ts` is the reference. `pnpm math:vectors` writes `programs/rug_royale/tests/vectors/math.json`, and the Rust math unit tests must reproduce every case. Changing either side means regenerating vectors in the same PR.
 - `tests/`: two suites sharing `tests/fixtures.ts`. LiteSVM suites (`tests/*.test.ts`, one per handler plus `invariants` and `scenarios`) are exhaustive. The devnet suite (`tests/devnet/`, planned) runs against the deployed program in real time and is the one Turbin3 grades.
   - Tests talk to a `Sender` (`LiteSvmSender` or `RpcSender`) through a `Ctx` from `liteCtx()` / `rpcCtx()`. Scenario helpers (`setupProtocol`, `createDuel`, `joinDuel`, `swap`, `settle`, ...) return a `TxResult`; assert with `expectOk` / `expectError(res, "WindowEnded")`.
   - Instructions are encoded from `idl/` with `.accountsStrict(...)` using the SDK account maps (`packages/sdk/src/accounts.ts`). Anchor's client-side PDA resolution is not used, because it needs an RPC fetch for seeds that read `Duel` fields.
   - Time: `ctx.sender.warpTo(ts)` on LiteSVM; `waitUntil(ts)` on RPC. Never sleep in LiteSVM tests.
   - `create_duel` needs a 400k compute-unit limit (the fixture adds it).
-- `scripts/`: off-chain TS, run with `tsx`: snapshot, setup-mints, init-config, crank, sim, checkpoint.
+- `scripts/`: off-chain TS, run with `tsx`; `scripts/lib/env.ts` loads `.env` (see `.env.example`), RPC, keypairs, and `coins.json`. `coins.json` (repo root) maps each devnet demo mint to its real StonkFun coin; its order is `Config.allowed_mints` order.
 - `app/`: Next.js frontend (not created yet).
 
 Key cross-file facts:
