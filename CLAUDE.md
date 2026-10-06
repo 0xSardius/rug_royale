@@ -26,6 +26,8 @@ pnpm checkpoint <slug> [--verify]  # write a progress checkpoint (see below)
 pnpm math:vectors                  # regenerate Rust math test vectors from packages/sdk/src/math.ts
 pnpm snapshot                      # StonkFun top 10 -> coins.json (refuses once demo mints exist)
 pnpm setup-mints                   # create/verify devnet demo mints into coins.json (idempotent)
+pnpm --filter @rug-royale/app dev  # frontend at localhost:3000 (app/.env.local: NEXT_PUBLIC_RPC_URL)
+pnpm --filter @rug-royale/app build && pnpm --filter @rug-royale/app lint
 ```
 
 Toolchain: Anchor CLI and crates pinned to **1.1.2** (`=1.1.2` in Cargo.toml; switch with `avm use 1.1.2`), Rust 1.89.0 via `rust-toolchain.toml`, pnpm workspaces. The TS client package is `@anchor-lang/core`, not `@coral-xyz/anchor`.
@@ -45,7 +47,7 @@ Toolchain: Anchor CLI and crates pinned to **1.1.2** (`=1.1.2` in Cargo.toml; sw
   - Time: `ctx.sender.warpTo(ts)` on LiteSVM; `waitUntil(ts)` on RPC. Never sleep in LiteSVM tests.
   - `create_duel` needs a 400k compute-unit limit (the fixture adds it).
 - `scripts/`: off-chain TS, run with `tsx`; `scripts/lib/env.ts` loads `.env` (see `.env.example`), RPC, keypairs, and `coins.json`. `coins.json` (repo root) maps each devnet demo mint to its real StonkFun coin; its order is `Config.allowed_mints` order.
-- `app/`: Next.js frontend (not created yet).
+- `app/`: Next.js 16 frontend (see `app/CLAUDE.md` and `brand.md`). Next 16 differs from older versions (async `params`, Turbopack default); check `app/node_modules/next/dist/docs/` before using an unfamiliar API.
 
 Key cross-file facts:
 - **Duel byte offsets:** `status`@8, `creator`@89, `opponent`@121. They are defined in `state/duel.rs` (with a Rust test) and duplicated in `packages/sdk/src/layout.ts`. Any change to the Duel layout must update both.

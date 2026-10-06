@@ -60,8 +60,10 @@ Status values: `todo` · `doing` · `review` · `done`.
 | `snapshot.ts`, `setup-mints.ts` (11 devnet mints created and verified; `coins.json` committed) | 10 | done |
 | `init-config.ts`, `crank.ts` | 10 | todo |
 | Devnet suite: harness + happy path; README screenshot | 9, 13 | todo |
-| Frontend: shell, wallet, lobby, create | 11 | todo |
-| Frontend: duel page states 1–5, result popup | 11 | todo |
+| Frontend: shell, wallet, lobby, create (neo-brutalist, `brand.md`) | 11 | done |
+| Frontend: duel page states 1–2 + join flow | 11 | done |
+| Frontend: trading panel, PnL bars, Settle button, result card, popup (states 3–5) | 11 | todo |
+| Vercel deploy | 13 | todo |
 | README: program ID, test screenshot, Mermaid architecture | 13 | todo |
 | Recordings: devnet test run, browser duel | 13 | todo |
 
