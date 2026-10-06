@@ -2,7 +2,7 @@
 
 The live picture of where the build stands. Update it whenever a task finishes, a gate passes, or a decision is made. History lives in `checkpoints/`; this file is only the present.
 
-**Last updated:** 2026-10-05 · **Plan:** `BUILD_PLAN.md` · **Latest checkpoint:** `checkpoints/20261007-0030-ci-readme-scripts.md`
+**Last updated:** 2026-10-07 · **Plan:** `BUILD_PLAN.md` · **Latest checkpoint:** `checkpoints/20261007-0030-ci-readme-scripts.md`
 **Deadline:** Turbin3 due Sun 2026-10-11 (confirmed); our target is Sat 2026-10-10, leaving a day to review · **Feature freeze:** Fri 2026-10-09 noon · **Demo day:** week of Oct 12
 **Graded (see `docs/turbin3_requirements.md`):** devnet deploy + ID in README · full test suite passing **on devnet** + screenshot in README · architecture documented in README · <5 min presentation (≤5 slides) showing devnet tests · individual reflections
 
@@ -38,7 +38,7 @@ Status values: `todo` · `doing` · `review` · `done`.
 ### Yamin: math and trading
 | Item | PRD | Status |
 | --- | --- | --- |
-| `math/` amm, valuation, payout + Rust unit tests. **Must pass `programs/rug_royale/tests/vectors/math.json`** (505 swaps, 100 valuations, 50 results, 200 payouts; load with `include_str!` + `serde_json`) | 7 | todo |
+| `math/` amm, valuation, payout + Rust unit tests. **Must pass `programs/rug_royale/tests/vectors/math.json`** (505 swaps, 100 valuations, 50 results, 200 payouts; load with `include_str!` + `serde_json`) | 7 | doing (amm done: 505/505 swap vectors; PR draft) |
 | `swap` + tests; I3–I5 | 6.5, 9 | todo |
 | `settle` + payout tests; I2, I6, I7, I11; scenarios 1–5 | 6.6, 9 | todo |
 | `swap` invariants I9, I10 | 9 | todo |

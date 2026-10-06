@@ -25,3 +25,7 @@ anchor-spl = { version = "=1.1.2", default-features = false, features = ["associ
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }
+
+[dev-dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
