@@ -31,8 +31,8 @@ pub fn net_of_fee(amount_in: u64, fee_bps: u16) -> Result<u128> {
         / BPS)
 }
 
-/// `reserve_out * in_net / (reserve_in + in_net)`, rounded down.
-fn amount_out(in_net: u128, reserve_in: u64, reserve_out: u64) -> Result<u64> {
+/// `reserve_out * in_net / (reserve_in + in_net)`, rounded down. Used by valuation too.
+pub fn amount_out(in_net: u128, reserve_in: u64, reserve_out: u64) -> Result<u64> {
     let num = (reserve_out as u128)
         .checked_mul(in_net)
         .ok_or(RugRoyaleError::MathOverflow)?;

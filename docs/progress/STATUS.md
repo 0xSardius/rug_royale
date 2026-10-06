@@ -38,7 +38,7 @@ Status values: `todo` · `doing` · `review` · `done`.
 ### Yamin: math and trading
 | Item | PRD | Status |
 | --- | --- | --- |
-| `math/` amm, valuation, payout + Rust unit tests. **Must pass `programs/rug_royale/tests/vectors/math.json`** (505 swaps, 100 valuations, 50 results, 200 payouts; load with `include_str!` + `serde_json`) | 7 | doing (amm done: 505/505 swap vectors; PR draft) |
+| `math/` amm, valuation, payout + Rust unit tests. **Must pass `programs/rug_royale/tests/vectors/math.json`** (505 swaps, 100 valuations, 50 results, 200 payouts; load with `include_str!` + `serde_json`) | 7 | review (855/855 vectors pass) |
 | `swap` + tests; I3–I5 | 6.5, 9 | todo |
 | `settle` + payout tests; I2, I6, I7, I11; scenarios 1–5 | 6.6, 9 | todo |
 | `swap` invariants I9, I10 | 9 | todo |
