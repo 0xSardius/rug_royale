@@ -26,8 +26,8 @@ Status values: `todo` · `doing` · `review` · `done`.
 | Item | PRD | Status |
 | --- | --- | --- |
 | `init_config` + tests (field writes done in the stub; checks + tests todo) | 6.1 | todo |
-| `create_duel` + tests (record CU) | 6.2 | todo |
-| `join_duel` + tests | 6.4 | todo |
+| `create_duel` + tests (133,517 CU) — **picked up by Justin** (fallback; Sidharth out sick) | 6.2 | done |
+| `join_duel` + tests — **Justin picking up next** | 6.4 | todo |
 | `sponsor_prize` + tests | 6.3 | todo |
 | `cancel_duel` + tests | 6.7 | todo |
 | `close_duel` (burn + close) + tests. Keep `ctx.accounts.verify_ata_addresses()?` as the first line (see decision log) | 6.8 | todo |
