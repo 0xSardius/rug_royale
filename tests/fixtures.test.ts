@@ -65,9 +65,7 @@ describe("fixtures", () => {
         null
       );
     }
-    console.log(
-      `      create_duel CU: ${res.cu}`
-    );
+    console.log(`      create_duel CU: ${res.cu}`);
   });
 
   it("can warp the LiteSVM clock", async () => {
