@@ -1946,6 +1946,24 @@ export type RugRoyale = {
           "signer": true
         },
         {
+          "name": "config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "duel",
           "pda": {
             "seeds": [
