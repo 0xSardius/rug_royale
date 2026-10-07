@@ -415,7 +415,7 @@ Seven build days, feature freeze at noon Friday 2026-10-09, submit Saturday 2026
 The MVP is done when every box below is ticked on devnet, not localnet.
 
 - [ ] `anchor build` clean, no warnings in program code; program deployed to devnet, ID in README.
-- [ ] Full LiteSVM suite and Rust math tests pass in CI on every PR.
+- [ ] Rust math tests, the math-vector check, typecheck, and the frontend build pass in CI on every PR (light CI, `.github/workflows/ci.yml`). The full LiteSVM suite passes locally (`pnpm test`), with the summary pasted in each program PR.
 - [ ] Devnet suite (`tests/devnet/`) passes against the deployed program; a screenshot of the run is in the README.
 - [ ] `Config` on devnet matches Section 5 defaults (or the sim-tuned values) and the 10 demo mints.
 - [ ] Two browsers, two wallets: create, join, both swap, crank settles within 10 s of `end_ts`, winner's SOL balance rises by the prize.

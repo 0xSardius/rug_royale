@@ -68,7 +68,7 @@ Key cross-file facts:
 ## Workflow
 
 - Small PRs, one handler or one feature each, with tests in the same PR. Write the failing test first for every typed error.
-- Before calling a task done, run `anchor build` and the full test suite and paste the summary.
+- Before calling a task done, run `anchor build` and the full test suite and paste the summary. CI (`.github/workflows/ci.yml`) only runs the checks that need no Solana toolchain: Rust unit tests, typecheck, prettier, the math-vector check (`pnpm test:offchain`), and the frontend build. Program PRs must include the local `pnpm test` summary.
 - Any change to the Rust math must change `packages/sdk/src/math.ts` in the same PR, and invariant I12 must pass.
 - Keypairs, `.env`, and RPC keys are gitignored. The program keypair in `target/deploy/` is shared out of band (see STATUS open questions).
 
