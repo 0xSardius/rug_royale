@@ -11,8 +11,19 @@ import {
   DuelStatus,
 } from "./layout";
 
-type BNLike = { toString(): string };
-const big = (v: BNLike) => BigInt(v.toString());
+type BNLike = { toString(base?: number): string };
+/**
+ * BN → bigint via hex. Do not use `BigInt(bn.toString())`: on Node 24 (V8 Maglev/Turbofan)
+ * bn.js's base-10 `toString()` is sometimes miscompiled once hot and returns only the low
+ * 7 digits (e.g. 11036329022 → "6329022"). The hex path has no division loop.
+ */
+export const bnToBigInt = (v: BNLike): bigint => {
+  const hex = v.toString(16);
+  return hex.startsWith("-")
+    ? -BigInt("0x" + hex.slice(1))
+    : BigInt("0x" + hex);
+};
+const big = bnToBigInt;
 const optKey = (k: PublicKey) => (k.equals(PublicKey.default) ? null : k);
 /** Anchor decodes enums as `{ open: {} }`; map the variant name to its index. */
 const variant = <T extends number>(v: object, names: string[]) =>

@@ -2,7 +2,7 @@
 
 The live picture of where the build stands. Update it whenever a task finishes, a gate passes, or a decision is made. History lives in `checkpoints/`; this file is only the present.
 
-**Last updated:** 2026-10-05 · **Plan:** `BUILD_PLAN.md` · **Latest checkpoint:** `checkpoints/20261007-0030-ci-readme-scripts.md`
+**Last updated:** 2026-10-07 · **Plan:** `BUILD_PLAN.md` · **Latest checkpoint:** `checkpoints/20261007-0030-ci-readme-scripts.md`
 **Deadline:** Turbin3 due Sun 2026-10-11 (confirmed); our target is Sat 2026-10-10, leaving a day to review · **Feature freeze:** Fri 2026-10-09 noon · **Demo day:** week of Oct 12
 **Graded (see `docs/turbin3_requirements.md`):** devnet deploy + ID in README · full test suite passing **on devnet** + screenshot in README · architecture documented in README · <5 min presentation (≤5 slides) showing devnet tests · individual reflections
 
@@ -38,10 +38,10 @@ Status values: `todo` · `doing` · `review` · `done`.
 ### Yamin: math and trading
 | Item | PRD | Status |
 | --- | --- | --- |
-| `math/` amm, valuation, payout + Rust unit tests. **Must pass `programs/rug_royale/tests/vectors/math.json`** (505 swaps, 100 valuations, 50 results, 200 payouts; load with `include_str!` + `serde_json`) | 7 | todo |
-| `swap` + tests; I3–I5 | 6.5, 9 | todo |
+| `math/` amm, valuation, payout + Rust unit tests. **Must pass `programs/rug_royale/tests/vectors/math.json`** (505 swaps, 100 valuations, 50 results, 200 payouts; load with `include_str!` + `serde_json`) | 7 | review (855/855 vectors pass) |
+| `swap` + tests; I3–I5 (I9, I10, I12 too). Tests inject an Active duel until create/join land | 6.5, 9 | review |
 | `settle` + payout tests; I2, I6, I7, I11; scenarios 1–5 | 6.6, 9 | todo |
-| `swap` invariants I9, I10 | 9 | todo |
+| `swap` invariants I9, I10 | 9 | review (in the swap PR) |
 | Devnet suite: tie + payout-exactness cases | 9 | todo |
 | `sim.ts`, tune `pool_seed_ratio` / fee | 10 | todo |
 | Slide deck (with Sidharth) | — | todo |
@@ -79,6 +79,9 @@ Status values: `todo` · `doing` · `review` · `done`.
 ## Decision log
 
 Newest first. Anything that changes the PRD gets a line here **and** an edit to `docs/prd.md`.
+
+- 2026-10-07: **SDK converts BN → bigint via hex (`bnToBigInt`).** On Node 24.10 and 24.13, V8's optimizer sometimes miscompiles bn.js's base-10 `toString()` once hot, returning only the low 7 digits (11036329022 → "6329022"). Seen in the swap random-sequence test; disappears with `--no-maglev` or on Node 22. Never write `BigInt(bn.toString())`.
+- 2026-10-07: **`swap` takes `config` (read-only)** to get `swap_fee_bps` (G4); PRD §6.5 omitted it. IDL re-frozen, SDK `swapAccounts` updated; team heads-up goes out with the swap PR.
 
 - 2026-10-05: StonkFun snapshot uses `GET https://www.stonkfun.xyz/api/public/v1/tokens?sort=marketCap` (public, no key, 300 req/min). **STONK is excluded** from the duel coins because the quote mint (devSTONK) stands in for it; the next 10 by market cap are used.
 - 2026-10-05: Devnet demo mints created (`coins.json`): quote devSTONK `4fgyjcmj1MUX3HoHExLwdYYoASDQJPHsXSWAbNToJpbA` plus 10 coins, all with mint authority = MintAuthority PDA `8rbDWrez1DWQNjnr1f9bqu7v8k8TXLU6mfFBxWE2b1x3`. Order in `coins.json` = `Config.allowed_mints` order.

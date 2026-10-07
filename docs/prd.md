@@ -221,7 +221,7 @@ Each handler does one state transition. Checks run in the order listed so tests 
 ### 6.5 `swap` (REQ05, REQ10, UC-2)
 
 - **Signer:** player. **Args:** `side: Side { Buy, Sell }, amount_in: u64, min_out: u64`.
-- **Accounts:** duel, pool (mut, seeds `["pool", duel]`), vault authority (seeds `["vault", duel, signer]`), player quote + coin vaults (mut, authority = vault authority), pool quote + coin accounts (mut), quote mint, coin mint, token program.
+- **Accounts:** config (read, for `swap_fee_bps`; added 2026-10-07), duel, pool (mut, seeds `["pool", duel]`), vault authority (seeds `["vault", duel, signer]`), player quote + coin vaults (mut, authority = vault authority), pool quote + coin accounts (mut), quote mint, coin mint, token program.
 - **Checks:** `status == Active` (`DuelNotActive`); `now >= start_ts` (`WindowNotStarted`); `now < end_ts` (`WindowEnded`); signer is creator or opponent (`NotAParticipant`); pool matches duel (`WrongPool`, enforced by seeds); `amount_in > 0` (`ZeroAmount`); `amount_in <=` source vault balance (`InsufficientBankroll`); `out >= min_out` (`SlippageExceeded`).
 - **Effect:** Buy: `transfer_checked` quote vault → pool quote (vault PDA signs), then pool coin → player coin vault (pool PDA signs). Sell is the mirror. Reserves updated; assert `k_after >= k_before`.
 - **Event:** `SwapExecuted { duel, player, side, amount_in, amount_out, quote_reserve, token_reserve }`. Reserves in the event let the client chart price without extra reads.

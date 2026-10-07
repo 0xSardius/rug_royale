@@ -139,6 +139,7 @@ export const swapAccounts = (ref: DuelRef, player: PublicKey) => {
   const p = poolAccounts(ref);
   return {
     player,
+    config: findConfig(ref.programId)[0],
     duel: ref.duel,
     pool: p.pool,
     vaultAuthority: v.authority,

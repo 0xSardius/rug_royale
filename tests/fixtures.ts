@@ -32,8 +32,13 @@ import {
   decodeConfig,
   decodeDuel,
   decodePool,
+  findDuel,
+  findEscrow,
+  findPool,
   initConfigAccounts,
   joinDuelAccounts,
+  playerVaults,
+  poolAccounts,
   settleAccounts,
   sponsorPrizeAccounts,
   swapAccounts,
@@ -532,4 +537,145 @@ export async function closeDuel(ctx: Ctx, ref: DuelRef, caller: Keypair) {
     .accountsStrict(closeDuelAccounts(ref, caller.publicKey))
     .instruction();
   return ctx.sender.send([ix], caller);
+}
+
+// ---------------------------------------------------------------------------
+// LiteSVM-only state injection.
+//
+// Until create_duel and join_duel have bodies, the stubs only create accounts (Duel and
+// Pool stay zeroed, nothing is minted). `injectActiveDuel` runs both stubs so every
+// account exists, then writes the Active state a real create + join would leave: Duel
+// fields, the Escrow and Pool bumps, Pool reserves, and token balances. Demo mints are owned by the MintAuthority
+// PDA, so balances are written directly rather than minted. Replace with real
+// createDuel + joinDuel once those handlers land.
+
+/** Overwrites a token account's `amount` (offset 64 in the base SPL layout). */
+export function setTokenAmount(
+  sender: LiteSvmSender,
+  ata: PublicKey,
+  amount: bigint
+) {
+  const acc = sender.svm.getAccount(ata);
+  if (!acc) throw new Error(`token account ${ata.toBase58()} not found`);
+  const data = Buffer.from(acc.data);
+  data.writeBigUInt64LE(amount, 64);
+  sender.svm.setAccount(ata, { ...acc, data });
+}
+
+async function setAnchorAccount(
+  ctx: Ctx & { sender: LiteSvmSender },
+  pk: PublicKey,
+  name: "duel" | "pool" | "escrow",
+  value: Record<string, unknown>
+) {
+  const acc = ctx.sender.svm.getAccount(pk);
+  if (!acc) throw new Error(`${name} ${pk.toBase58()} not found`);
+  const encoded = await ctx.program.coder.accounts.encode(name, value);
+  const data = Buffer.alloc(acc.data.length);
+  Buffer.from(encoded).copy(data);
+  ctx.sender.svm.setAccount(pk, { ...acc, data });
+}
+
+export interface ActiveDuelParams {
+  creator: Keypair;
+  opponent: Keypair;
+  mints: Mints;
+  coin?: PublicKey;
+  /** Raw quote units per player. Defaults to tier 0 (1,000 tokens). */
+  bankroll?: bigint;
+  /** Raw units of each side of the pool. Defaults to bankroll × 10 (PRD §5 ratio). */
+  poolSeed?: bigint;
+  startTs?: bigint;
+  windowSecs?: number;
+  entryLamports?: bigint;
+  /** Written after join. Defaults to "active"; other values test status checks. */
+  status?: "open" | "active" | "settled" | "cancelled";
+}
+
+export async function injectActiveDuel(
+  ctx: Ctx & { sender: LiteSvmSender },
+  p: ActiveDuelParams
+) {
+  const nonce = ++nonceCounter;
+  const coin = p.coin ?? p.mints.coins[0];
+  const bankroll = p.bankroll ?? 1_000n * UNIT;
+  const poolSeed = p.poolSeed ?? bankroll * 10n;
+  const windowSecs = p.windowSecs ?? 120;
+  const startTs = p.startTs ?? (await ctx.sender.now()) + 60n;
+  const endTs = startTs + BigInt(windowSecs);
+
+  const created = await createDuel(ctx, {
+    creator: p.creator,
+    mints: p.mints,
+    coin,
+    nonce,
+    windowSecs,
+  });
+  expectOk(created.res);
+  const ref = created.ref;
+  const [, duelBump] = findDuel(ctx.programId, p.creator.publicKey, nonce);
+  const [pool, poolBump] = findPool(ctx.programId, ref.duel);
+  const bn = (x: bigint) => new BN(x.toString());
+
+  const duelFields = (status: string, opponent: PublicKey) => ({
+    status: { [status]: {} },
+    result: 0,
+    tier: 0,
+    closed: false,
+    bump: duelBump,
+    windowSecs,
+    nonce: bn(nonce),
+    entryLamports: bn(p.entryLamports ?? 0n),
+    sponsoredLamports: bn(0n),
+    bankroll: bn(bankroll),
+    finalA: bn(0n),
+    finalB: bn(0n),
+    joinDeadline: bn(startTs - 60n),
+    startTs: bn(status === "open" ? 0n : startTs),
+    endTs: bn(status === "open" ? 0n : endTs),
+    creator: p.creator.publicKey,
+    opponent,
+    allowedOpponent: PublicKey.default,
+    sponsor: PublicKey.default,
+    coin,
+    quoteMint: p.mints.quote,
+  });
+
+  const [escrow, escrowBump] = findEscrow(ctx.programId, ref.duel);
+  await setAnchorAccount(ctx, escrow, "escrow", { bump: escrowBump });
+  // join_duel's seeds read creator/nonce/bump/mints from Duel and the Escrow bump, so
+  // write those first.
+  await setAnchorAccount(
+    ctx,
+    ref.duel,
+    "duel",
+    duelFields("open", PublicKey.default)
+  );
+  const joined = await joinDuel(ctx, ref, p.opponent);
+  expectOk(joined.res);
+
+  await setAnchorAccount(
+    ctx,
+    ref.duel,
+    "duel",
+    duelFields(p.status ?? "active", p.opponent.publicKey)
+  );
+  await setAnchorAccount(ctx, pool, "pool", {
+    duel: ref.duel,
+    coin,
+    quoteReserve: bn(poolSeed),
+    tokenReserve: bn(poolSeed),
+    bump: poolBump,
+  });
+  const pa = poolAccounts(joined.ref);
+  setTokenAmount(ctx.sender, pa.quote, poolSeed);
+  setTokenAmount(ctx.sender, pa.coin, poolSeed);
+  for (const player of [p.creator.publicKey, p.opponent.publicKey])
+    setTokenAmount(
+      ctx.sender,
+      playerVaults(joined.ref, player).quote,
+      bankroll
+    );
+
+  return { ref: joined.ref, startTs, endTs, bankroll, poolSeed };
 }
