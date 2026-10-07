@@ -344,7 +344,9 @@ Devnet setup, in order (each script reads `.env`; see `.env.example`):
 ```bash
 pnpm snapshot           # StonkFun top 10 -> coins.json
 pnpm setup-mints        # create the 11 demo mints (authority = MintAuthority PDA)
-# init-config.ts, crank.ts: in progress
+pnpm init-config        # dry run: prints Config and simulates
+pnpm init-config --send # initialize Config (permanent), then diff it on-chain
+pnpm crank              # settle / cancel / close duels every 5 s (--once for one pass)
 ```
 
 ## Known limits (accepted for the MVP)

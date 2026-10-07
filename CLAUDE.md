@@ -26,6 +26,9 @@ pnpm checkpoint <slug> [--verify]  # write a progress checkpoint (see below)
 pnpm math:vectors                  # regenerate Rust math test vectors from packages/sdk/src/math.ts
 pnpm snapshot                      # StonkFun top 10 -> coins.json (refuses once demo mints exist)
 pnpm setup-mints                   # create/verify devnet demo mints into coins.json (idempotent)
+pnpm init-config [--send]          # dry-run (default) or initialize Config on devnet; diffs it after
+pnpm crank [--once]                # settle/cancel/close bot; decisions in scripts/lib/crank-plan.ts
+pnpm test:offchain                 # math + vectors + crank plan (what CI runs)
 pnpm --filter @rug-royale/app dev  # frontend at localhost:3000 (app/.env.local: NEXT_PUBLIC_RPC_URL)
 pnpm --filter @rug-royale/app build && pnpm --filter @rug-royale/app lint
 ```

@@ -58,13 +58,15 @@ Status values: `todo` · `doing` · `review` · `done`.
 | SDK: decoders, lobby filters, events, error messages | 4, 11 | done |
 | SDK: `math.ts` (PRD §7) + Rust test vectors (`pnpm math:vectors`) | 7, 9 | done |
 | `snapshot.ts`, `setup-mints.ts` (11 devnet mints created and verified; `coins.json` committed) | 10 | done |
-| `init-config.ts`, `crank.ts` | 10 | todo |
+| `init-config.ts` (dry run passes on devnet; `--send` after windows are final) and `crank.ts` | 10 | done |
 | Devnet suite: harness + happy path; README screenshot | 9, 13 | todo |
 | Frontend: shell, wallet, lobby, create (neo-brutalist, `brand.md`) | 11 | done |
 | Frontend: duel page states 1–2 + join flow | 11 | done |
 | Frontend: trading panel, PnL bars, Settle button, result card, popup (states 3–5) | 11 | todo |
 | Vercel deploy | 13 | todo |
-| README: program ID, test screenshot, Mermaid architecture | 13 | todo |
+| README: program ID, Mermaid architecture (7 diagrams) | 13 | done |
+| README: devnet test screenshot, CU numbers | 13 | todo |
+| Light CI (`.github/workflows/ci.yml`) | 13 | done |
 | Recordings: devnet test run, browser duel | 13 | todo |
 
 ## Open questions
