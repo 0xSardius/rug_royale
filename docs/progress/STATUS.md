@@ -30,7 +30,7 @@ Status values: `todo` · `doing` · `review` · `done`.
 | `join_duel` + tests | 6.4 | todo |
 | `sponsor_prize` + tests | 6.3 | todo |
 | `cancel_duel` + tests | 6.7 | todo |
-| `close_duel` (burn + close) + tests | 6.8 | todo |
+| `close_duel` (burn + close) + tests. Keep `ctx.accounts.verify_ata_addresses()?` as the first line (see decision log) | 6.8 | todo |
 | Invariants I1, I8, I13 | 9 | todo |
 | Devnet suite: cancel, freeroll, no-wait error cases | 9 | todo |
 | Slide deck (with Yamin), demo script | — | todo |
@@ -38,10 +38,10 @@ Status values: `todo` · `doing` · `review` · `done`.
 ### Yamin: math and trading
 | Item | PRD | Status |
 | --- | --- | --- |
-| `math/` amm, valuation, payout + Rust unit tests. **Must pass `programs/rug_royale/tests/vectors/math.json`** (505 swaps, 100 valuations, 50 results, 200 payouts; load with `include_str!` + `serde_json`) | 7 | review (855/855 vectors pass) |
-| `swap` + tests; I3–I5 (I9, I10, I12 too). Tests inject an Active duel until create/join land | 6.5, 9 | review |
+| `math/` amm, valuation, payout + Rust unit tests. **Must pass `programs/rug_royale/tests/vectors/math.json`** (505 swaps, 100 valuations, 50 results, 200 payouts; load with `include_str!` + `serde_json`) | 7 | done (#1, 855/855 vectors) |
+| `swap` + tests; I3–I5 (I9, I10, I12 too). Tests inject an Active duel until create/join land | 6.5, 9 | done (#2) |
 | `settle` + payout tests; I2, I6, I7, I11; scenarios 1–5 | 6.6, 9 | todo |
-| `swap` invariants I9, I10 | 9 | review (in the swap PR) |
+| `swap` invariants I9, I10 | 9 | done (#2) |
 | Devnet suite: tie + payout-exactness cases | 9 | todo |
 | `sim.ts`, tune `pool_seed_ratio` / fee | 10 | todo |
 | Slide deck (with Sidharth) | — | todo |
@@ -80,6 +80,8 @@ Status values: `todo` · `doing` · `review` · `done`.
 
 Newest first. Anything that changes the PRD gets a line here **and** an edit to `docs/prd.md`.
 
+- 2026-10-07: **`close_duel` stack fix.** Six `associated_token::` constraints overflowed the 4 KB BPF stack in `CloseDuel::try_accounts` (4,736 bytes; `anchor build` prints it as `Error: ... Stack offset` but still emits a binary). Token accounts now use `token::` constraints, and `verify_ata_addresses` checks the exact ATAs in its own frame as the handler's first call. Check `anchor build` output for `Stack offset` on any struct with many ATAs.
+- 2026-10-07: Reviewed and merged #1 (math, 855/855 vectors) and #2 (swap, 17 tests). The `bnToBigInt` fix reproduces: the old conversion fails the random-swap test the same way every run.
 - 2026-10-07: **SDK converts BN → bigint via hex (`bnToBigInt`).** On Node 24.10 and 24.13, V8's optimizer sometimes miscompiles bn.js's base-10 `toString()` once hot, returning only the low 7 digits (11036329022 → "6329022"). Seen in the swap random-sequence test; disappears with `--no-maglev` or on Node 22. Never write `BigInt(bn.toString())`.
 - 2026-10-07: **`swap` takes `config` (read-only)** to get `swap_fee_bps` (G4); PRD §6.5 omitted it. IDL re-frozen, SDK `swapAccounts` updated; team heads-up goes out with the swap PR.
 
