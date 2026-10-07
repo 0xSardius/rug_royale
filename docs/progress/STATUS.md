@@ -27,7 +27,7 @@ Status values: `todo` · `doing` · `review` · `done`.
 | --- | --- | --- |
 | `init_config` + tests (field writes done in the stub; checks + tests todo) | 6.1 | todo |
 | `create_duel` + tests (133,517 CU) — **picked up by Justin** (fallback; Sidharth out sick) | 6.2 | done |
-| `join_duel` + tests — **Justin picking up next** | 6.4 | todo |
+| `join_duel` + tests (80,651 CU) — **picked up by Justin** (fallback) | 6.4 | done |
 | `sponsor_prize` + tests | 6.3 | todo |
 | `cancel_duel` + tests | 6.7 | todo |
 | `close_duel` (burn + close) + tests. Keep `ctx.accounts.verify_ata_addresses()?` as the first line (see decision log) | 6.8 | todo |
@@ -80,6 +80,7 @@ Status values: `todo` · `doing` · `review` · `done`.
 
 Newest first. Anything that changes the PRD gets a line here **and** an edit to `docs/prd.md`.
 
+- 2026-10-07: **`join_duel` creates the opponent vaults by CPI after its checks** (not `init`), because Anchor runs `init` before any check and a self-join hit "already in use" instead of `CannotJoinOwnDuel`. Same pattern applies to any handler whose typed error must beat an `init`.
 - 2026-10-07: **`close_duel` stack fix.** Six `associated_token::` constraints overflowed the 4 KB BPF stack in `CloseDuel::try_accounts` (4,736 bytes; `anchor build` prints it as `Error: ... Stack offset` but still emits a binary). Token accounts now use `token::` constraints, and `verify_ata_addresses` checks the exact ATAs in its own frame as the handler's first call. Check `anchor build` output for `Stack offset` on any struct with many ATAs.
 - 2026-10-07: Reviewed and merged #1 (math, 855/855 vectors) and #2 (swap, 17 tests). The `bnToBigInt` fix reproduces: the old conversion fails the random-swap test the same way every run.
 - 2026-10-07: **SDK converts BN → bigint via hex (`bnToBigInt`).** On Node 24.10 and 24.13, V8's optimizer sometimes miscompiles bn.js's base-10 `toString()` once hot, returning only the low 7 digits (11036329022 → "6329022"). Seen in the swap random-sequence test; disappears with `--no-maglev` or on Node 22. Never write `BigInt(bn.toString())`.
