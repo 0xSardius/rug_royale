@@ -14,7 +14,9 @@
     "snapshot": "tsx scripts/snapshot.ts",
     "setup-mints": "tsx scripts/setup-mints.ts",
     "math:vectors": "tsx scripts/gen-math-vectors.ts",
-    "test:offchain": "mocha -n import=tsx \"tests/math.test.ts\""
+    "test:offchain": "mocha -n import=tsx \"tests/math.test.ts\"",
+    "init-config": "tsx scripts/init-config.ts",
+    "crank": "tsx scripts/crank.ts"
   },
   "dependencies": {
     "@anchor-lang/core": "=1.1.2",
