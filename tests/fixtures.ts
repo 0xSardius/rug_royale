@@ -617,7 +617,11 @@ export async function injectActiveDuel(
   const [pool, poolBump] = findPool(ctx.programId, ref.duel);
   const bn = (x: bigint) => new BN(x.toString());
 
-  const duelFields = (status: string, opponent: PublicKey) => ({
+  const duelFields = (
+    status: string,
+    opponent: PublicKey,
+    joinDeadline = startTs - 60n
+  ) => ({
     status: { [status]: {} },
     result: 0,
     tier: 0,
@@ -630,7 +634,7 @@ export async function injectActiveDuel(
     bankroll: bn(bankroll),
     finalA: bn(0n),
     finalB: bn(0n),
-    joinDeadline: bn(startTs - 60n),
+    joinDeadline: bn(joinDeadline),
     startTs: bn(status === "open" ? 0n : startTs),
     endTs: bn(status === "open" ? 0n : endTs),
     creator: p.creator.publicKey,
@@ -649,7 +653,8 @@ export async function injectActiveDuel(
     ctx,
     ref.duel,
     "duel",
-    duelFields("open", PublicKey.default)
+    // Real join_duel checks now < join_deadline, so the Open write needs a future deadline.
+    duelFields("open", PublicKey.default, startTs + 3_600n)
   );
   const joined = await joinDuel(ctx, ref, p.opponent);
   expectOk(joined.res);
