@@ -66,7 +66,7 @@ describe("fixtures", () => {
       );
     }
     console.log(
-      `      create_duel CU (stub handler, accounts only): ${res.cu}`
+      `      create_duel CU: ${res.cu}`
     );
   });
 
