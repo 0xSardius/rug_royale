@@ -1,0 +1,54 @@
+# Light CI: checks that don't need the Solana/Anchor toolchain, so runs stay fast and
+# setup-free. The LiteSVM handler tests need `anchor build` and are run locally
+# (`pnpm test`); PR authors paste that summary in the PR (CLAUDE.md workflow rule).
+# Every step runs a command that already works locally; delete this file to remove CI.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rust:
+    name: Rust unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # rust-toolchain.toml pins the version; rustup installs it on first cargo call.
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test -p rug_royale
+
+  offchain:
+    name: SDK, scripts, tests (typecheck + math)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4 # version from package.json "packageManager"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: npx tsc --noEmit -p .
+      - run: pnpm lint
+      # Includes the check that programs/rug_royale/tests/vectors/math.json matches math.ts.
+      - run: pnpm test:offchain
+
+  app:
+    name: Frontend build + lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @rug-royale/app lint
+      - run: pnpm --filter @rug-royale/app build
