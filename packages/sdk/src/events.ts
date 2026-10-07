@@ -2,6 +2,7 @@
 // backfill uses SwapExecuted because it carries post-trade reserves (PRD §11).
 import { PublicKey } from "@solana/web3.js";
 import { EventParser } from "@anchor-lang/core";
+import { bnToBigInt } from "./decode";
 import { coder, PROGRAM_ID } from "./idl";
 
 export interface SwapEvent {
@@ -29,9 +30,9 @@ export function parseSwapEvents(
       duel: d.duel,
       player: d.player,
       side: "buy" in d.side ? "buy" : "sell",
-      amountIn: BigInt(d.amountIn.toString()),
-      amountOut: BigInt(d.amountOut.toString()),
-      quoteReserve: BigInt(d.quoteReserve.toString()),
-      tokenReserve: BigInt(d.tokenReserve.toString()),
+      amountIn: bnToBigInt(d.amountIn),
+      amountOut: bnToBigInt(d.amountOut),
+      quoteReserve: bnToBigInt(d.quoteReserve),
+      tokenReserve: bnToBigInt(d.tokenReserve),
     }));
 }
