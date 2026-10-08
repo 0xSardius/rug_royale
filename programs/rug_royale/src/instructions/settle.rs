@@ -2,7 +2,10 @@ use anchor_lang::prelude::*;
 use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
 
 use crate::constants::*;
-use crate::state::{Config, Duel, Escrow, Pool};
+use crate::errors::RugRoyaleError;
+use crate::events::DuelSettled;
+use crate::math::{payout, valuation};
+use crate::state::{Config, Duel, DuelStatus, Escrow, Pool};
 
 /// PRD §6.6 — owner: Yamin. No sponsor account (G15). Payout recipients are pinned
 /// with `address =` (I11).
@@ -69,7 +72,78 @@ pub struct Settle<'info> {
     pub token_program: Interface<'info, TokenInterface>,
 }
 
-pub fn handle_settle(_ctx: Context<Settle>) -> Result<()> {
-    // TODO(Yamin): PRD §6.6 using math::valuation and math::payout.
+pub fn handle_settle(ctx: Context<Settle>) -> Result<()> {
+    let now = Clock::get()?.unix_timestamp;
+    let duel = &ctx.accounts.duel;
+
+    // PRD §6.6 check order. No upper time limit: a late settle gives the same result (I7),
+    // because swaps stop at end_ts and nothing else moves the pool or the vaults.
+    require!(
+        duel.status == DuelStatus::Active,
+        RugRoyaleError::DuelNotActive
+    );
+    require!(now >= duel.end_ts, RugRoyaleError::WindowNotEnded);
+
+    // PRD §7: each player valued alone against the same end reserves (I6).
+    let config = &ctx.accounts.config;
+    let (qr, tr) = (
+        ctx.accounts.pool.quote_reserve,
+        ctx.accounts.pool.token_reserve,
+    );
+    let fee = config.swap_fee_bps;
+    let final_a = valuation::final_value(
+        ctx.accounts.creator_quote_vault.amount,
+        ctx.accounts.creator_coin_vault.amount,
+        qr,
+        tr,
+        fee,
+    )?;
+    let final_b = valuation::final_value(
+        ctx.accounts.opponent_quote_vault.amount,
+        ctx.accounts.opponent_coin_vault.amount,
+        qr,
+        tr,
+        fee,
+    )?;
+    let result = valuation::duel_result(final_a, final_b);
+    let p = payout::payout(
+        duel.entry_lamports,
+        duel.sponsored_lamports,
+        config.settler_tip_lamports,
+        config.rake_bps,
+        result,
+    )?;
+
+    // Escrow is program-owned (G1): debit it directly. Recipients are pinned by `address =`
+    // (I11). The settler may also be a player or the treasury; credits then add up.
+    let escrow = ctx.accounts.escrow.to_account_info();
+    for (to, amount) in [
+        (ctx.accounts.creator.to_account_info(), p.to_creator),
+        (ctx.accounts.opponent.to_account_info(), p.to_opponent),
+        (ctx.accounts.treasury.to_account_info(), p.to_treasury),
+        (ctx.accounts.settler.to_account_info(), p.to_settler),
+    ] {
+        if amount > 0 {
+            escrow.sub_lamports(amount)?;
+            to.add_lamports(amount)?;
+        }
+    }
+
+    let duel_key = ctx.accounts.duel.key();
+    let duel = &mut ctx.accounts.duel;
+    duel.final_a = final_a;
+    duel.final_b = final_b;
+    duel.result = result;
+    duel.status = DuelStatus::Settled;
+
+    emit!(DuelSettled {
+        duel: duel_key,
+        result,
+        final_a,
+        final_b,
+        prize: p.prize,
+        rake: p.rake,
+        tip: p.tip,
+    });
     Ok(())
 }
