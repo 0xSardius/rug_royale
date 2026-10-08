@@ -376,7 +376,7 @@ export function defaultConfigArgs(
       new BN((100_000n * UNIT).toString()),
     ],
     windows: [120, 300, 600, 900],
-    poolSeedRatio: new BN(10),
+    poolSeedRatio: new BN(5),
     settlerTipLamports: new BN(1_000_000),
     maxEntryLamports: new BN(1_000_000_000),
     rakeBps: 250,

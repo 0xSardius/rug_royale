@@ -29,7 +29,7 @@ The architecture is sound, but 15 details would block or confuse a build. Each h
 | G2 | `close_duel` cannot close token accounts holding tokens, and vaults and pool always hold tokens at the end. | `close_duel` burns every remaining balance first (vault PDA or pool PDA signs the burn), then calls `close_account`. |
 | G3 | Token-2022 transfer-fee mints: withheld fees block `close_account`, and swap math must use the amount actually received. | **Confirmed 2026-10-03.** MVP demo mints are Token-2022 with no extensions. Code still uses `token_interface`. A 3% transfer-fee coin is stretch S2. |
 | G4 | `Config` has no swap fee field. | Add `swap_fee_bps: u16` (default 30, max 1000). The fee stays in the pool. |
-| G5 | `pool_seed_ratio` is undefined. | Pool seed = `bankroll × pool_seed_ratio` raw units of quote and the same raw units of coin, so the opening price is 1.0. Default 10. Tune with the sim script (Section 10). |
+| G5 | `pool_seed_ratio` is undefined. | Pool seed = `bankroll × pool_seed_ratio` raw units of quote and the same raw units of coin, so the opening price is 1.0. Default 5 (picked by `sim.ts` on 2026-10-08; was 10). Tune with the sim script (Section 10). |
 | G6 | Where `entry_lamports` comes from is unstated. | `create_duel` input. Add `max_entry_lamports: u64` to `Config` (default 1 SOL) as a devnet safety cap. |
 | G7 | `pnl = final / bankroll` loses precision in integer math. | Both bankrolls are equal, so `settle` compares `final_a` and `final_b` as u64. The client computes PnL% for display. |
 | G8 | Rounding is unstated for rake and the tie split. | Rake rounds down. On a tie, an odd lamport from the sponsored split goes to the creator. |
@@ -176,7 +176,7 @@ pub struct Escrow { pub bump: u8 }    // lamports above rent = entries + sponsor
 | Mint decimals (all demo mints) | 6 | Matches StonkFun coins |
 | `tiers` | 1,000 / 10,000 / 100,000 tokens | Size is cosmetic; ratios drive the game |
 | `windows` | 120, 300, 600, 900 s (**proposed 2026-10-05:** 30, 120, 300, 900 s; pending team OK) | 120 s keeps the live demo short; a 30 s window keeps the devnet test suite near 2 minutes (Section 9) |
-| `pool_seed_ratio` | 10 | A full-bankroll buy moves price about 21% |
+| `pool_seed_ratio` | 5 | `sim.ts` (2026-10-08): weakest first-buyer edge of {5, 10, 20} (83% vs 91% / 98% of traded duels) and the widest spread between players. A full-bankroll buy moves price about 44% |
 | `swap_fee_bps` | 30 | Raydium-like |
 | `rake_bps` | 250 | 2.5% of a funded pot |
 | `settler_tip_lamports` | 1,000,000 (0.001 SOL) | Covers crank fees |
@@ -488,8 +488,8 @@ These are accepted for the MVP and should be stated on the duel screen or in the
 
 | Limit | Source | Roadmap fix |
 | --- | --- | --- |
-| Opening race: the first buyer wins a buy-and-hold duel | P2 | Opening batch auction |
-| Closed two-player market; PnL comes from the opponent's trades | D2 | Real Raydium CPMM pools on mainnet |
+| Opening race: the first buyer wins a buy-and-hold duel (`sim.ts`: 100% of buy-and-hold races, 83% of all duels where both trade, at ratio 5 / fee 30) | P2 | Opening batch auction |
+| Closed two-player market; PnL comes from the opponent's trades, so a player who never trades cannot lose to a lone trader (`sim.ts`) | D2 | Real Raydium CPMM pools on mainnet |
 | Creator can collect a sponsor's prize with a second wallet | P3 | Sponsor approves the opponent; SolEnrich collusion signals |
 | No refund path once Active; a `settle` bug needs a program upgrade | P1 | Two-party-signed refund on mainnet |
 | No `update_config`; the mint list is fixed | D3, G12 | Admin `update_config` behind a multisig |
