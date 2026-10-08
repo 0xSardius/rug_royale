@@ -198,7 +198,7 @@ Each handler does one state transition. Checks run in the order listed so tests 
 
 - **Signer:** creator (payer). **Args:** `nonce: u64, tier: u8, window_secs: u32, entry_lamports: u64, allowed_opponent: Pubkey, join_deadline: i64`.
 - **Accounts:** config, duel (init), escrow (init), creator vault authority, creator quote + coin vaults (init ATA), pool (init), pool quote + coin accounts (init ATA), quote mint (mut), coin mint (mut), mint authority, token program (interface), associated token program, system program.
-- **Checks:** `tier < 3` (`InvalidTier`); `window_secs` in `config.windows` (`InvalidWindow`); coin in `allowed_mints` (`MintNotAllowed`); deadline in range (`DeadlineTooSoon` / `DeadlineTooFar`); `entry_lamports <= max_entry_lamports` (`EntryTooHigh`).
+- **Checks:** `tier < 3` (`InvalidTier`); `window_secs` in `config.windows` (`InvalidWindow`); coin in `allowed_mints` (`MintNotAllowed`); deadline in range (`DeadlineTooSoon` / `DeadlineTooFar`); `entry_lamports <= max_entry_lamports` (`EntryTooHigh`); `allowed_opponent != creator` (`OpponentNotAllowed`, added 2026-10-07).
 - **Effect:** `Duel { status: Open, bankroll: tiers[tier], … }`; `entry_lamports` creator → escrow (system transfer, creator signs); `MintAuthority` mints `bankroll × pool_seed_ratio` into each pool account; pool reserves set to those amounts.
 - **Event:** `DuelCreated { duel, creator, coin, tier, window_secs, entry_lamports, join_deadline }`.
 - **Note:** 5 inits and 2 mints in one transaction. Measure compute in tests; the client adds a 400k CU compute-budget instruction if needed.

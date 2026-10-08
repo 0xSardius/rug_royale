@@ -25,7 +25,7 @@ Status values: `todo` · `doing` · `review` · `done`.
 ### Sidharth: lifecycle and escrow
 | Item | PRD | Status |
 | --- | --- | --- |
-| `init_config` + tests (field writes done in the stub; checks + tests todo) | 6.1 | todo |
+| `init_config` + tests — **picked up by Justin** (fallback) | 6.1 | done |
 | `create_duel` + tests (133,517 CU) — **picked up by Justin** (fallback; Sidharth out sick) | 6.2 | done |
 | `join_duel` + tests (80,651 CU) — **picked up by Justin** (fallback) | 6.4 | done |
 | `sponsor_prize` + tests | 6.3 | todo |
@@ -80,6 +80,7 @@ Status values: `todo` · `doing` · `review` · `done`.
 
 Newest first. Anything that changes the PRD gets a line here **and** an edit to `docs/prd.md`.
 
+- 2026-10-07: Pre-deploy review fixes: `join_duel` creates opponent vaults with `create_idempotent` (anyone could pre-create them to block a join); `create_duel` rejects `allowed_opponent == creator` with `OpponentNotAllowed` (PRD §6.2 amended); `init_config` checks written. Known/accepted: anyone who knows `(creator, nonce)` can pre-create a vault or pool ATA and force a retry; the frontend uses random nonces.
 - 2026-10-07: **`join_duel` creates the opponent vaults by CPI after its checks** (not `init`), because Anchor runs `init` before any check and a self-join hit "already in use" instead of `CannotJoinOwnDuel`. Same pattern applies to any handler whose typed error must beat an `init`.
 - 2026-10-07: **`close_duel` stack fix.** Six `associated_token::` constraints overflowed the 4 KB BPF stack in `CloseDuel::try_accounts` (4,736 bytes; `anchor build` prints it as `Error: ... Stack offset` but still emits a binary). Token accounts now use `token::` constraints, and `verify_ata_addresses` checks the exact ATAs in its own frame as the handler's first call. Check `anchor build` output for `Stack offset` on any struct with many ATAs.
 - 2026-10-07: Reviewed and merged #1 (math, 855/855 vectors) and #2 (swap, 17 tests). The `bnToBigInt` fix reproduces: the old conversion fails the random-swap test the same way every run.
