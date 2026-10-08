@@ -126,6 +126,13 @@ pub fn handle_create_duel(
         entry_lamports <= config.max_entry_lamports,
         RugRoyaleError::EntryTooHigh
     );
+    // Not in PRD §6.2: inviting yourself makes a duel nobody can join (join_duel rejects the
+    // creator), locking the entry and any sponsor money until the deadline.
+    require_keys_neq!(
+        allowed_opponent,
+        ctx.accounts.creator.key(),
+        RugRoyaleError::OpponentNotAllowed
+    );
 
     let bankroll = config.tiers[tier as usize];
     let seed = bankroll

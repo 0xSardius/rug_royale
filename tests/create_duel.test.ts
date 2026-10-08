@@ -199,6 +199,14 @@ describe("create_duel", () => {
       );
     });
 
+    it("OpponentNotAllowed when the creator invites themselves", async () => {
+      const { creator, create } = await setup();
+      expectError(
+        (await create({ allowedOpponent: creator.publicKey })).res,
+        "OpponentNotAllowed"
+      );
+    });
+
     it("checks run in PRD order: the first failing check wins", async () => {
       const { ctx, create, configArgs } = await setup();
       const now = await ctx.sender.now();
