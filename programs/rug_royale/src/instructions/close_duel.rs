@@ -1,9 +1,12 @@
 use anchor_lang::prelude::*;
 use anchor_spl::associated_token::get_associated_token_address_with_program_id;
-use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
+use anchor_spl::token_interface::{
+    burn_checked, close_account, BurnChecked, CloseAccount, Mint, TokenAccount, TokenInterface,
+};
 
 use crate::constants::*;
 use crate::errors::RugRoyaleError;
+use crate::events::DuelClosed;
 use crate::state::{Duel, DuelStatus, Escrow, Pool};
 
 /// PRD §6.8 — owner: Sidharth. Permissionless.
@@ -133,6 +136,44 @@ impl<'info> CloseDuel<'info> {
     }
 }
 
+/// Burns `vault`'s whole balance and closes it, rent to `rent_to`. `owner` is the PDA that
+/// owns the token account and signs with `seeds`. Own frame to keep the handler's stack small.
+#[inline(never)]
+fn burn_and_close<'info>(
+    token_program: &Interface<'info, TokenInterface>,
+    vault: &InterfaceAccount<'info, TokenAccount>,
+    mint: &InterfaceAccount<'info, Mint>,
+    owner: AccountInfo<'info>,
+    rent_to: AccountInfo<'info>,
+    seeds: &[&[u8]],
+) -> Result<()> {
+    let signer = &[seeds];
+    if vault.amount > 0 {
+        burn_checked(
+            CpiContext::new_with_signer(
+                token_program.key(),
+                BurnChecked {
+                    mint: mint.to_account_info(),
+                    from: vault.to_account_info(),
+                    authority: owner.clone(),
+                },
+                signer,
+            ),
+            vault.amount,
+            mint.decimals,
+        )?;
+    }
+    close_account(CpiContext::new_with_signer(
+        token_program.key(),
+        CloseAccount {
+            account: vault.to_account_info(),
+            destination: rent_to,
+            authority: owner,
+        },
+        signer,
+    ))
+}
+
 pub fn handle_close_duel(ctx: Context<CloseDuel>) -> Result<()> {
     ctx.accounts.verify_ata_addresses()?;
 
@@ -145,19 +186,94 @@ pub fn handle_close_duel(ctx: Context<CloseDuel>) -> Result<()> {
         RugRoyaleError::DuelStillLive
     );
     require!(!duel.closed, RugRoyaleError::AlreadyClosed);
-    let escrow_info = ctx.accounts.escrow.to_account_info();
-    let rent = Rent::get()?.minimum_balance(escrow_info.data_len());
-    require!(escrow_info.lamports() <= rent, RugRoyaleError::EscrowNotEmpty);
+    // No EscrowNotEmpty check (PRD §6.8 amended 2026-10-08): anyone could send 1 lamport to
+    // escrow and block close forever. settle/cancel leave escrow at exactly rent, and
+    // `close = creator` sweeps any donated dust to the creator.
 
-    // TODO(Sidharth): PRD §6.8 effects: burn every token balance, close each token
-    // account with rent to its payer, set duel.closed = true. MUST land before settle or
-    // cancel_duel ships, because those make this path reachable. Review findings to fix then:
-    // 1. Returning Ok without the effects lets `close = creator` close escrow and pool while
-    //    every vault stays open forever (nothing can sign for pool ATAs after that).
-    // 2. Drop the EscrowNotEmpty check above (or ignore dust): anyone can send 1 lamport to
-    //    escrow and block close forever; `close = creator` already sweeps any excess.
-    // 3. When duel.opponent != default, require opponent, opponent_vault_authority, and
-    //    both opponent vaults; otherwise they can be omitted and stranded, and
-    //    verify_ata_addresses skips them.
+    // Once someone joined, all four opponent accounts are required; otherwise they could be
+    // left out, verify_ata_addresses would skip them, and their rent would be stranded.
+    let joined = duel.opponent != Pubkey::default();
+    let a = &ctx.accounts;
+    let opponent_side = if joined {
+        match (
+            &a.opponent,
+            &a.opponent_vault_authority,
+            &a.opponent_quote_vault,
+            &a.opponent_coin_vault,
+        ) {
+            (Some(o), Some(va), Some(q), Some(c)) => Some((o, va, q, c)),
+            _ => return err!(ErrorCode::AccountNotEnoughKeys),
+        }
+    } else {
+        None
+    };
+
+    let duel_key = duel.key();
+    let creator_key = duel.creator;
+    let tp = &a.token_program;
+    let creator = a.creator.to_account_info();
+
+    let creator_bump = [ctx.bumps.creator_vault_authority];
+    let creator_seeds: &[&[u8]] = &[
+        VAULT_SEED,
+        duel_key.as_ref(),
+        creator_key.as_ref(),
+        &creator_bump,
+    ];
+    let creator_va = a.creator_vault_authority.to_account_info();
+    burn_and_close(
+        tp,
+        &a.creator_quote_vault,
+        &a.quote_mint,
+        creator_va.clone(),
+        creator.clone(),
+        creator_seeds,
+    )?;
+    burn_and_close(
+        tp,
+        &a.creator_coin_vault,
+        &a.coin_mint,
+        creator_va,
+        creator.clone(),
+        creator_seeds,
+    )?;
+
+    if let Some((opponent, opponent_va, quote, coin)) = opponent_side {
+        let opponent_key = duel.opponent;
+        let bump = [ctx
+            .bumps
+            .opponent_vault_authority
+            .ok_or(ErrorCode::AccountNotEnoughKeys)?];
+        let seeds: &[&[u8]] = &[VAULT_SEED, duel_key.as_ref(), opponent_key.as_ref(), &bump];
+        let va = opponent_va.to_account_info();
+        let rent_to = opponent.to_account_info();
+        burn_and_close(tp, quote, &a.quote_mint, va.clone(), rent_to.clone(), seeds)?;
+        burn_and_close(tp, coin, &a.coin_mint, va, rent_to, seeds)?;
+    }
+
+    // The pool's token accounts were paid for by the creator in create_duel.
+    let pool_bump = [a.pool.bump];
+    let pool_seeds: &[&[u8]] = &[POOL_SEED, duel_key.as_ref(), &pool_bump];
+    let pool = a.pool.to_account_info();
+    burn_and_close(
+        tp,
+        &a.pool_quote_vault,
+        &a.quote_mint,
+        pool.clone(),
+        creator.clone(),
+        pool_seeds,
+    )?;
+    burn_and_close(
+        tp,
+        &a.pool_coin_vault,
+        &a.coin_mint,
+        pool,
+        creator,
+        pool_seeds,
+    )?;
+
+    // Escrow and pool close to the creator on exit (`close = creator`). Duel stays (I13).
+    ctx.accounts.duel.closed = true;
+    emit!(DuelClosed { duel: duel_key });
     Ok(())
 }

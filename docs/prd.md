@@ -246,7 +246,7 @@ Each handler does one state transition. Checks run in the order listed so tests 
 
 - **Signer:** any wallet. **Args:** none.
 - **Accounts:** duel (mut), escrow (`close = creator`), pool (`close = creator`), creator (mut), opponent (optional, absent for a Cancelled duel), both vault authorities, all existing token accounts (4 or 6), quote and coin mints (mut, for burns), token program.
-- **Checks:** status is Settled or Cancelled (`DuelStillLive`); `!closed` (`AlreadyClosed`); escrow holds only rent (`EscrowNotEmpty`, defensive).
+- **Checks:** status is Settled or Cancelled (`DuelStillLive`); `!closed` (`AlreadyClosed`). Once an opponent has joined, all four opponent accounts are required (Anchor `AccountNotEnoughKeys`). *Amended 2026-10-08:* the `EscrowNotEmpty` check is dropped, because anyone could send 1 lamport to escrow and block close forever; `close = creator` sweeps any dust to the creator. The variant stays in the enum (error codes are an API). A second close in practice fails earlier with `AccountNotInitialized`, since escrow and pool are already gone.
 - **Effect:** burn every token balance (owning PDA signs), `close_account` each token account with rent to its payer (creator or opponent), close escrow and pool, set `closed = true`. `Duel` stays.
 - **Event:** `DuelClosed { duel }`.
 
