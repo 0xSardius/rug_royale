@@ -685,6 +685,18 @@ export async function injectActiveDuel(
   return { ref: joined.ref, startTs, endTs, bankroll, poolSeed };
 }
 
+/** LiteSVM only: overwrite some Duel fields (camelCase, as the coder decodes them). */
+export async function patchDuel(
+  ctx: Ctx & { sender: LiteSvmSender },
+  ref: DuelRef,
+  fields: Record<string, unknown>
+) {
+  const d = ctx.sender.svm.getAccount(ref.duel);
+  if (!d) throw new Error("duel not found");
+  const duel = ctx.program.coder.accounts.decode("duel", Buffer.from(d.data));
+  await setAnchorAccount(ctx, ref.duel, "duel", { ...duel, ...fields });
+}
+
 /**
  * LiteSVM only, until sponsor_prize has a body: what a sponsor_prize of `amount` would
  * leave behind. Adds `amount` to the escrow's lamports and sets Duel.sponsor and
@@ -703,11 +715,7 @@ export async function injectSponsor(
     ...e,
     lamports: Number(BigInt(e.lamports) + amount),
   });
-  const d = ctx.sender.svm.getAccount(ref.duel);
-  if (!d) throw new Error("duel not found");
-  const duel = ctx.program.coder.accounts.decode("duel", Buffer.from(d.data));
-  await setAnchorAccount(ctx, ref.duel, "duel", {
-    ...duel,
+  await patchDuel(ctx, ref, {
     sponsor,
     sponsoredLamports: new BN(amount.toString()),
   });
