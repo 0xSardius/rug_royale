@@ -1,14 +1,18 @@
+import { expect } from "chai";
 import { Keypair, SystemProgram } from "@solana/web3.js";
 import {
   ACCOUNT_SIZE,
   TOKEN_2022_PROGRAM_ID,
   createInitializeAccount3Instruction,
 } from "@solana/spl-token";
-import { closeDuelAccounts, playerVaults } from "@rug-royale/sdk";
+import { closeDuelAccounts, findEscrow, playerVaults } from "@rug-royale/sdk";
 import {
+  closeDuel,
+  createDuel,
   expectError,
   expectOk,
   injectActiveDuel,
+  joinDuel,
   liteCtx,
   newWallet,
   setupProtocol,
@@ -81,5 +85,41 @@ describe("close_duel account validation", () => {
       .accountsStrict(closeDuelAccounts(ref, creator.publicKey))
       .instruction();
     expectOk(await ctx.sender.send([ix], creator));
+  });
+
+  describe("guards (PRD §6.8), live before settle/cancel exist", () => {
+    it("DuelStillLive on an Active duel: the creator can't take the opponent's entry", async () => {
+      const ctx = liteCtx();
+      const { mints } = await setupProtocol(ctx);
+      const creator = await newWallet(ctx);
+      const opponent = await newWallet(ctx);
+      const entry = 100_000_000n;
+      const created = await createDuel(ctx, {
+        creator,
+        mints,
+        entryLamports: entry,
+      });
+      expectOk(created.res);
+      const { ref } = await joinDuel(ctx, created.ref, opponent);
+      const [escrow] = findEscrow(ctx.programId, ref.duel);
+      const before = await ctx.sender.lamports(escrow);
+
+      expectError(await closeDuel(ctx, ref, creator), "DuelStillLive");
+      expect(await ctx.sender.lamports(escrow)).to.equal(before);
+      expect(before - (await ctx.sender.rentExempt(9))).to.equal(2n * entry);
+    });
+
+    it("DuelStillLive on an Open duel", async () => {
+      const ctx = liteCtx();
+      const { mints } = await setupProtocol(ctx);
+      const creator = await newWallet(ctx);
+      const { res, ref } = await createDuel(ctx, {
+        creator,
+        mints,
+        entryLamports: 50_000_000n,
+      });
+      expectOk(res);
+      expectError(await closeDuel(ctx, ref, creator), "DuelStillLive");
+    });
   });
 });
