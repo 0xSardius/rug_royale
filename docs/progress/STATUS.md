@@ -30,7 +30,7 @@ Status values: `todo` · `doing` · `review` · `done`.
 | `join_duel` + tests (80,651 CU) — **picked up by Justin** (fallback) | 6.4 | done |
 | `sponsor_prize` + tests | 6.3 | todo |
 | `cancel_duel` + tests | 6.7 | todo |
-| `close_duel` effects (burn + close) + tests, 3 review findings fixed (85,747 CU) — **picked up by Yamin** | 6.8 | review |
+| `close_duel` effects (burn + close) + tests, 3 review findings fixed (85,747 CU) — **picked up by Yamin** | 6.8 | done (#5) |
 | Invariants I1, I8, I13 | 9 | todo |
 | Devnet suite: cancel, freeroll, no-wait error cases | 9 | todo |
 | Slide deck (with Yamin), demo script | — | todo |
@@ -40,10 +40,10 @@ Status values: `todo` · `doing` · `review` · `done`.
 | --- | --- | --- |
 | `math/` amm, valuation, payout + Rust unit tests. **Must pass `programs/rug_royale/tests/vectors/math.json`** (505 swaps, 100 valuations, 50 results, 200 payouts; load with `include_str!` + `serde_json`) | 7 | done (#1, 855/855 vectors) |
 | `swap` + tests; I3–I5 (I9, I10, I12 too). Tests inject an Active duel until create/join land | 6.5, 9 | done (#2) |
-| `settle` + payout tests; I2, I7, I11; scenarios 1–5 (36,598 CU). I6 is in the Rust math tests. Sponsored cases inject the deposit until `sponsor_prize` lands | 6.6, 9 | review |
+| `settle` + payout tests; I2, I7, I11; scenarios 1–5 (36,598 CU). I6 is in the Rust math tests. Sponsored cases inject the deposit until `sponsor_prize` lands | 6.6, 9 | done (#4) |
 | `swap` invariants I9, I10 | 9 | done (#2) |
 | Devnet suite: tie + payout-exactness cases | 9 | todo |
-| `sim.ts`, tune `pool_seed_ratio` / fee (`pnpm sim`) → **ratio 5, fee 30** | 10 | review |
+| `sim.ts`, tune `pool_seed_ratio` / fee (`pnpm sim`) → **ratio 5, fee 30** | 10 | done (#3) |
 | Slide deck (with Sidharth) | — | todo |
 
 ### Justin: SDK, scripts, frontend, demo
@@ -80,7 +80,7 @@ Status values: `todo` · `doing` · `review` · `done`.
 
 Newest first. Anything that changes the PRD gets a line here **and** an edit to `docs/prd.md`.
 
-- 2026-10-08: **`close_duel` effects landed (Yamin, picked up from Sidharth).** Burns every balance and closes each token account (rent: creator for its vaults and the pool accounts, opponent for theirs), escrow and pool close to the creator, `closed = true`. Review findings fixed: (1) effects exist, so nothing is stranded; (2) **`EscrowNotEmpty` dropped** from close (PRD §6.8 amended; dust is swept to the creator); (3) all four opponent accounts are required once someone joined. A second close fails with `AccountNotInitialized` (escrow/pool gone), not `AlreadyClosed`; the crank's `BEATEN` set doesn't list it, so a lost close race logs one failure and the next tick skips the duel (`closed = true`). **Settle/cancel can deploy once this merges.**
+- 2026-10-08: **`close_duel` effects landed (Yamin, picked up from Sidharth).** Burns every balance and closes each token account (rent: creator for its vaults and the pool accounts, opponent for theirs), escrow and pool close to the creator, `closed = true`. Review findings fixed: (1) effects exist, so nothing is stranded; (2) **`EscrowNotEmpty` dropped** from close (PRD §6.8 amended; dust is swept to the creator); (3) all four opponent accounts are required once someone joined. A second close fails with `AccountNotInitialized` (escrow/pool gone), not `AlreadyClosed`; the crank now counts it as beaten (`6b9ca83`). Merged; settle and close can deploy.
 
 - 2026-10-08: **Treasury must hold at least rent-exempt SOL.** `settle` credits the rake straight into `config.treasury`; if the treasury is an empty account and the rake is below the rent-exempt minimum (~0.00089 SOL, i.e. entry under ~0.018 SOL at 2.5%), the whole `settle` fails with `InsufficientFundsForRent` until someone funds the treasury. `init-config.ts` defaults the treasury to the admin wallet, which is funded; keep it that way (or fund `TREASURY` first). Same applies to a winner whose wallet sits at 0 lamports, which is unlikely since they paid fees to join.
 
