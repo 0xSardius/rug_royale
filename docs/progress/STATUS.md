@@ -40,7 +40,7 @@ Status values: `todo` · `doing` · `review` · `done`.
 | --- | --- | --- |
 | `math/` amm, valuation, payout + Rust unit tests. **Must pass `programs/rug_royale/tests/vectors/math.json`** (505 swaps, 100 valuations, 50 results, 200 payouts; load with `include_str!` + `serde_json`) | 7 | done (#1, 855/855 vectors) |
 | `swap` + tests; I3–I5 (I9, I10, I12 too). Tests inject an Active duel until create/join land | 6.5, 9 | done (#2) |
-| `settle` + payout tests; I2, I6, I7, I11; scenarios 1–5 | 6.6, 9 | todo |
+| `settle` + payout tests; I2, I7, I11; scenarios 1–5 (36,598 CU). I6 is in the Rust math tests. Sponsored cases inject the deposit until `sponsor_prize` lands | 6.6, 9 | review |
 | `swap` invariants I9, I10 | 9 | done (#2) |
 | Devnet suite: tie + payout-exactness cases | 9 | todo |
 | `sim.ts`, tune `pool_seed_ratio` / fee (`pnpm sim`) → **ratio 5, fee 30** | 10 | review |
@@ -80,7 +80,7 @@ Status values: `todo` · `doing` · `review` · `done`.
 
 Newest first. Anything that changes the PRD gets a line here **and** an edit to `docs/prd.md`.
 
-- 2026-10-08: **`pool_seed_ratio = 5`, `swap_fee_bps = 30`** (Yamin, from `pnpm sim`; PRD §5 amended, `init-config.ts` updated). 10,000 duels per config, seeds 1 and 7 agree within ~1 pt. Among duels where both players trade, the first buyer wins 83% at ratio 5 vs 91% at 10 and 98% at 20; the mean gap between players is 4.6% vs 2.1% vs 1.2% of bankroll. Fee barely moves the race at ratio 5; 100 bps only lowers it elsewhere by draining everyone. **Unblocks `init-config --send` (Justin).** Structural, not fixable by parameters: a pure buy-and-hold race always goes to the first buyer (P2), and a player who never trades always beats a lone trader (D2); both noted in PRD §15 for the README and slides.
+- 2026-10-08: **Treasury must hold at least rent-exempt SOL.** `settle` credits the rake straight into `config.treasury`; if the treasury is an empty account and the rake is below the rent-exempt minimum (~0.00089 SOL, i.e. entry under ~0.018 SOL at 2.5%), the whole `settle` fails with `InsufficientFundsForRent` until someone funds the treasury. `init-config.ts` defaults the treasury to the admin wallet, which is funded; keep it that way (or fund `TREASURY` first). Same applies to a winner whose wallet sits at 0 lamports, which is unlikely since they paid fees to join.
 
 - 2026-10-07: **Devnet upgraded** (create, join, swap, init_config checks, close guard; slot 508633329, bytes verified against the local build). **`init-config --send` deferred** until Yamin's `sim.ts` picks `pool_seed_ratio` and `swap_fee_bps` (PRD §10.5); Config is permanent. Dry run passes. Accepted risk meanwhile: anyone could initialize Config first (would force a new program ID + new mints).
 - 2026-10-07: Pre-deploy review fixes: `join_duel` creates opponent vaults with `create_idempotent` (anyone could pre-create them to block a join); `create_duel` rejects `allowed_opponent == creator` with `OpponentNotAllowed` (PRD §6.2 amended); `init_config` checks written. Known/accepted: anyone who knows `(creator, nonce)` can pre-create a vault or pool ATA and force a retry; the frontend uses random nonces.
