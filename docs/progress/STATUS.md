@@ -30,7 +30,7 @@ Status values: `todo` · `doing` · `review` · `done`.
 | `join_duel` + tests (80,651 CU) — **picked up by Justin** (fallback) | 6.4 | done |
 | `sponsor_prize` + tests | 6.3 | todo |
 | `cancel_duel` + tests | 6.7 | todo |
-| `close_duel` (burn + close) + tests. Keep `ctx.accounts.verify_ata_addresses()?` as the first line (see decision log) | 6.8 | todo |
+| `close_duel` effects (burn + close) + tests. **Must land before `settle`/`cancel_duel` redeploy**; fix the 3 review findings in the handler TODO. Keep `verify_ata_addresses()?` first | 6.8 | todo |
 | Invariants I1, I8, I13 | 9 | todo |
 | Devnet suite: cancel, freeroll, no-wait error cases | 9 | todo |
 | Slide deck (with Yamin), demo script | — | todo |

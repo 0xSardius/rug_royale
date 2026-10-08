@@ -150,6 +150,14 @@ pub fn handle_close_duel(ctx: Context<CloseDuel>) -> Result<()> {
     require!(escrow_info.lamports() <= rent, RugRoyaleError::EscrowNotEmpty);
 
     // TODO(Sidharth): PRD §6.8 effects: burn every token balance, close each token
-    // account with rent to its payer, set duel.closed = true.
+    // account with rent to its payer, set duel.closed = true. MUST land before settle or
+    // cancel_duel ships, because those make this path reachable. Review findings to fix then:
+    // 1. Returning Ok without the effects lets `close = creator` close escrow and pool while
+    //    every vault stays open forever (nothing can sign for pool ATAs after that).
+    // 2. Drop the EscrowNotEmpty check above (or ignore dust): anyone can send 1 lamport to
+    //    escrow and block close forever; `close = creator` already sweeps any excess.
+    // 3. When duel.opponent != default, require opponent, opponent_vault_authority, and
+    //    both opponent vaults; otherwise they can be omitted and stranded, and
+    //    verify_ata_addresses skips them.
     Ok(())
 }
