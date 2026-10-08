@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
 
 use crate::constants::*;
+use crate::errors::RugRoyaleError;
 use crate::state::Config;
 
 /// PRD §6.1 — owner: Sidharth.
@@ -35,9 +36,23 @@ pub struct InitConfigArgs {
 }
 
 pub fn handle_init_config(ctx: Context<InitConfig>, args: InitConfigArgs) -> Result<()> {
-    // TODO(Sidharth): checks in PRD §6.1 order (RakeTooHigh, FeeTooHigh, InvalidWindowSet,
-    // InvalidTierSet, InvalidMintList, InvalidSeedRatio) before the writes below.
-    // The writes are here already so every other handler's `config` seeds check passes in tests.
+    // PRD §6.1 check order.
+    require!(args.rake_bps <= MAX_RAKE_BPS, RugRoyaleError::RakeTooHigh);
+    require!(args.swap_fee_bps <= MAX_SWAP_FEE_BPS, RugRoyaleError::FeeTooHigh);
+    require!(
+        args.windows[0] > 0 && args.windows.windows(2).all(|w| w[0] < w[1]),
+        RugRoyaleError::InvalidWindowSet
+    );
+    require!(args.tiers.iter().all(|&t| t > 0), RugRoyaleError::InvalidTierSet);
+    let mints = &args.allowed_mints;
+    require!(
+        mints.iter().enumerate().all(|(i, m)| *m != Pubkey::default()
+            && *m != args.quote_mint
+            && !mints[..i].contains(m)),
+        RugRoyaleError::InvalidMintList
+    );
+    require!(args.pool_seed_ratio >= 1, RugRoyaleError::InvalidSeedRatio);
+
     let (_, mint_authority_bump) =
         Pubkey::find_program_address(&[MINT_AUTHORITY_SEED], ctx.program_id);
     ctx.accounts.config.set_inner(Config {
