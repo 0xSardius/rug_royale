@@ -20,7 +20,7 @@ import {
 
 // close_duel validates token accounts with `token::` constraints (stack budget), then
 // `verify_ata_addresses` enforces the canonical ATAs. These tests pin that guarantee;
-// the full close_duel suite (burn + close, PRD §6.8) comes with the handler.
+// the effects (burn + close, PRD §6.8) are tested in close_duel.test.ts.
 describe("close_duel account validation", () => {
   async function settledDuel() {
     const ctx = liteCtx();
