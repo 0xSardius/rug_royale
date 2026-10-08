@@ -43,7 +43,7 @@ Status values: `todo` · `doing` · `review` · `done`.
 | `settle` + payout tests; I2, I7, I11; scenarios 1–5 (36,598 CU). I6 is in the Rust math tests. Sponsored cases inject the deposit until `sponsor_prize` lands | 6.6, 9 | review |
 | `swap` invariants I9, I10 | 9 | done (#2) |
 | Devnet suite: tie + payout-exactness cases | 9 | todo |
-| `sim.ts`, tune `pool_seed_ratio` / fee | 10 | todo |
+| `sim.ts`, tune `pool_seed_ratio` / fee (`pnpm sim`) → **ratio 5, fee 30** | 10 | review |
 | Slide deck (with Sidharth) | — | todo |
 
 ### Justin: SDK, scripts, frontend, demo

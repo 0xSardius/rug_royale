@@ -36,7 +36,7 @@ describe("init_config", () => {
     expect(c.treasury.equals(treasury)).to.equal(true);
     expect(c.quoteMint.equals(mints.quote)).to.equal(true);
     expect(c.windows).to.deep.equal([30, 120, 300, 900]);
-    expect(c.poolSeedRatio).to.equal(10n);
+    expect(c.poolSeedRatio).to.equal(5n);
     expect([c.rakeBps, c.swapFeeBps]).to.deep.equal([250, 30]);
     expect(c.bump).to.be.greaterThan(0);
     expect(c.mintAuthorityBump).to.be.greaterThan(0);
