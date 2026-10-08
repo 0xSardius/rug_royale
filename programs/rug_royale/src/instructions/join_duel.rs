@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 use anchor_lang::system_program::{transfer, Transfer};
-use anchor_spl::associated_token::{create, AssociatedToken, Create};
+use anchor_spl::associated_token::{create_idempotent, AssociatedToken, Create};
 use anchor_spl::token_interface::{mint_to_checked, Mint, MintToChecked, TokenAccount, TokenInterface};
 
 use crate::constants::*;
@@ -13,7 +13,10 @@ use crate::state::{Config, Duel, DuelStatus, Escrow};
 /// The opponent vaults are created in the handler (ATA program CPI), not with `init`:
 /// Anchor runs `init` before any check, so a creator joining their own duel would hit
 /// "already in use" on their own vaults instead of `CannotJoinOwnDuel`. The ATA program
-/// verifies each vault's address when it creates it.
+/// verifies each vault's address when it creates it. Creation is idempotent: the vault
+/// authority is predictable, so anyone could pre-create these ATAs to block a join;
+/// idempotent create accepts an existing ATA (still checking owner and mint), and only the
+/// vault-authority PDA can ever move tokens out of it.
 #[derive(Accounts)]
 pub struct JoinDuel<'info> {
     #[account(mut)]
@@ -95,13 +98,14 @@ pub fn handle_join_duel(ctx: Context<JoinDuel>) -> Result<()> {
         )?;
     }
 
-    // Opponent vaults (rent paid by the opponent). The ATA program checks each address.
+    // Opponent vaults (rent paid by the opponent unless pre-created). The ATA program checks
+    // each address, and owner + mint for an existing one.
     let a = &ctx.accounts;
     for (vault, mint) in [
         (&a.opponent_quote_vault, a.quote_mint.to_account_info()),
         (&a.opponent_coin_vault, a.coin_mint.to_account_info()),
     ] {
-        create(CpiContext::new(
+        create_idempotent(CpiContext::new(
             a.associated_token_program.key(),
             Create {
                 payer: a.opponent.to_account_info(),

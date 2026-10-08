@@ -1,6 +1,11 @@
 import { expect } from "chai";
 import { Keypair } from "@solana/web3.js";
 import {
+  TOKEN_2022_PROGRAM_ID,
+  createAssociatedTokenAccountIdempotentInstruction,
+  getAssociatedTokenAddressSync,
+} from "@solana/spl-token";
+import {
   DuelStatus,
   findEscrow,
   parseEvents,
@@ -99,6 +104,36 @@ describe("join_duel", () => {
       });
       expectOk(res);
       expectOk((await joinDuel(ctx, ref, invited)).res);
+    });
+  });
+
+  describe("griefing", () => {
+    it("still joins if an attacker pre-created the opponent's vaults", async () => {
+      const { ctx, opponent, ref } = await openDuel();
+      const attacker = await newWallet(ctx);
+      const o = playerVaults(ref, opponent.publicKey);
+      expectOk(
+        await ctx.sender.send(
+          [ref.quoteMint, ref.coinMint].map((mint) =>
+            createAssociatedTokenAccountIdempotentInstruction(
+              attacker.publicKey,
+              getAssociatedTokenAddressSync(
+                mint,
+                o.authority,
+                true,
+                TOKEN_2022_PROGRAM_ID
+              ),
+              o.authority,
+              mint,
+              TOKEN_2022_PROGRAM_ID
+            )
+          ),
+          attacker
+        )
+      );
+      expectOk((await joinDuel(ctx, ref, opponent)).res);
+      const d = await fetchDuel(ctx, ref.duel);
+      expect(await tokenBalance(ctx, o.quote)).to.equal(d.bankroll);
     });
   });
 
