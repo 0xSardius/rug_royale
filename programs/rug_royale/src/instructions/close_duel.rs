@@ -3,7 +3,8 @@ use anchor_spl::associated_token::get_associated_token_address_with_program_id;
 use anchor_spl::token_interface::{Mint, TokenAccount, TokenInterface};
 
 use crate::constants::*;
-use crate::state::{Duel, Escrow, Pool};
+use crate::errors::RugRoyaleError;
+use crate::state::{Duel, DuelStatus, Escrow, Pool};
 
 /// PRD §6.8 — owner: Sidharth. Permissionless.
 /// The four `opponent*` accounts are absent for a Cancelled duel (nobody joined).
@@ -134,7 +135,21 @@ impl<'info> CloseDuel<'info> {
 
 pub fn handle_close_duel(ctx: Context<CloseDuel>) -> Result<()> {
     ctx.accounts.verify_ata_addresses()?;
-    // TODO(Sidharth): PRD §6.8. Check status/closed/escrow first, burn + close every
-    // token account, set duel.closed = true.
+
+    // PRD §6.8 checks. These must stay ahead of everything else: `close = creator` on
+    // escrow and pool runs on success, so without them a creator could close an Active
+    // duel and take the opponent's entry.
+    let duel = &ctx.accounts.duel;
+    require!(
+        duel.status == DuelStatus::Settled || duel.status == DuelStatus::Cancelled,
+        RugRoyaleError::DuelStillLive
+    );
+    require!(!duel.closed, RugRoyaleError::AlreadyClosed);
+    let escrow_info = ctx.accounts.escrow.to_account_info();
+    let rent = Rent::get()?.minimum_balance(escrow_info.data_len());
+    require!(escrow_info.lamports() <= rent, RugRoyaleError::EscrowNotEmpty);
+
+    // TODO(Sidharth): PRD §6.8 effects: burn every token balance, close each token
+    // account with rent to its payer, set duel.closed = true.
     Ok(())
 }
