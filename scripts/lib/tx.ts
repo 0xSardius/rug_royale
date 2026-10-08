@@ -8,6 +8,11 @@ import {
 } from "@solana/web3.js";
 import { programErrorFromLogs } from "@rug-royale/sdk";
 
+/** Program error name, falling back to Anchor framework errors (e.g. AccountNotInitialized). */
+const errorNameFromLogs = (logs: string[]) =>
+  programErrorFromLogs(logs)?.name ??
+  logs.map((l) => l.match(/Error Code: (\w+)\./)?.[1]).find(Boolean);
+
 export interface ScriptTxResult {
   ok: boolean;
   signature?: string;
@@ -45,7 +50,7 @@ export async function sendTx(
       ok: false,
       signature,
       logs,
-      errorName: programErrorFromLogs(logs)?.name,
+      errorName: errorNameFromLogs(logs),
       error: conf.value.err,
     };
   } catch (e) {
@@ -56,7 +61,7 @@ export async function sendTx(
     return {
       ok: false,
       logs,
-      errorName: programErrorFromLogs(logs)?.name,
+      errorName: errorNameFromLogs(logs),
       error: e,
     };
   }
@@ -80,7 +85,7 @@ export async function simulateTx(
     ok: !sim.value.err,
     logs,
     err: sim.value.err,
-    errorName: programErrorFromLogs(logs)?.name,
+    errorName: errorNameFromLogs(logs),
     cu: sim.value.unitsConsumed,
   };
 }

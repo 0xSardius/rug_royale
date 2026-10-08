@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import { DuelStatus } from "@rug-royale/sdk";
 import {
+  BEATEN,
   CLOCK_GRACE_SECS,
   CLOSE_DELAY_SECS,
   planAction,
@@ -41,6 +42,10 @@ describe("crank plan (PRD §10.4)", () => {
     expect(
       planAction(duel(DuelStatus.Cancelled), deadline + CLOSE_DELAY_SECS)
     ).to.equal("close");
+  });
+
+  it("treats a lost close race (AccountNotInitialized) as beaten, not a failure", () => {
+    expect(BEATEN.has("AccountNotInitialized")).to.equal(true);
   });
 
   it("never touches a duel that is already closed", () => {

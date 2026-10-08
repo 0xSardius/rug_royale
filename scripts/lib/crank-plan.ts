@@ -27,11 +27,15 @@ export function planAction(
   }
 }
 
-/** Errors meaning another settler got there first: not a failure. */
+/**
+ * Errors meaning another settler got there first: not a failure. A lost close race fails
+ * with AccountNotInitialized (escrow and pool are already gone), not AlreadyClosed.
+ */
 export const BEATEN = new Set([
   "DuelNotActive",
   "DuelNotOpen",
   "AlreadyClosed",
+  "AccountNotInitialized",
 ]);
 /** Errors meaning the cluster clock hasn't caught up yet: retry next tick. */
 export const TOO_EARLY = new Set(["WindowNotEnded", "DeadlineNotReached"]);
