@@ -2,7 +2,7 @@
 
 The live picture of where the build stands. Update it whenever a task finishes, a gate passes, or a decision is made. History lives in `checkpoints/`; this file is only the present.
 
-**Last updated:** 2026-10-07 · **Plan:** `BUILD_PLAN.md` · **Latest checkpoint:** `checkpoints/20261008-0023-handlers-and-devnet-upgrade.md`
+**Last updated:** 2026-10-08 · **Plan:** `BUILD_PLAN.md` · **Latest checkpoint:** `checkpoints/20261008-0023-handlers-and-devnet-upgrade.md`
 **Deadline:** Turbin3 due Sun 2026-10-11 (confirmed); our target is Sat 2026-10-10, leaving a day to review · **Feature freeze:** Fri 2026-10-09 noon · **Demo day:** week of Oct 12
 **Graded (see `docs/turbin3_requirements.md`):** devnet deploy + ID in README · full test suite passing **on devnet** + screenshot in README · architecture documented in README · <5 min presentation (≤5 slides) showing devnet tests · individual reflections
 
@@ -43,7 +43,7 @@ Status values: `todo` · `doing` · `review` · `done`.
 | `settle` + payout tests; I2, I6, I7, I11; scenarios 1–5 | 6.6, 9 | todo |
 | `swap` invariants I9, I10 | 9 | done (#2) |
 | Devnet suite: tie + payout-exactness cases | 9 | todo |
-| `sim.ts`, tune `pool_seed_ratio` / fee | 10 | todo |
+| `sim.ts`, tune `pool_seed_ratio` / fee (`pnpm sim`) → **ratio 5, fee 30** | 10 | review |
 | Slide deck (with Sidharth) | — | todo |
 
 ### Justin: SDK, scripts, frontend, demo
@@ -79,6 +79,8 @@ Status values: `todo` · `doing` · `review` · `done`.
 ## Decision log
 
 Newest first. Anything that changes the PRD gets a line here **and** an edit to `docs/prd.md`.
+
+- 2026-10-08: **`pool_seed_ratio = 5`, `swap_fee_bps = 30`** (Yamin, from `pnpm sim`; PRD §5 amended, `init-config.ts` updated). 10,000 duels per config, seeds 1 and 7 agree within ~1 pt. Among duels where both players trade, the first buyer wins 83% at ratio 5 vs 91% at 10 and 98% at 20; the mean gap between players is 4.6% vs 2.1% vs 1.2% of bankroll. Fee barely moves the race at ratio 5; 100 bps only lowers it elsewhere by draining everyone. **Unblocks `init-config --send` (Justin).** Structural, not fixable by parameters: a pure buy-and-hold race always goes to the first buyer (P2), and a player who never trades always beats a lone trader (D2); both noted in PRD §15 for the README and slides.
 
 - 2026-10-07: **Devnet upgraded** (create, join, swap, init_config checks, close guard; slot 508633329, bytes verified against the local build). **`init-config --send` deferred** until Yamin's `sim.ts` picks `pool_seed_ratio` and `swap_fee_bps` (PRD §10.5); Config is permanent. Dry run passes. Accepted risk meanwhile: anyone could initialize Config first (would force a new program ID + new mints).
 - 2026-10-07: Pre-deploy review fixes: `join_duel` creates opponent vaults with `create_idempotent` (anyone could pre-create them to block a join); `create_duel` rejects `allowed_opponent == creator` with `OpponentNotAllowed` (PRD §6.2 amended); `init_config` checks written. Known/accepted: anyone who knows `(creator, nonce)` can pre-create a vault or pool ATA and force a retry; the frontend uses random nonces.

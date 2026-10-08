@@ -24,7 +24,7 @@ const U = 1_000_000n; // 6-decimal demo tokens
 const DEFAULTS = {
   tiers: [1_000n * U, 10_000n * U, 100_000n * U],
   windows: [30, 120, 300, 900],
-  poolSeedRatio: 10n,
+  poolSeedRatio: 5n, // sim.ts, 2026-10-08 (STATUS decision log)
   settlerTipLamports: 1_000_000n,
   maxEntryLamports: 1_000_000_000n,
   rakeBps: 250,
