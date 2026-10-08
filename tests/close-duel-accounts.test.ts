@@ -11,10 +11,11 @@ import {
   createDuel,
   expectError,
   expectOk,
-  injectActiveDuel,
+  fetchDuel,
   joinDuel,
   liteCtx,
   newWallet,
+  settle,
   setupProtocol,
 } from "./fixtures";
 
@@ -22,17 +23,18 @@ import {
 // `verify_ata_addresses` enforces the canonical ATAs. These tests pin that guarantee;
 // the effects (burn + close, PRD §6.8) are tested in close_duel.test.ts.
 describe("close_duel account validation", () => {
+  // Real create -> join -> settle, so mint supply matches every balance that close burns.
   async function settledDuel() {
     const ctx = liteCtx();
-    const { mints } = await setupProtocol(ctx);
+    const { mints, treasury } = await setupProtocol(ctx);
     const creator = await newWallet(ctx);
     const opponent = await newWallet(ctx);
-    const { ref } = await injectActiveDuel(ctx, {
-      creator,
-      opponent,
-      mints,
-      status: "settled",
-    });
+    const created = await createDuel(ctx, { creator, mints });
+    expectOk(created.res);
+    const { res, ref } = await joinDuel(ctx, created.ref, opponent);
+    expectOk(res);
+    ctx.sender.warpTo((await fetchDuel(ctx, ref.duel)).endTs);
+    expectOk(await settle(ctx, ref, creator, treasury));
     return { ctx, ref, creator, mints };
   }
 
