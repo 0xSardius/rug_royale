@@ -64,7 +64,7 @@ Status values: `todo` · `doing` · `review` · `done`.
 | README screenshot of the devnet run (needs a dedicated RPC_URL for clean output) | 13 | todo |
 | Frontend: shell, wallet, lobby, create (neo-brutalist, `brand.md`) | 11 | done |
 | Frontend: duel page states 1–2 + join flow | 11 | done |
-| Frontend: trading panel, PnL bars, Settle button, result card, popup (states 3–5) | 11 | todo |
+| Frontend: trading panel, PnL bars, Settle/Cancel buttons, result card, popup (states 3–5); QA'd on a real devnet duel and `/preview` | 11 | done (not yet tested with a real wallet) |
 | Vercel deploy | 13 | todo |
 | README: program ID, Mermaid architecture (7 diagrams) | 13 | done |
 | README: CU numbers (all handlers, measured) | 13 | done |
