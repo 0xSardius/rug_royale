@@ -5,7 +5,7 @@
   "scripts": {
     "build": "anchor build",
     "test": "anchor build && pnpm test:ts",
-    "test:ts": "mocha -n import=tsx -t 1000000 \"tests/**/*.test.ts\"",
+    "test:ts": "mocha -n import=tsx -t 1000000 \"tests/*.test.ts\"",
     "test:rust": "cargo test -p rug_royale",
     "lint": "prettier \"{tests,scripts,packages}/**/*.ts\" --check",
     "lint:fix": "prettier \"{tests,scripts,packages}/**/*.ts\" -w",
@@ -17,7 +17,8 @@
     "test:offchain": "mocha -n import=tsx \"tests/math.test.ts\" \"tests/crank.test.ts\" \"tests/sim.test.ts\"",
     "init-config": "tsx scripts/init-config.ts",
     "crank": "tsx scripts/crank.ts",
-    "sim": "tsx scripts/sim.ts"
+    "sim": "tsx scripts/sim.ts",
+    "test:devnet": "mocha -n import=tsx -t 900000 \"tests/devnet/**/*.test.ts\""
   },
   "dependencies": {
     "@anchor-lang/core": "=1.1.2",
