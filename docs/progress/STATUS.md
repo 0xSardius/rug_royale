@@ -22,18 +22,19 @@ The live picture of where the build stands. Update it whenever a task finishes, 
 
 Status values: `todo` · `doing` · `review` · `done`.
 
-### Sidharth: lifecycle and escrow
-| Item | PRD | Status |
-| --- | --- | --- |
-| `init_config` + tests — **picked up by Justin** (fallback) | 6.1 | done |
-| `create_duel` + tests (133,517 CU) — **picked up by Justin** (fallback; Sidharth out sick) | 6.2 | done |
-| `join_duel` + tests (80,651 CU) — **picked up by Justin** (fallback) | 6.4 | done |
-| `sponsor_prize` + tests | 6.3 | todo |
-| `cancel_duel` + tests | 6.7 | todo |
-| `close_duel` effects (burn + close) + tests, 3 review findings fixed (85,747 CU) — **picked up by Yamin** | 6.8 | done (#5) |
-| Invariants I1, I8, I13 | 9 | todo |
-| Devnet suite: cancel, freeroll, no-wait error cases | 9 | todo |
-| Slide deck (with Yamin), demo script | — | todo |
+### Lifecycle and escrow (Sidharth's original list; reassigned after he withdrew)
+| Item | PRD | Owner | Status |
+| --- | --- | --- | --- |
+| `init_config` + tests | 6.1 | Justin | done |
+| `create_duel` + tests | 6.2 | Justin | done |
+| `join_duel` + tests | 6.4 | Justin | done |
+| `cancel_duel` + tests (~8.8k CU) | 6.7 | Justin | done |
+| `close_duel` effects + 3 review fixes (#5) | 6.8 | Yamin | done |
+| `sponsor_prize` + tests; replace `injectSponsor` in settle/cancel tests | 6.3 | **Yamin** | todo |
+| Invariants I1 (create/join tests), I8 (join + cancel tests), I13 (close tests) | 9 | Justin, Yamin | done |
+| Devnet suite: no-wait error cases | 9 | Justin | done |
+| Devnet suite: cancel scenario | 9 | Justin | todo |
+| Devnet suite: freeroll scenario (after `sponsor_prize`) | 9 | **Yamin** | todo |
 
 ### Yamin: math and trading
 | Item | PRD | Status |
@@ -42,9 +43,9 @@ Status values: `todo` · `doing` · `review` · `done`.
 | `swap` + tests; I3–I5 (I9, I10, I12 too). Tests inject an Active duel until create/join land | 6.5, 9 | done (#2) |
 | `settle` + payout tests; I2, I7, I11; scenarios 1–5 (36,598 CU). I6 is in the Rust math tests. Sponsored cases inject the deposit until `sponsor_prize` lands | 6.6, 9 | done (#4) |
 | `swap` invariants I9, I10 | 9 | done (#2) |
-| Devnet suite: tie + payout-exactness cases | 9 | todo |
+| Devnet suite: tie + payout-exactness cases (in Justin's devnet suite) | 9 | done |
 | `sim.ts`, tune `pool_seed_ratio` / fee (`pnpm sim`) → **ratio 5, fee 30** | 10 | done (#3) |
-| Slide deck (with Sidharth) | — | todo |
+| **5-slide deck draft** (problem, solution, architecture, devnet tests, sim results + roadmap) | — | todo |
 
 ### Justin: SDK, scripts, frontend, demo
 | Item | PRD | Status |
@@ -69,6 +70,7 @@ Status values: `todo` · `doing` · `review` · `done`.
 | README: devnet test screenshot, CU numbers | 13 | todo |
 | Light CI (`.github/workflows/ci.yml`) | 13 | done |
 | Recordings: devnet test run, browser duel | 13 | todo |
+| Demo script (< 5 min, tied to Yamin's deck) | 13 | todo |
 
 ## Open questions
 
@@ -85,6 +87,7 @@ Newest first. Anything that changes the PRD gets a line here **and** an edit to 
 
 - 2026-10-08: **Treasury must hold at least rent-exempt SOL.** `settle` credits the rake straight into `config.treasury`; if the treasury is an empty account and the rake is below the rent-exempt minimum (~0.00089 SOL, i.e. entry under ~0.018 SOL at 2.5%), the whole `settle` fails with `InsufficientFundsForRent` until someone funds the treasury. `init-config.ts` defaults the treasury to the admin wallet, which is funded; keep it that way (or fund `TREASURY` first). Same applies to a winner whose wallet sits at 0 lamports, which is unlikely since they paid fees to join.
 
+- 2026-10-09: **Sidharth withdrew from the program (illness).** Team is Justin + Yamin. His remaining items split: Yamin takes `sponsor_prize`, the freeroll devnet scenario, and the deck draft; Justin takes `cancel_duel`, the cancel devnet scenario, the screenshot, README, trading UI, Vercel, recordings, and the demo script. README credits Sidharth for the design phase. Tell Turbin3 staff the team is now two.
 - 2026-10-08: **Devnet live.** Program upgraded with settle + close (bytes verified), then **Config initialized** (tx `3YtpXnjj7jSBdMfjooicnj21BDjRgQ9a12nxSscmps193XNq5jK9VuBShAEJjicyeiUPFJiwaVCD3PQZpwDhrKfv`): ratio 5, fee 30 bps, rake 250 bps, windows [30, 120, 300, 900], treasury = Justin's wallet. All fields verified on-chain. **Config, Duel, and Pool layouts are now frozen on this program ID**; changing them means a new program ID and new mints.
 - 2026-10-08: Merged #3 (sim → `pool_seed_ratio = 5`, fee 30 bps), #4 (`settle`), #5 (`close_duel` effects + review fixes). #5 had merged into the `settle` branch after #4 merged it to `main`, so it was re-merged (`d7ac914`). Stack PRs need retargeting to `main` before the base merges.
 - 2026-10-07: **Devnet upgraded** (create, join, swap, init_config checks, close guard; slot 508633329, bytes verified against the local build). **`init-config --send` deferred** until Yamin's `sim.ts` picks `pool_seed_ratio` and `swap_fee_bps` (PRD §10.5); Config is permanent. Dry run passes. Accepted risk meanwhile: anyone could initialize Config first (would force a new program ID + new mints).

@@ -1,5 +1,7 @@
 # Rug Royale: Build Plan
 
+> **2026-10-09:** Sidharth withdrew; the team is Justin and Yamin. Owners in `STATUS.md` supersede the Sidharth rows below.
+
 Re-baselined Mon 2026-10-05 against the Turbin3 brief (`docs/turbin3_requirements.md`). It replaces the day-by-day table in PRD §12 and keeps its owners. Track progress in `STATUS.md`. This file changes only when the plan does.
 
 ## What gets graded
