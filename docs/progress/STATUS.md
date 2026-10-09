@@ -59,7 +59,8 @@ Status values: `todo` · `doing` · `review` · `done`.
 | SDK: `math.ts` (PRD §7) + Rust test vectors (`pnpm math:vectors`) | 7, 9 | done |
 | `snapshot.ts`, `setup-mints.ts` (11 devnet mints created and verified; `coins.json` committed) | 10 | done |
 | `init-config.ts` (Config live on devnet 2026-10-08) and `crank.ts` | 10 | done |
-| Devnet suite: harness + happy path; README screenshot | 9, 13 | todo |
+| Devnet suite: 15 tests, 2 parallel duels (winner + tie), typed errors, I2/I3/I12/I13 — passing on devnet | 9, 13 | done |
+| README screenshot of the devnet run (needs a dedicated RPC_URL for clean output) | 13 | todo |
 | Frontend: shell, wallet, lobby, create (neo-brutalist, `brand.md`) | 11 | done |
 | Frontend: duel page states 1–2 + join flow | 11 | done |
 | Frontend: trading panel, PnL bars, Settle button, result card, popup (states 3–5) | 11 | todo |

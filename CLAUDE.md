@@ -30,6 +30,7 @@ pnpm init-config [--send]          # dry-run (default) or initialize Config on d
 pnpm crank [--once]                # settle/cancel/close bot; decisions in scripts/lib/crank-plan.ts
 pnpm sim [--duels N] [--seed S]    # PRD §10.5 duel sim: first-buyer win rate + value spread per ratio/fee
 pnpm test:offchain                 # math + vectors + crank plan (what CI runs)
+pnpm test:devnet                   # graded devnet suite: real duels vs the deployed program (~3 min)
 pnpm --filter @rug-royale/app dev  # frontend at localhost:3000 (app/.env.local: NEXT_PUBLIC_RPC_URL)
 pnpm --filter @rug-royale/app build && pnpm --filter @rug-royale/app lint
 ```

@@ -335,6 +335,7 @@ Prerequisites: Rust (pinned by `rust-toolchain.toml`), Solana CLI, Anchor 1.1.2 
 pnpm install
 anchor build            # program, IDL, TS types
 pnpm test               # anchor build + LiteSVM suites
+pnpm test:devnet        # full duels against the deployed devnet program (~3 min; set RPC_URL to avoid public-RPC rate limits)
 pnpm test:rust          # Rust unit tests (math, layout)
 pnpm --filter @rug-royale/app dev   # frontend at localhost:3000
 ```
