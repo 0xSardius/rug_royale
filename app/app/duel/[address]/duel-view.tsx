@@ -8,12 +8,26 @@ import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { PublicKey } from "@solana/web3.js";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, Copy, ExternalLink } from "lucide-react";
-import { COINS, DuelStatus, PROGRAM_ID, coinByDemoMint, joinDuelAccounts, type DuelRef } from "@rug-royale/sdk";
+import {
+  COINS,
+  DuelStatus,
+  PROGRAM_ID,
+  coinByDemoMint,
+  joinDuelAccounts,
+  payout,
+  spotPrice,
+  type DuelRef,
+} from "@rug-royale/sdk";
 import { Button, buttonClasses } from "@/components/ui/button";
 import { Badge, Card, Skeleton } from "@/components/ui/card";
 import { CoinAvatar } from "@/components/coin-avatar";
 import { EmptyState, ErrorState } from "@/components/states";
-import { useDuel, type DuelWithAddress } from "@/lib/queries";
+import { PnlBars } from "@/components/duel/pnl-bars";
+import { TradePanel } from "@/components/duel/trade-panel";
+import { CancelButton, SettleButton } from "@/components/duel/actions";
+import { ResultCard, ResultPopup } from "@/components/duel/result";
+import { useConfig, type DuelWithAddress } from "@/lib/queries";
+import { useDuelLive, type DuelLive } from "@/lib/use-duel-live";
 import { useNow } from "@/lib/use-now";
 import { program } from "@/lib/program";
 import { sendIxs } from "@/lib/send";
@@ -30,7 +44,7 @@ function parseAddress(s: string) {
 
 export function DuelView({ address }: { address: string }) {
   const pk = useMemo(() => parseAddress(address), [address]);
-  const q = useDuel(pk);
+  const q = useDuelLive(pk);
 
   if (!pk) {
     return <EmptyState title="Not a duel address" body="Check the invite link; the address in it is malformed." action={<BackToLobby />} />;
@@ -46,16 +60,31 @@ export function DuelView({ address }: { address: string }) {
       />
     );
   }
-  return <DuelDetail duel={q.data} />;
+  return <DuelDetail live={q.data} />;
 }
 
-function DuelDetail({ duel }: { duel: DuelWithAddress }) {
+function DuelDetail({ live }: { live: DuelLive }) {
+  const { duel, pool } = live;
   const now = useNow();
+  const config = useConfig().data ?? null;
   const coin = coinByDemoMint(duel.coin.toBase58());
   const { publicKey } = useWallet();
-  const isCreator = !!publicKey?.equals(duel.creator);
-  const isOpponent = !!publicKey && !!duel.opponent?.equals(publicKey);
+  const me = publicKey?.toBase58() ?? null;
+  const isCreator = me === duel.creator.toBase58();
+  const isOpponent = !!me && me === duel.opponent?.toBase58();
   const justCreated = useSearchParams().get("created") === "1";
+  const feeBps = config?.swapFeeBps ?? 30;
+  const started = duel.status !== DuelStatus.Open && duel.status !== DuelStatus.Cancelled && now >= Number(duel.startTs);
+  const myPayout =
+    duel.status === DuelStatus.Settled && config
+      ? payout({
+          entryLamports: duel.entryLamports,
+          sponsoredLamports: duel.sponsoredLamports,
+          settlerTipLamports: config.settlerTipLamports,
+          rakeBps: config.rakeBps,
+          result: duel.result as 1 | 2 | 3,
+        }).prize
+      : 0n;
 
   return (
     <div className="flex flex-col gap-6">
@@ -68,6 +97,14 @@ function DuelDetail({ duel }: { duel: DuelWithAddress }) {
             {isCreator && " (you)"}
           </p>
         </div>
+        {pool && started && (
+          <div className="border-[3px] border-border bg-card px-3 py-2 text-right">
+            <div className="text-xs font-bold uppercase text-muted-foreground">Pool price</div>
+            <div className="font-mono text-xl font-black tabular-nums">
+              {spotPrice(pool).toFixed(4)} <span className="text-xs">{COINS.quote.symbol}</span>
+            </div>
+          </div>
+        )}
         <a
           href={explorerUrl("address", duel.address.toBase58())}
           target="_blank"
@@ -78,37 +115,66 @@ function DuelDetail({ duel }: { duel: DuelWithAddress }) {
         </a>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_22rem]">
-        <Card>
-          <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-            <Stat label="Entry" value={duel.entryLamports === 0n ? "Unranked" : `${formatSol(duel.entryLamports)} SOL`} />
-            <Stat label="Bankroll" value={`${formatCompact(duel.bankroll)} ${COINS.quote.symbol}`} />
-            <Stat label="Window" value={formatWindow(duel.windowSecs)} />
-            <Stat label="Prize boost" value={duel.sponsoredLamports === 0n ? "None" : `+${formatSol(duel.sponsoredLamports)} SOL`} />
-            <Stat label="Creator" value={truncateAddress(duel.creator)} />
-            <Stat label="Opponent" value={duel.opponent ? truncateAddress(duel.opponent) : duel.allowedOpponent ? `Invite: ${truncateAddress(duel.allowedOpponent)}` : "Waiting"} />
-          </dl>
-        </Card>
+      <div className="grid gap-6 lg:grid-cols-[1fr_24rem]">
+        <div className="flex flex-col gap-6">
+          {pool && live.opponent && started && (
+            <PnlBars
+              pool={pool}
+              feeBps={feeBps}
+              bankroll={duel.bankroll}
+              rows={[
+                { label: isCreator ? "You (creator)" : "Creator", balances: live.creator, highlight: isCreator },
+                { label: isOpponent ? "You (opponent)" : "Opponent", balances: live.opponent, highlight: isOpponent },
+              ]}
+            />
+          )}
+          <Card>
+            <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+              <Stat label="Entry" value={duel.entryLamports === 0n ? "Unranked" : `${formatSol(duel.entryLamports)} SOL`} />
+              <Stat label="Bankroll" value={`${formatCompact(duel.bankroll)} ${COINS.quote.symbol}`} />
+              <Stat label="Window" value={formatWindow(duel.windowSecs)} />
+              <Stat label="Prize boost" value={duel.sponsoredLamports === 0n ? "None" : `+${formatSol(duel.sponsoredLamports)} SOL`} />
+              <Stat label="Creator" value={truncateAddress(duel.creator)} />
+              <Stat
+                label="Opponent"
+                value={duel.opponent ? truncateAddress(duel.opponent) : duel.allowedOpponent ? `Invite: ${truncateAddress(duel.allowedOpponent)}` : "Waiting"}
+              />
+            </dl>
+          </Card>
+        </div>
 
-        <StatePanel duel={duel} now={now} isCreator={isCreator} isOpponent={isOpponent} justCreated={justCreated} />
+        {/* First on phones: the countdown and trade panel must be on screen during a 30 s window. */}
+        <div className="order-first lg:order-none">
+          <StatePanel live={live} now={now} isCreator={isCreator} isOpponent={isOpponent} justCreated={justCreated} config={config} feeBps={feeBps} coinSymbol={coin?.symbol ?? "COIN"} />
+        </div>
       </div>
+
+      {duel.status === DuelStatus.Settled && <ResultPopup duel={duel} wallet={me} prizeLamports={myPayout} />}
     </div>
   );
 }
 
 function StatePanel({
-  duel,
+  live,
   now,
   isCreator,
   isOpponent,
   justCreated,
+  config,
+  feeBps,
+  coinSymbol,
 }: {
-  duel: DuelWithAddress;
+  live: DuelLive;
   now: number;
   isCreator: boolean;
   isOpponent: boolean;
   justCreated: boolean;
+  config: ReturnType<typeof useConfig>["data"] | null;
+  feeBps: number;
+  coinSymbol: string;
 }) {
+  const { duel, ref, pool } = live;
+
   if (duel.status === DuelStatus.Open) {
     const left = Number(duel.joinDeadline) - now;
     return (
@@ -127,41 +193,62 @@ function StatePanel({
         </p>
         <InviteLink address={duel.address.toBase58()} />
         {!isCreator && left > 0 && <JoinButton duel={duel} />}
-        {left <= 0 && <p className="text-xs">Anyone can cancel it now; the entry goes back to the creator.</p>}
+        {left <= 0 && (
+          <>
+            <p className="text-xs">Anyone can cancel it now. The entry goes back to the creator, never to the caller.</p>
+            <CancelButton duelRef={ref} sponsor={duel.sponsoredLamports > 0n ? duel.sponsor : null} />
+          </>
+        )}
       </Card>
     );
   }
+
   if (duel.status === DuelStatus.Active) {
     const toStart = Number(duel.startTs) - now;
     const toEnd = Number(duel.endTs) - now;
+    const myBalances = isCreator ? live.creator : isOpponent ? live.opponent : null;
     return (
-      <Card className="flex flex-col gap-3 bg-accent text-accent-foreground">
-        <Badge tone="muted" className="self-start">
-          {toStart > 0 ? "Starting soon" : toEnd > 0 ? "Live" : "Buzzer"}
-        </Badge>
-        {toStart > 0 ? (
-          <p>
-            Trading opens in <span className="font-mono text-2xl font-black tabular-nums">{formatCountdown(toStart)}</span>
-          </p>
-        ) : toEnd > 0 ? (
-          <p>
-            <span className="font-mono text-2xl font-black tabular-nums">{formatCountdown(toEnd)}</span> left
-          </p>
-        ) : (
-          <p>The window has closed. Waiting for settlement.</p>
+      <div className="flex flex-col gap-4">
+        <Card className="flex flex-col gap-3 bg-accent text-accent-foreground">
+          <Badge tone="muted" className="self-start">
+            {toStart > 0 ? "Starting soon" : toEnd > 0 ? "Live" : "Buzzer"}
+          </Badge>
+          {toStart > 0 ? (
+            <>
+              <p>
+                Trading opens in <span className="font-mono text-3xl font-black tabular-nums">{formatCountdown(toStart)}</span>
+              </p>
+              <ul className="list-disc pl-5 text-xs">
+                <li>Closed market: every trade moves the price your opponent sees.</li>
+                <li>The first buyer gets the better price.</li>
+                <li>The window is enforced on-chain; late trades fail.</li>
+              </ul>
+            </>
+          ) : toEnd > 0 ? (
+            <p>
+              <span className="font-mono text-3xl font-black tabular-nums">{formatCountdown(toEnd)}</span> left
+            </p>
+          ) : (
+            <p>The window has closed. Settle to pay out.</p>
+          )}
+          {!myBalances && toEnd > 0 && <p className="text-xs">You&apos;re spectating.</p>}
+        </Card>
+        {myBalances && pool && toStart <= 0 && toEnd > 0 && (
+          <TradePanel duelRef={ref} pool={pool} feeBps={feeBps} balances={myBalances} coinSymbol={coinSymbol} />
         )}
-        <p className="text-xs">
-          {isCreator || isOpponent ? "Trading panel lands here next." : "You're spectating."}
-        </p>
-      </Card>
+        {toEnd <= 0 && config && <SettleButton duelRef={ref} treasury={config.treasury} tipLamports={config.settlerTipLamports} />}
+      </div>
     );
   }
+
+  if (duel.status === DuelStatus.Settled) return <ResultCard duel={duel} config={config ?? null} />;
+
   return (
     <Card className="flex flex-col gap-3">
-      <Badge tone={duel.status === DuelStatus.Settled ? "win" : "muted"} className="self-start">
-        {duel.status === DuelStatus.Settled ? "Settled" : "Cancelled"}
+      <Badge tone="muted" className="self-start">
+        Cancelled
       </Badge>
-      <p className="text-sm">Result card lands here next.</p>
+      <p className="text-sm">Nobody joined before the deadline. The entry went back to the creator.</p>
     </Card>
   );
 }
@@ -225,7 +312,7 @@ function JoinButton({ duel }: { duel: DuelWithAddress }) {
       };
       const ix = await program.methods.joinDuel().accountsStrict(joinDuelAccounts(ref, wallet.publicKey!)).instruction();
       const res = await sendIxs(connection, wallet, [ix]);
-      if (res.ok) await qc.invalidateQueries({ queryKey: ["duel", duel.address.toBase58()] });
+      if (res.ok) await qc.invalidateQueries({ queryKey: ["duel-live", duel.address.toBase58()] });
       else if (!res.cancelled) setError(res.message);
     } finally {
       setBusy(false);
