@@ -2,11 +2,11 @@
 //
 //   pnpm test:devnet
 //
-// Runs real duels against the deployed program in real time. Two duels share the waits:
-// A has entries and trades (a winner), B has entries and no trades (a tie). Typed-error
-// checks run while the windows are waiting to open or close. Fresh wallets are funded from
-// KEYPAIR and swept back at the end. cancel_duel and sponsor_prize scenarios join this suite
-// when those handlers land.
+// Runs real duels against the deployed program in real time. Three duels share the waits:
+// A has entries and trades (a winner), B has entries and no trades (a tie), and C is never
+// joined and gets cancelled after its 70 s join deadline. Typed-error checks run while the
+// windows are waiting to open or close. Fresh wallets are funded from KEYPAIR and swept back
+// at the end. The sponsor_prize (freeroll) scenario joins when that handler lands.
 import { expect } from "chai";
 import {
   Keypair,
@@ -34,6 +34,7 @@ import {
 } from "@rug-royale/sdk";
 import { connection, loadKeypair, RPC_URL } from "../../scripts/lib/env";
 import {
+  cancelDuel,
   closeDuel,
   createDuel,
   expectError,
@@ -67,15 +68,16 @@ describe(`devnet: full duels against ${RPC_URL}`, function () {
   let creatorA: Keypair,
     opponentA: Keypair,
     creatorB: Keypair,
-    opponentB: Keypair;
+    opponentB: Keypair,
+    creatorC: Keypair;
   let settler: Keypair, outsider: Keypair;
-  let duelA: DuelRef, duelB: DuelRef;
+  let duelA: DuelRef, duelB: DuelRef, duelC: DuelRef;
   let endTs: bigint;
 
   const wallet = async () => {
     const kp = Keypair.generate();
+    wallets.push(kp); // before funding, so after() sweeps it even if funding errors
     await ctx.sender.fund(kp.publicKey, BigInt(WALLET_SOL * LAMPORTS_PER_SOL));
-    wallets.push(kp);
     return kp;
   };
 
@@ -86,7 +88,8 @@ describe(`devnet: full duels against ${RPC_URL}`, function () {
     expect(config.windows, "Config must include the 30 s window").to.include(
       WINDOW
     );
-    [creatorA, opponentA, creatorB, opponentB, settler, outsider] = [
+    [creatorA, opponentA, creatorB, opponentB, creatorC, settler, outsider] = [
+      await wallet(),
       await wallet(),
       await wallet(),
       await wallet(),
@@ -159,7 +162,7 @@ describe(`devnet: full duels against ${RPC_URL}`, function () {
       );
     });
 
-    it("opens duel A and duel B, escrowing each creator's entry", async () => {
+    it("opens duels A, B, and C, escrowing each creator's entry", async () => {
       const a = await createDuel(ctx, {
         creator: creatorA,
         mints,
@@ -173,10 +176,19 @@ describe(`devnet: full duels against ${RPC_URL}`, function () {
         entryLamports: ENTRY,
         coin: mints.coins[1],
       });
+      const c = await createDuel(ctx, {
+        creator: creatorC,
+        mints,
+        windowSecs: WINDOW,
+        entryLamports: ENTRY,
+        joinDeadline: (await ctx.sender.now()) + 70n,
+      });
       expectOk(a.res);
       expectOk(b.res);
+      expectOk(c.res);
       duelA = a.ref;
       duelB = b.ref;
+      duelC = c.ref;
       const d = await fetchDuel(ctx, duelA.duel);
       expect(d.status).to.equal(DuelStatus.Open);
       const rent = await ctx.sender.rentExempt(ESCROW_SPACE);
@@ -187,6 +199,12 @@ describe(`devnet: full duels against ${RPC_URL}`, function () {
       expect(await tokenBalance(ctx, poolAccounts(duelA).quote)).to.equal(
         pool.quoteReserve
       );
+    });
+  });
+
+  describe("cancel_duel (before the deadline)", () => {
+    it("rejects cancelling duel C before its join deadline (DeadlineNotReached)", async () => {
+      expectError(await cancelDuel(ctx, duelC, settler), "DeadlineNotReached");
     });
   });
 
@@ -376,6 +394,31 @@ describe(`devnet: full duels against ${RPC_URL}`, function () {
     });
   });
 
+  describe("cancel_duel", () => {
+    it("cancels unjoined duel C after its deadline: entry back to the creator, not the caller", async () => {
+      await ctx.sender.waitUntil(
+        (
+          await fetchDuel(ctx, duelC.duel)
+        ).joinDeadline
+      );
+      const before = await ctx.sender.lamports(creatorC.publicKey);
+      expectOk(await cancelDuel(ctx, duelC, settler));
+      expect((await fetchDuel(ctx, duelC.duel)).status).to.equal(
+        DuelStatus.Cancelled
+      );
+      expect((await ctx.sender.lamports(creatorC.publicKey)) - before).to.equal(
+        ENTRY
+      );
+      expect(
+        await ctx.sender.lamports(findEscrow(ctx.programId, duelC.duel)[0])
+      ).to.equal(await ctx.sender.rentExempt(ESCROW_SPACE));
+    });
+
+    it("rejects cancelling a duel that isn't Open (DuelNotOpen)", async () => {
+      expectError(await cancelDuel(ctx, duelA, settler), "DuelNotOpen");
+    });
+  });
+
   describe("close_duel", () => {
     it("closes duel A: token accounts, escrow, and pool gone; Duel kept with closed = true (I13)", async () => {
       expectOk(await closeDuel(ctx, duelA, settler));
@@ -400,6 +443,14 @@ describe(`devnet: full duels against ${RPC_URL}`, function () {
     it("closes duel B too", async () => {
       expectOk(await closeDuel(ctx, duelB, settler));
       expect((await fetchDuel(ctx, duelB.duel)).closed).to.equal(true);
+    });
+
+    it("closes cancelled duel C (no opponent accounts)", async () => {
+      expectOk(await closeDuel(ctx, duelC, settler));
+      expect((await fetchDuel(ctx, duelC.duel)).closed).to.equal(true);
+      expect(
+        await ctx.sender.accountData(findEscrow(ctx.programId, duelC.duel)[0])
+      ).to.equal(null);
     });
   });
 });
