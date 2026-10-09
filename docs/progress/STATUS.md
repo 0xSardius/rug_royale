@@ -58,7 +58,7 @@ Status values: `todo` · `doing` · `review` · `done`.
 | SDK: decoders, lobby filters, events, error messages | 4, 11 | done |
 | SDK: `math.ts` (PRD §7) + Rust test vectors (`pnpm math:vectors`) | 7, 9 | done |
 | `snapshot.ts`, `setup-mints.ts` (11 devnet mints created and verified; `coins.json` committed) | 10 | done |
-| `init-config.ts` (dry run passes on devnet; `--send` after windows are final) and `crank.ts` | 10 | done |
+| `init-config.ts` (Config live on devnet 2026-10-08) and `crank.ts` | 10 | done |
 | Devnet suite: harness + happy path; README screenshot | 9, 13 | todo |
 | Frontend: shell, wallet, lobby, create (neo-brutalist, `brand.md`) | 11 | done |
 | Frontend: duel page states 1–2 + join flow | 11 | done |
@@ -84,6 +84,7 @@ Newest first. Anything that changes the PRD gets a line here **and** an edit to 
 
 - 2026-10-08: **Treasury must hold at least rent-exempt SOL.** `settle` credits the rake straight into `config.treasury`; if the treasury is an empty account and the rake is below the rent-exempt minimum (~0.00089 SOL, i.e. entry under ~0.018 SOL at 2.5%), the whole `settle` fails with `InsufficientFundsForRent` until someone funds the treasury. `init-config.ts` defaults the treasury to the admin wallet, which is funded; keep it that way (or fund `TREASURY` first). Same applies to a winner whose wallet sits at 0 lamports, which is unlikely since they paid fees to join.
 
+- 2026-10-08: **Devnet live.** Program upgraded with settle + close (bytes verified), then **Config initialized** (tx `3YtpXnjj7jSBdMfjooicnj21BDjRgQ9a12nxSscmps193XNq5jK9VuBShAEJjicyeiUPFJiwaVCD3PQZpwDhrKfv`): ratio 5, fee 30 bps, rake 250 bps, windows [30, 120, 300, 900], treasury = Justin's wallet. All fields verified on-chain. **Config, Duel, and Pool layouts are now frozen on this program ID**; changing them means a new program ID and new mints.
 - 2026-10-08: Merged #3 (sim → `pool_seed_ratio = 5`, fee 30 bps), #4 (`settle`), #5 (`close_duel` effects + review fixes). #5 had merged into the `settle` branch after #4 merged it to `main`, so it was re-merged (`d7ac914`). Stack PRs need retargeting to `main` before the base merges.
 - 2026-10-07: **Devnet upgraded** (create, join, swap, init_config checks, close guard; slot 508633329, bytes verified against the local build). **`init-config --send` deferred** until Yamin's `sim.ts` picks `pool_seed_ratio` and `swap_fee_bps` (PRD §10.5); Config is permanent. Dry run passes. Accepted risk meanwhile: anyone could initialize Config first (would force a new program ID + new mints).
 - 2026-10-07: Pre-deploy review fixes: `join_duel` creates opponent vaults with `create_idempotent` (anyone could pre-create them to block a join); `create_duel` rejects `allowed_opponent == creator` with `OpponentNotAllowed` (PRD §6.2 amended); `init_config` checks written. Known/accepted: anyone who knows `(creator, nonce)` can pre-create a vault or pool ATA and force a retry; the frontend uses random nonces.
