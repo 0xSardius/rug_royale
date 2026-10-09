@@ -170,17 +170,14 @@ export class RpcSender implements Sender {
     tx.sign(payer, ...extraSigners);
     try {
       const sig = await this.connection.sendRawTransaction(tx.serialize());
-      const conf = await this.connection.confirmTransaction(
-        { signature: sig, blockhash, lastValidBlockHeight },
-        "confirmed"
-      );
+      const conf = await this.confirm(sig, lastValidBlockHeight);
       const info = await this.connection.getTransaction(sig, {
         commitment: "confirmed",
         maxSupportedTransactionVersion: 0,
       });
       const logs = info?.meta?.logMessages ?? [];
-      if (conf.value.err)
-        return { ok: false, logs, ...parseLogs(logs), raw: conf.value.err };
+      if (conf.err)
+        return { ok: false, logs, ...parseLogs(logs), raw: conf.err };
       return { ok: true, logs, raw: sig };
     } catch (e) {
       // Preflight failures land here with the simulation logs attached.
@@ -189,6 +186,28 @@ export class RpcSender implements Sender {
           ? (await e.getLogs(this.connection)) ?? []
           : [];
       return { ok: false, logs, ...parseLogs(logs), raw: e };
+    }
+  }
+
+  /**
+   * Polls signature status instead of confirmTransaction's websocket subscription, which
+   * public devnet RPC rate-limits (ws 429s) and which adds a connection per transaction.
+   */
+  private async confirm(signature: string, lastValidBlockHeight: number) {
+    for (;;) {
+      const { value } = await this.connection.getSignatureStatuses([signature]);
+      const st = value[0];
+      if (
+        st?.confirmationStatus === "confirmed" ||
+        st?.confirmationStatus === "finalized"
+      )
+        return { err: st.err };
+      if (
+        (await this.connection.getBlockHeight("confirmed")) >
+        lastValidBlockHeight
+      )
+        return { err: "blockhash expired before confirmation" };
+      await new Promise((r) => setTimeout(r, 800));
     }
   }
 
@@ -231,6 +250,9 @@ export class RpcSender implements Sender {
 
   /** RPC only: wait until cluster time reaches `unixTs`. */
   async waitUntil(unixTs: bigint, pollMs = 2_000) {
+    // Sleep most of the gap in one go, then poll, to keep RPC traffic low.
+    const gap = Number(unixTs - (await this.now()));
+    if (gap > 3) await new Promise((r) => setTimeout(r, (gap - 2) * 1000));
     while ((await this.now()) < unixTs)
       await new Promise((r) => setTimeout(r, pollMs));
   }
