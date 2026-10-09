@@ -15,7 +15,9 @@ Turbin3 capstone by Justin ([@0xSardius](https://github.com/0xSardius)) and Yami
 
 ## Devnet tests
 
-> _Screenshot of the passing devnet test suite goes here (Turbin3 requirement). Added once the suite is green._
+`pnpm test:devnet` runs real duels against the deployed program: a winner, a true tie, and a cancelled duel, plus typed-error checks along the way (**19 tests, ~3 min**). The LiteSVM suite (`pnpm test`, 108 tests) covers every typed error and the PRD §9 invariants exhaustively.
+
+> _Screenshot of the passing devnet run goes here._
 
 ## How a duel works
 
@@ -363,4 +365,14 @@ pnpm crank              # settle / cancel / close duels every 5 s (--once for on
 
 ## Compute units
 
-> _Measured `create_duel` and `join_duel` CU numbers go here once the handlers are complete (PRD §9 scenario 7). The account initializations alone use about 140k CU, so clients send a 400k compute-unit limit._
+Measured in LiteSVM across 5 runs. Ranges come from PDA derivation, which costs more for some addresses than others.
+
+| Instruction | CU | Notes |
+| --- | --- | --- |
+| `init_config` | 15,530 | One time |
+| `create_duel` | 126k – 150k | 7 account inits + 2 pool-seed mints; clients send a 400k CU limit |
+| `join_duel` | 73k – 87k | Entry transfer, 2 vault creations, 2 bankroll mints |
+| `swap` | 36k – 48k | Buy and sell cost the same |
+| `settle` | 32k – 42k | Valuation + payouts debited straight from escrow |
+| `cancel_duel` | 8.6k | |
+| `close_duel` | 44k – 67k | Burns and closes 4 (cancelled) or 6 (settled) token accounts |

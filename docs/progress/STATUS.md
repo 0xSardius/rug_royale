@@ -33,7 +33,7 @@ Status values: `todo` · `doing` · `review` · `done`.
 | `sponsor_prize` + tests; replace `injectSponsor` in settle/cancel tests | 6.3 | **Yamin** | todo |
 | Invariants I1 (create/join tests), I8 (join + cancel tests), I13 (close tests) | 9 | Justin, Yamin | done |
 | Devnet suite: no-wait error cases | 9 | Justin | done |
-| Devnet suite: cancel scenario | 9 | Justin | todo |
+| Devnet suite: cancel scenario (duel C; 19 passing on devnet) | 9 | Justin | done |
 | Devnet suite: freeroll scenario (after `sponsor_prize`) | 9 | **Yamin** | todo |
 
 ### Yamin: math and trading
@@ -67,7 +67,8 @@ Status values: `todo` · `doing` · `review` · `done`.
 | Frontend: trading panel, PnL bars, Settle button, result card, popup (states 3–5) | 11 | todo |
 | Vercel deploy | 13 | todo |
 | README: program ID, Mermaid architecture (7 diagrams) | 13 | done |
-| README: devnet test screenshot, CU numbers | 13 | todo |
+| README: CU numbers (all handlers, measured) | 13 | done |
+| README: devnet test screenshot (`pnpm test:devnet 2>/dev/null`) | 13 | todo |
 | Light CI (`.github/workflows/ci.yml`) | 13 | done |
 | Recordings: devnet test run, browser duel | 13 | todo |
 | Demo script (< 5 min, tied to Yamin's deck) | 13 | todo |
@@ -87,6 +88,7 @@ Newest first. Anything that changes the PRD gets a line here **and** an edit to 
 
 - 2026-10-08: **Treasury must hold at least rent-exempt SOL.** `settle` credits the rake straight into `config.treasury`; if the treasury is an empty account and the rake is below the rent-exempt minimum (~0.00089 SOL, i.e. entry under ~0.018 SOL at 2.5%), the whole `settle` fails with `InsufficientFundsForRent` until someone funds the treasury. `init-config.ts` defaults the treasury to the admin wallet, which is funded; keep it that way (or fund `TREASURY` first). Same applies to a winner whose wallet sits at 0 lamports, which is unlikely since they paid fees to join.
 
+- 2026-10-09: `cancel_duel` live on devnet. Upgrades that grow the program by < 10,240 bytes fail auto-extend ("ExtendProgram requires a minimum of 10240 additional bytes"); run `solana program extend <PROGRAM_ID> 10240 -ud` first. Failed deploys leave buffers holding SOL: `solana program close --buffers -ud` and delete `target/deploy/rug_royale-upgrade-buffer.json`.
 - 2026-10-09: **Sidharth withdrew from the program (illness).** Team is Justin + Yamin. His remaining items split: Yamin takes `sponsor_prize`, the freeroll devnet scenario, and the deck draft; Justin takes `cancel_duel`, the cancel devnet scenario, the screenshot, README, trading UI, Vercel, recordings, and the demo script. README credits Sidharth for the design phase. Tell Turbin3 staff the team is now two.
 - 2026-10-08: **Devnet live.** Program upgraded with settle + close (bytes verified), then **Config initialized** (tx `3YtpXnjj7jSBdMfjooicnj21BDjRgQ9a12nxSscmps193XNq5jK9VuBShAEJjicyeiUPFJiwaVCD3PQZpwDhrKfv`): ratio 5, fee 30 bps, rake 250 bps, windows [30, 120, 300, 900], treasury = Justin's wallet. All fields verified on-chain. **Config, Duel, and Pool layouts are now frozen on this program ID**; changing them means a new program ID and new mints.
 - 2026-10-08: Merged #3 (sim → `pool_seed_ratio = 5`, fee 30 bps), #4 (`settle`), #5 (`close_duel` effects + review fixes). #5 had merged into the `settle` branch after #4 merged it to `main`, so it was re-merged (`d7ac914`). Stack PRs need retargeting to `main` before the base merges.
