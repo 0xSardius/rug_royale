@@ -235,17 +235,27 @@ export class RpcSender implements Sender {
   /** Funds from the faucet wallet (devnet airdrops are rate-limited, so avoid them). */
   async fund(pk: PublicKey, lamports: bigint) {
     if (!this.faucet) throw new Error("RpcSender.fund needs a faucet keypair");
-    const res = await this.send(
-      [
-        SystemProgram.transfer({
-          fromPubkey: this.faucet.publicKey,
-          toPubkey: pk,
-          lamports,
-        }),
-      ],
-      this.faucet
-    );
-    if (!res.ok) throw new Error(`fund failed: ${res.logs.join("\n")}`);
+    const target = (await this.lamports(pk)) + lamports;
+    for (let attempt = 1; ; attempt++) {
+      const res = await this.send(
+        [
+          SystemProgram.transfer({
+            fromPubkey: this.faucet.publicKey,
+            toPubkey: pk,
+            lamports,
+          }),
+        ],
+        this.faucet
+      );
+      if (res.ok) return;
+      // Under rate limiting the transfer can land while its confirmation times out, so
+      // check the balance before retrying (a blind retry would fund twice).
+      if ((await this.lamports(pk)) >= target) return;
+      if (attempt >= 2)
+        throw new Error(
+          `fund failed: ${String(res.raw)}\n${res.logs.join("\n")}`
+        );
+    }
   }
 
   /** RPC only: wait until cluster time reaches `unixTs`. */
