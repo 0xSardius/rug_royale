@@ -84,6 +84,7 @@ Status values: `todo` · `doing` · `review` · `done`.
 
 Newest first. Anything that changes the PRD gets a line here **and** an edit to `docs/prd.md`.
 
+- 2026-10-10: **All 8 handlers live on devnet.** Merged #6 (`sponsor_prize`, Yamin; 115 LiteSVM tests) and upgraded devnet (tx `4gFqrVVrCaw4NsLtGLvrYxpfrJGSy3GDi1xbNq21DGNdari7RQVnupX6sMtaD9UaR2FZ1gR3ecJboh2nh6hyrMkL`, bytes verified). Yamin runs the freeroll devnet scenario next.
 - 2026-10-10: **`sponsor_prize` landed (Yamin)**, the last stubbed handler: all 8 handlers now have bodies. Checks `DuelNotOpen` → `ZeroAmount` → `SponsorMismatch` (one sponsor per duel; the same sponsor may top up). LiteSVM settle/cancel tests now sponsor for real (before the join), so `injectSponsor` is gone. **Needs a devnet upgrade (Justin)** before the freeroll devnet scenario and the README screenshot.
 
 - 2026-10-08: **`close_duel` effects landed (Yamin, picked up from Sidharth).** Burns every balance and closes each token account (rent: creator for its vaults and the pool accounts, opponent for theirs), escrow and pool close to the creator, `closed = true`. Review findings fixed: (1) effects exist, so nothing is stranded; (2) **`EscrowNotEmpty` dropped** from close (PRD §6.8 amended; dust is swept to the creator); (3) all four opponent accounts are required once someone joined. A second close fails with `AccountNotInitialized` (escrow/pool gone), not `AlreadyClosed`; the crank now counts it as beaten (`6b9ca83`). Merged; settle and close can deploy.
