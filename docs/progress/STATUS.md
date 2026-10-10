@@ -65,7 +65,7 @@ Status values: `todo` · `doing` · `review` · `done`.
 | Frontend: shell, wallet, lobby, create (neo-brutalist, `brand.md`) | 11 | done |
 | Frontend: duel page states 1–2 + join flow | 11 | done |
 | Frontend: trading panel, PnL bars, Settle/Cancel buttons, result card, popup (states 3–5); QA'd on a real devnet duel and `/preview` | 11 | done (not yet tested with a real wallet) |
-| Vercel deploy | 13 | todo |
+| Vercel deploy: https://rug-royale-seven.vercel.app (Helius RPC, domain-restricted key) | 13 | done |
 | README: program ID, Mermaid architecture (7 diagrams) | 13 | done |
 | README: CU numbers (all handlers, measured) | 13 | done |
 | README: devnet test screenshot (`pnpm test:devnet 2>/dev/null`) | 13 | todo |

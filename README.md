@@ -10,7 +10,7 @@ Turbin3 capstone by Justin ([@0xSardius](https://github.com/0xSardius)) and Yami
 | --- | --- |
 | **Devnet program ID** | [`5USpVpECZNcq4ZjRUyATb9ykcSRzZ29vHDwNMYFwNJWE`](https://explorer.solana.com/address/5USpVpECZNcq4ZjRUyATb9ykcSRzZ29vHDwNMYFwNJWE?cluster=devnet) |
 | **Framework** | Anchor 1.1.2, Token-2022 via `token_interface` |
-| **Frontend** | Next.js 16 (`app/`), _Vercel link: TBD_ |
+| **Live app (devnet)** | [rug-royale-seven.vercel.app](https://rug-royale-seven.vercel.app) (Next.js 16, `app/`) |
 | **Specs** | [PRD](docs/prd.md) (source of truth), [architecture PDF](docs/architecture.pdf), [LOI](docs/loi.pdf) |
 
 ## Devnet tests
