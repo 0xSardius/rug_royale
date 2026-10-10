@@ -30,7 +30,7 @@ Status values: `todo` · `doing` · `review` · `done`.
 | `join_duel` + tests | 6.4 | Justin | done |
 | `cancel_duel` + tests (~8.8k CU) | 6.7 | Justin | done |
 | `close_duel` effects + 3 review fixes (#5) | 6.8 | Yamin | done |
-| `sponsor_prize` + tests (9,825 CU); `injectSponsor` removed, settle/cancel tests use the real handler | 6.3 | **Yamin** | review |
+| `sponsor_prize` + tests (9,825 CU); `injectSponsor` removed, settle/cancel tests use the real handler (#6, live on devnet) | 6.3 | Yamin | done |
 | Invariants I1 (create/join tests), I8 (join + cancel tests), I13 (close tests) | 9 | Justin, Yamin | done |
 | Devnet suite: no-wait error cases | 9 | Justin | done |
 | Devnet suite: cancel scenario (duel C; 19 passing on devnet) | 9 | Justin | done |
