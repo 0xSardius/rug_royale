@@ -728,27 +728,3 @@ export async function patchDuel(
   const duel = ctx.program.coder.accounts.decode("duel", Buffer.from(d.data));
   await setAnchorAccount(ctx, ref.duel, "duel", { ...duel, ...fields });
 }
-
-/**
- * LiteSVM only, until sponsor_prize has a body: what a sponsor_prize of `amount` would
- * leave behind. Adds `amount` to the escrow's lamports and sets Duel.sponsor and
- * Duel.sponsored_lamports.
- */
-export async function injectSponsor(
-  ctx: Ctx & { sender: LiteSvmSender },
-  ref: DuelRef,
-  sponsor: PublicKey,
-  amount: bigint
-) {
-  const [escrow] = findEscrow(ctx.programId, ref.duel);
-  const e = ctx.sender.svm.getAccount(escrow);
-  if (!e) throw new Error("escrow not found");
-  ctx.sender.svm.setAccount(escrow, {
-    ...e,
-    lamports: Number(BigInt(e.lamports) + amount),
-  });
-  await patchDuel(ctx, ref, {
-    sponsor,
-    sponsoredLamports: new BN(amount.toString()),
-  });
-}

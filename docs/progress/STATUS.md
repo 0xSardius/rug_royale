@@ -2,7 +2,7 @@
 
 The live picture of where the build stands. Update it whenever a task finishes, a gate passes, or a decision is made. History lives in `checkpoints/`; this file is only the present.
 
-**Last updated:** 2026-10-08 · **Plan:** `BUILD_PLAN.md` · **Latest checkpoint:** `checkpoints/20261009-0137-cancel-devnet-trading-ui.md`
+**Last updated:** 2026-10-10 · **Plan:** `BUILD_PLAN.md` · **Latest checkpoint:** `checkpoints/20261009-0137-cancel-devnet-trading-ui.md`
 **Deadline:** Turbin3 due Sun 2026-10-11 (confirmed); our target is Sat 2026-10-10, leaving a day to review · **Feature freeze:** Fri 2026-10-09 noon · **Demo day:** week of Oct 12
 **Graded (see `docs/turbin3_requirements.md`):** devnet deploy + ID in README · full test suite passing **on devnet** + screenshot in README · architecture documented in README · <5 min presentation (≤5 slides) showing devnet tests · individual reflections
 
@@ -30,7 +30,7 @@ Status values: `todo` · `doing` · `review` · `done`.
 | `join_duel` + tests | 6.4 | Justin | done |
 | `cancel_duel` + tests (~8.8k CU) | 6.7 | Justin | done |
 | `close_duel` effects + 3 review fixes (#5) | 6.8 | Yamin | done |
-| `sponsor_prize` + tests; replace `injectSponsor` in settle/cancel tests | 6.3 | **Yamin** | todo |
+| `sponsor_prize` + tests (9,825 CU); `injectSponsor` removed, settle/cancel tests use the real handler | 6.3 | **Yamin** | review |
 | Invariants I1 (create/join tests), I8 (join + cancel tests), I13 (close tests) | 9 | Justin, Yamin | done |
 | Devnet suite: no-wait error cases | 9 | Justin | done |
 | Devnet suite: cancel scenario (duel C; 19 passing on devnet) | 9 | Justin | done |
@@ -83,6 +83,8 @@ Status values: `todo` · `doing` · `review` · `done`.
 ## Decision log
 
 Newest first. Anything that changes the PRD gets a line here **and** an edit to `docs/prd.md`.
+
+- 2026-10-10: **`sponsor_prize` landed (Yamin)**, the last stubbed handler: all 8 handlers now have bodies. Checks `DuelNotOpen` → `ZeroAmount` → `SponsorMismatch` (one sponsor per duel; the same sponsor may top up). LiteSVM settle/cancel tests now sponsor for real (before the join), so `injectSponsor` is gone. **Needs a devnet upgrade (Justin)** before the freeroll devnet scenario and the README screenshot.
 
 - 2026-10-08: **`close_duel` effects landed (Yamin, picked up from Sidharth).** Burns every balance and closes each token account (rent: creator for its vaults and the pool accounts, opponent for theirs), escrow and pool close to the creator, `closed = true`. Review findings fixed: (1) effects exist, so nothing is stranded; (2) **`EscrowNotEmpty` dropped** from close (PRD §6.8 amended; dust is swept to the creator); (3) all four opponent accounts are required once someone joined. A second close fails with `AccountNotInitialized` (escrow/pool gone), not `AlreadyClosed`; the crank now counts it as beaten (`6b9ca83`). Merged; settle and close can deploy.
 
