@@ -23,25 +23,24 @@ import {
   expectOk,
   fetchDuel,
   fetchPool,
-  injectSponsor,
   joinDuel,
   liteCtx,
   newWallet,
   settle,
   setupProtocol,
+  sponsorPrize,
   swap,
   tokenBalance,
 } from "./fixtures";
 
-// PRD §6.6 with real create_duel + join_duel. Sponsored cases inject the escrow deposit
-// (injectSponsor) until sponsor_prize has a body.
+// PRD §6.6 with real create_duel, sponsor_prize and join_duel.
 type Lite = Ctx & { sender: LiteSvmSender };
 const SOL = 1_000_000_000n;
 const TX_FEE = 5_000n; // LiteSVM default, one signature
 const U = 1_000_000n; // 6 decimals
 
 async function activeDuel(
-  opts: { entry?: bigint; config?: Partial<ConfigArgs> } = {}
+  opts: { entry?: bigint; sponsor?: bigint; config?: Partial<ConfigArgs> } = {}
 ) {
   const ctx = liteCtx();
   const { mints, treasury, configArgs } = await setupProtocol(ctx, opts.config);
@@ -55,6 +54,10 @@ async function activeDuel(
     windowSecs: 120,
   });
   expectOk(created.res);
+  if (opts.sponsor) {
+    const sponsor = await newWallet(ctx);
+    expectOk(await sponsorPrize(ctx, created.ref, sponsor, opts.sponsor));
+  }
   const joined = await joinDuel(ctx, created.ref, opponent);
   expectOk(joined.res);
   const ref = joined.ref;
@@ -207,6 +210,7 @@ describe("settle", () => {
 
     it("scenario 3: tie returns entries, tips from sponsored only, odd lamport to creator", async () => {
       const entry = SOL / 20n;
+      const sponsored = 3_000_001n; // tip 1,000,000 leaves an odd 2,000,001
       const {
         ctx,
         ref,
@@ -216,9 +220,7 @@ describe("settle", () => {
         treasury,
         configArgs,
         endTs,
-      } = await activeDuel({ entry });
-      const sponsored = 3_000_001n; // tip 1,000,000 leaves an odd 2,000,001
-      await injectSponsor(ctx, ref, Keypair.generate().publicKey, sponsored);
+      } = await activeDuel({ entry, sponsor: sponsored });
       ctx.sender.warpTo(endTs); // nobody trades
       const [escrow] = findEscrow(ctx.programId, ref.duel);
       const keys = {
@@ -253,8 +255,7 @@ describe("settle", () => {
         treasury,
         configArgs,
         endTs,
-      } = await activeDuel();
-      await injectSponsor(ctx, ref, Keypair.generate().publicKey, SOL / 2n);
+      } = await activeDuel({ sponsor: SOL / 2n });
       // A lone trader loses to a holder (fee + rounding), so the creator wins.
       expectOk(await swap(ctx, ref, opponent, "buy", 50n * U));
       ctx.sender.warpTo(endTs);

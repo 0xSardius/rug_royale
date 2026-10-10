@@ -1,5 +1,4 @@
 import { expect } from "chai";
-import { Keypair } from "@solana/web3.js";
 import {
   DuelStatus,
   findEscrow,
@@ -13,7 +12,7 @@ import {
   expectError,
   expectOk,
   fetchDuel,
-  injectSponsor,
+  sponsorPrize,
   joinDuel,
   liteCtx,
   newWallet,
@@ -90,13 +89,16 @@ describe("cancel_duel", () => {
 
     it("sponsored duel: the sponsor gets the sponsored amount back, the creator the entry", async () => {
       const { ctx, creator, caller, ref, joinDeadline } = await openDuel();
-      const sponsor = Keypair.generate().publicKey;
+      const sponsor = await newWallet(ctx);
       const sponsored = 300_000_000n;
-      await injectSponsor(ctx, ref, sponsor, sponsored);
+      expectOk(await sponsorPrize(ctx, ref, sponsor, sponsored));
       ctx.sender.warpTo(joinDeadline);
       const creatorBefore = await ctx.sender.lamports(creator.publicKey);
-      expectOk(await cancelDuel(ctx, ref, caller, sponsor));
-      expect(await ctx.sender.lamports(sponsor)).to.equal(sponsored);
+      const sponsorBefore = await ctx.sender.lamports(sponsor.publicKey);
+      expectOk(await cancelDuel(ctx, ref, caller, sponsor.publicKey));
+      expect(
+        (await ctx.sender.lamports(sponsor.publicKey)) - sponsorBefore
+      ).to.equal(sponsored);
       expect(
         (await ctx.sender.lamports(creator.publicKey)) - creatorBefore
       ).to.equal(ENTRY);
@@ -145,7 +147,7 @@ describe("cancel_duel", () => {
 
     it("a sponsored duel can't cancel without the sponsor account", async () => {
       const { ctx, caller, ref, joinDeadline } = await openDuel();
-      await injectSponsor(ctx, ref, Keypair.generate().publicKey, 1_000_000n);
+      expectOk(await sponsorPrize(ctx, ref, await newWallet(ctx), 1_000_000n));
       ctx.sender.warpTo(joinDeadline);
       expectError(
         await cancelDuel(ctx, ref, caller, null),
@@ -155,7 +157,7 @@ describe("cancel_duel", () => {
 
     it("the sponsor refund can't be redirected (ConstraintAddress)", async () => {
       const { ctx, caller, ref, joinDeadline } = await openDuel();
-      await injectSponsor(ctx, ref, Keypair.generate().publicKey, 1_000_000n);
+      expectOk(await sponsorPrize(ctx, ref, await newWallet(ctx), 1_000_000n));
       ctx.sender.warpTo(joinDeadline);
       expectError(
         await cancelDuel(ctx, ref, caller, caller.publicKey),
