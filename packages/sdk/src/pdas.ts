@@ -3,6 +3,17 @@ import { PublicKey } from "@solana/web3.js";
 // Seeds mirror programs/rug_royale/src/constants.rs.
 const seed = (s: string) => Buffer.from(s);
 
+/**
+ * u64 as 8 little-endian bytes (`nonce.to_le_bytes()` in Rust). DataView, not
+ * Buffer.writeBigUInt64LE: the browser Buffer polyfill bundled by Next.js lacks the BigInt
+ * methods, so create_duel threw before Phantom was ever asked to sign.
+ */
+export const u64Le = (v: bigint) => {
+  const bytes = new Uint8Array(8);
+  new DataView(bytes.buffer).setBigUint64(0, v, true);
+  return bytes;
+};
+
 export const findConfig = (programId: PublicKey) =>
   PublicKey.findProgramAddressSync([seed("config")], programId);
 
@@ -14,10 +25,8 @@ export const findDuel = (
   creator: PublicKey,
   nonce: bigint
 ) => {
-  const n = Buffer.alloc(8);
-  n.writeBigUInt64LE(nonce);
   return PublicKey.findProgramAddressSync(
-    [seed("duel"), creator.toBuffer(), n],
+    [seed("duel"), creator.toBuffer(), u64Le(nonce)],
     programId
   );
 };

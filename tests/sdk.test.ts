@@ -11,6 +11,7 @@ import {
   duelsAsOpponent,
   duelsByStatus,
   findConfig,
+  findDuel,
   programError,
   programErrorFromLogs,
 } from "@rug-royale/sdk";
@@ -98,6 +99,25 @@ describe("sdk", () => {
     ]);
     expect(c.rakeBps).to.equal(250);
     expect(c.bump).to.be.greaterThan(0);
+  });
+
+  it("findDuel matches the Buffer-based derivation for any u64 nonce (browser-safe bytes)", () => {
+    const programId = new PublicKey(IDL_JSON.address);
+    const nonces = [0n, 1n, 255n, 256n, 2n ** 32n, 2n ** 63n, 2n ** 64n - 1n];
+    for (let i = 0; i < 20; i++)
+      nonces.push(BigInt(Math.floor(Math.random() * 2 ** 53)) * 2049n);
+    for (const nonce of nonces) {
+      const n = Buffer.alloc(8);
+      n.writeBigUInt64LE(nonce % 2n ** 64n);
+      const [expected] = PublicKey.findProgramAddressSync(
+        [Buffer.from("duel"), creator.toBuffer(), n],
+        programId
+      );
+      expect(
+        findDuel(programId, creator, nonce % 2n ** 64n)[0].toBase58(),
+        nonce.toString()
+      ).to.equal(expected.toBase58());
+    }
   });
 
   it("maps every program error code to a message", () => {
