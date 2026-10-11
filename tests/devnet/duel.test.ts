@@ -2,11 +2,11 @@
 //
 //   pnpm test:devnet
 //
-// Runs real duels against the deployed program in real time. Three duels share the waits:
-// A has entries and trades (a winner), B has entries and no trades (a tie), and C is never
-// joined and gets cancelled after its 70 s join deadline. Typed-error checks run while the
-// windows are waiting to open or close. Fresh wallets are funded from KEYPAIR and swept back
-// at the end. The sponsor_prize (freeroll) scenario joins when that handler lands.
+// Runs real duels against the deployed program in real time. Four duels share the waits:
+// A has entries and trades (a winner), B has entries and no trades (a tie), C is never
+// joined and gets cancelled after its 70 s join deadline, and D is a freeroll (no entry,
+// funded by a sponsor). Typed-error checks run while the windows are waiting to open or
+// close. Fresh wallets are funded from KEYPAIR and swept back at the end.
 import { expect } from "chai";
 import {
   Keypair,
@@ -45,6 +45,7 @@ import {
   joinDuel,
   rpcCtx,
   settle,
+  sponsorPrize,
   swap,
   tokenBalance,
   type Mints,
@@ -54,6 +55,7 @@ const ESCROW_SPACE = 9;
 const ENTRY = 10_000_000n; // 0.01 SOL
 const WINDOW = 30; // shortest configured window keeps the run short
 const WALLET_SOL = 0.15;
+const SPONSORED = 20_000_000n; // 0.02 SOL prize for freeroll duel D
 
 describe(`devnet: full duels against ${RPC_URL}`, function () {
   const faucet = loadKeypair();
@@ -70,8 +72,9 @@ describe(`devnet: full duels against ${RPC_URL}`, function () {
     creatorB: Keypair,
     opponentB: Keypair,
     creatorC: Keypair;
+  let creatorD: Keypair, opponentD: Keypair, sponsorD: Keypair;
   let settler: Keypair, outsider: Keypair;
-  let duelA: DuelRef, duelB: DuelRef, duelC: DuelRef;
+  let duelA: DuelRef, duelB: DuelRef, duelC: DuelRef, duelD: DuelRef;
   let endTs: bigint;
 
   const wallet = async () => {
@@ -93,6 +96,11 @@ describe(`devnet: full duels against ${RPC_URL}`, function () {
       await wallet(),
       await wallet(),
       await wallet(),
+      await wallet(),
+      await wallet(),
+      await wallet(),
+    ];
+    [creatorD, opponentD, sponsorD] = [
       await wallet(),
       await wallet(),
       await wallet(),
@@ -202,6 +210,45 @@ describe(`devnet: full duels against ${RPC_URL}`, function () {
     });
   });
 
+  describe("sponsor_prize", () => {
+    it("rejects a zero amount (ZeroAmount)", async () => {
+      expectError(await sponsorPrize(ctx, duelA, sponsorD, 0n), "ZeroAmount");
+    });
+
+    it("funds freeroll duel D (entry 0): SOL into escrow, sponsor recorded, PrizeSponsored", async () => {
+      const d = await createDuel(ctx, {
+        creator: creatorD,
+        mints,
+        windowSecs: WINDOW,
+        entryLamports: 0n,
+        coin: mints.coins[2],
+      });
+      expectOk(d.res);
+      duelD = d.ref;
+      const escrow = findEscrow(ctx.programId, duelD.duel)[0];
+      const rent = await ctx.sender.rentExempt(ESCROW_SPACE);
+      expect(await ctx.sender.lamports(escrow)).to.equal(rent);
+
+      const res = await sponsorPrize(ctx, duelD, sponsorD, SPONSORED);
+      expectOk(res);
+      expect(await ctx.sender.lamports(escrow)).to.equal(rent + SPONSORED); // I1
+      const duel = await fetchDuel(ctx, duelD.duel);
+      expect(duel.sponsoredLamports).to.equal(SPONSORED);
+      expect(duel.sponsor?.toBase58()).to.equal(sponsorD.publicKey.toBase58());
+      const ev = parseEvents(res.logs).find(
+        (e) => e.name === "prizeSponsored"
+      )!;
+      expect(bnToBigInt(ev.data.total)).to.equal(SPONSORED);
+    });
+
+    it("rejects a second, different sponsor (SponsorMismatch)", async () => {
+      expectError(
+        await sponsorPrize(ctx, duelD, outsider, 1_000_000n),
+        "SponsorMismatch"
+      );
+    });
+  });
+
   describe("cancel_duel (before the deadline)", () => {
     it("rejects cancelling duel C before its join deadline (DeadlineNotReached)", async () => {
       expectError(await cancelDuel(ctx, duelC, settler), "DeadlineNotReached");
@@ -237,6 +284,25 @@ describe(`devnet: full duels against ${RPC_URL}`, function () {
       expect(
         await ctx.sender.lamports(findEscrow(ctx.programId, duelA.duel)[0])
       ).to.equal(rent + 2n * ENTRY);
+    });
+
+    it("seats freeroll duel D's opponent (no entry); escrow still holds only the prize", async () => {
+      const j = await joinDuel(ctx, duelD, opponentD);
+      expectOk(j.res);
+      duelD = j.ref;
+      const d = await fetchDuel(ctx, duelD.duel);
+      expect(d.status).to.equal(DuelStatus.Active);
+      if (d.endTs > endTs) endTs = d.endTs;
+      expect(
+        await ctx.sender.lamports(findEscrow(ctx.programId, duelD.duel)[0])
+      ).to.equal((await ctx.sender.rentExempt(ESCROW_SPACE)) + SPONSORED);
+    });
+
+    it("rejects sponsoring an Active duel (DuelNotOpen)", async () => {
+      expectError(
+        await sponsorPrize(ctx, duelD, sponsorD, 1_000_000n),
+        "DuelNotOpen"
+      );
     });
 
     it("rejects a third wallet once the duel is Active (DuelNotOpen)", async () => {
@@ -287,6 +353,12 @@ describe(`devnet: full duels against ${RPC_URL}`, function () {
         await swap(ctx, duelA, creatorA, "buy", 1_000_000n, 10n ** 15n),
         "SlippageExceeded"
       );
+    });
+
+    it("duel D: the opponent trades alone while the creator holds", async () => {
+      const d = await fetchDuel(ctx, duelD.duel);
+      await ctx.sender.waitUntil(d.startTs);
+      expectOk(await swap(ctx, duelD, opponentD, "buy", d.bankroll / 10n));
     });
 
     it("both players trade duel A in the shared pool; reserves track the pool balances (I3)", async () => {
@@ -389,6 +461,35 @@ describe(`devnet: full duels against ${RPC_URL}`, function () {
       ).to.equal(ENTRY);
     });
 
+    it("duel D (freeroll): the holder beats the lone trader and gets sponsored - tip; no rake", async () => {
+      const config = await fetchConfig(ctx, findConfig(ctx.programId)[0]);
+      const tip = config.settlerTipLamports;
+      const before = {
+        creator: await ctx.sender.lamports(creatorD.publicKey),
+        opponent: await ctx.sender.lamports(opponentD.publicKey),
+        treasury: await ctx.sender.lamports(treasury),
+      };
+      const res = await settle(ctx, duelD, settler, treasury);
+      expectOk(res);
+      const d = await fetchDuel(ctx, duelD.duel);
+      expect(d.result).to.equal(DuelResult.Creator);
+      const ev = parseEvents(res.logs).find((e) => e.name === "duelSettled")!;
+      expect(bnToBigInt(ev.data.rake)).to.equal(0n);
+      expect(bnToBigInt(ev.data.prize)).to.equal(SPONSORED - tip);
+      expect(
+        (await ctx.sender.lamports(creatorD.publicKey)) - before.creator
+      ).to.equal(SPONSORED - tip);
+      expect(
+        (await ctx.sender.lamports(opponentD.publicKey)) - before.opponent
+      ).to.equal(0n);
+      expect((await ctx.sender.lamports(treasury)) - before.treasury).to.equal(
+        0n
+      );
+      expect(
+        await ctx.sender.lamports(findEscrow(ctx.programId, duelD.duel)[0])
+      ).to.equal(await ctx.sender.rentExempt(ESCROW_SPACE)); // I2
+    });
+
     it("rejects a second settle (DuelNotActive)", async () => {
       expectError(await settle(ctx, duelA, settler, treasury), "DuelNotActive");
     });
@@ -443,6 +544,11 @@ describe(`devnet: full duels against ${RPC_URL}`, function () {
     it("closes duel B too", async () => {
       expectOk(await closeDuel(ctx, duelB, settler));
       expect((await fetchDuel(ctx, duelB.duel)).closed).to.equal(true);
+    });
+
+    it("closes freeroll duel D", async () => {
+      expectOk(await closeDuel(ctx, duelD, settler));
+      expect((await fetchDuel(ctx, duelD.duel)).closed).to.equal(true);
     });
 
     it("closes cancelled duel C (no opponent accounts)", async () => {

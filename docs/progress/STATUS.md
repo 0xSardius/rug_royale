@@ -34,7 +34,7 @@ Status values: `todo` · `doing` · `review` · `done`.
 | Invariants I1 (create/join tests), I8 (join + cancel tests), I13 (close tests) | 9 | Justin, Yamin | done |
 | Devnet suite: no-wait error cases | 9 | Justin | done |
 | Devnet suite: cancel scenario (duel C; 19 passing on devnet) | 9 | Justin | done |
-| Devnet suite: freeroll scenario (after `sponsor_prize`) | 9 | **Yamin** | todo |
+| Devnet suite: freeroll scenario (duel D; **27 passing on devnet**, 3 min) | 9 | Yamin | review |
 
 ### Yamin: math and trading
 | Item | PRD | Status |
@@ -60,7 +60,7 @@ Status values: `todo` · `doing` · `review` · `done`.
 | SDK: `math.ts` (PRD §7) + Rust test vectors (`pnpm math:vectors`) | 7, 9 | done |
 | `snapshot.ts`, `setup-mints.ts` (11 devnet mints created and verified; `coins.json` committed) | 10 | done |
 | `init-config.ts` (Config live on devnet 2026-10-08) and `crank.ts` | 10 | done |
-| Devnet suite: 15 tests, 2 parallel duels (winner + tie), typed errors, I2/I3/I12/I13 — passing on devnet | 9, 13 | done |
+| Devnet suite: 27 tests, 4 parallel duels (winner, tie, cancelled, freeroll), typed errors, I1/I2/I3/I12/I13 — passing on devnet | 9, 13 | done |
 | README screenshot of the devnet run (needs a dedicated RPC_URL for clean output) | 13 | todo |
 | Frontend: shell, wallet, lobby, create (neo-brutalist, `brand.md`) | 11 | done |
 | Frontend: duel page states 1–2 + join flow | 11 | done |
@@ -83,6 +83,8 @@ Status values: `todo` · `doing` · `review` · `done`.
 ## Decision log
 
 Newest first. Anything that changes the PRD gets a line here **and** an edit to `docs/prd.md`.
+
+- 2026-10-10: **Devnet suite complete: 27 passing in 3 min** against the upgraded program (Yamin's run, public RPC). Added freeroll duel D (entry 0, 0.02 SOL sponsored): `ZeroAmount`, `SponsorMismatch` and `DuelNotOpen` for `sponsor_prize`, the holder beats the lone trader, winner gets sponsored − tip, zero rake, escrow back to rent, close. **Ready for the README screenshot (Justin).** All program development is done.
 
 - 2026-10-10: **All 8 handlers live on devnet.** Merged #6 (`sponsor_prize`, Yamin; 115 LiteSVM tests) and upgraded devnet (tx `4gFqrVVrCaw4NsLtGLvrYxpfrJGSy3GDi1xbNq21DGNdari7RQVnupX6sMtaD9UaR2FZ1gR3ecJboh2nh6hyrMkL`, bytes verified). Yamin runs the freeroll devnet scenario next.
 - 2026-10-10: **`sponsor_prize` landed (Yamin)**, the last stubbed handler: all 8 handlers now have bodies. Checks `DuelNotOpen` → `ZeroAmount` → `SponsorMismatch` (one sponsor per duel; the same sponsor may top up). LiteSVM settle/cancel tests now sponsor for real (before the join), so `injectSponsor` is gone. **Needs a devnet upgrade (Justin)** before the freeroll devnet scenario and the README screenshot.
