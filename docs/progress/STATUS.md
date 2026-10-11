@@ -61,14 +61,14 @@ Status values: `todo` · `doing` · `review` · `done`.
 | `snapshot.ts`, `setup-mints.ts` (11 devnet mints created and verified; `coins.json` committed) | 10 | done |
 | `init-config.ts` (Config live on devnet 2026-10-08) and `crank.ts` | 10 | done |
 | Devnet suite: 27 tests, 4 parallel duels (winner, tie, cancelled, freeroll), typed errors, I1/I2/I3/I12/I13 — passing on devnet | 9, 13 | done |
-| README screenshot of the devnet run (needs a dedicated RPC_URL for clean output) | 13 | todo |
+| README screenshot of the devnet run (27 passing) | 13 | done |
 | Frontend: shell, wallet, lobby, create (neo-brutalist, `brand.md`) | 11 | done |
 | Frontend: duel page states 1–2 + join flow | 11 | done |
 | Frontend: trading panel, PnL bars, Settle/Cancel buttons, result card, popup (states 3–5); QA'd on a real devnet duel and `/preview` | 11 | done (not yet tested with a real wallet) |
 | Vercel deploy: https://rug-royale-seven.vercel.app (Helius RPC, domain-restricted key) | 13 | done |
 | README: program ID, Mermaid architecture (7 diagrams) | 13 | done |
 | README: CU numbers (all handlers, measured) | 13 | done |
-| README: devnet test screenshot (`pnpm test:devnet 2>/dev/null`) | 13 | todo |
+| README: devnet test screenshot (27 passing) | 13 | done |
 | Light CI (`.github/workflows/ci.yml`) | 13 | done |
 | Recordings: devnet test run, browser duel (**optional**; Turbin3 only requires showing the devnet tests passing) | 13 | optional |
 | Demo script (< 5 min, tied to Yamin's deck) | 13 | todo |
