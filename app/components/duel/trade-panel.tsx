@@ -19,7 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { program } from "@/lib/program";
-import { sendIxs } from "@/lib/send";
+import { sendIxs, unexpectedError } from "@/lib/send";
 import { formatToken } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { VaultBalances } from "@/lib/use-duel-live";
@@ -89,6 +89,8 @@ export function TradePanel({
         setMessage({ tone: "ok", text: `${side === "buy" ? "Bought" : "Sold"}: ~${formatToken(quote.out)} ${outSymbol} ${side === "buy" ? "in" : "out"}.` });
         await qc.invalidateQueries({ queryKey: ["duel-live", duelRef.duel.toBase58()] });
       } else if (!res.cancelled) setMessage({ tone: "err", text: res.message });
+    } catch (err) {
+      setMessage({ tone: "err", text: unexpectedError(err) });
     } finally {
       setBusy(false);
     }

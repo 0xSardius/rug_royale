@@ -4,6 +4,12 @@ import { Connection, SendTransactionError, Transaction, type TransactionInstruct
 import type { WalletContextState } from "@solana/wallet-adapter-react";
 import { programErrorFromLogs } from "@rug-royale/sdk";
 
+/** Message for an exception thrown before the wallet was asked to sign (e.g. building the ix). */
+export const unexpectedError = (e: unknown) => {
+  console.error(e);
+  return `Couldn't prepare the transaction: ${e instanceof Error ? e.message : String(e)}`;
+};
+
 export type SendOutcome =
   | { ok: true; signature: string }
   | { ok: false; cancelled: true }

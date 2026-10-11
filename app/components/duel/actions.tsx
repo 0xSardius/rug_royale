@@ -8,7 +8,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { cancelDuelAccounts, settleAccounts, type DuelRef } from "@rug-royale/sdk";
 import { Button } from "@/components/ui/button";
 import { program } from "@/lib/program";
-import { sendIxs } from "@/lib/send";
+import { sendIxs, unexpectedError } from "@/lib/send";
 import { formatSol } from "@/lib/format";
 
 /** Shared shell: connect if needed, send, refresh, show errors inline. */
@@ -46,6 +46,8 @@ function ActionButton({
       const res = await sendIxs(connection, wallet, await build(wallet.publicKey!));
       if (res.ok) await qc.invalidateQueries({ queryKey: ["duel-live", duel.toBase58()] });
       else if (!res.cancelled) setError(res.message);
+    } catch (err) {
+      setError(unexpectedError(err));
     } finally {
       setBusy(false);
     }

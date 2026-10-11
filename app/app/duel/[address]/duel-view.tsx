@@ -30,7 +30,7 @@ import { useConfig, type DuelWithAddress } from "@/lib/queries";
 import { useDuelLive, type DuelLive } from "@/lib/use-duel-live";
 import { useNow } from "@/lib/use-now";
 import { program } from "@/lib/program";
-import { sendIxs } from "@/lib/send";
+import { sendIxs, unexpectedError } from "@/lib/send";
 import { explorerUrl } from "@/lib/config";
 import { formatCompact, formatCountdown, formatSol, formatWindow, truncateAddress } from "@/lib/format";
 
@@ -314,6 +314,8 @@ function JoinButton({ duel }: { duel: DuelWithAddress }) {
       const res = await sendIxs(connection, wallet, [ix]);
       if (res.ok) await qc.invalidateQueries({ queryKey: ["duel-live", duel.address.toBase58()] });
       else if (!res.cancelled) setError(res.message);
+    } catch (err) {
+      setError(unexpectedError(err));
     } finally {
       setBusy(false);
     }

@@ -13,7 +13,7 @@ import { RadioCard } from "@/components/ui/radio-card";
 import { CoinAvatar } from "@/components/coin-avatar";
 import { useConfig } from "@/lib/queries";
 import { program } from "@/lib/program";
-import { sendIxs } from "@/lib/send";
+import { sendIxs, unexpectedError } from "@/lib/send";
 import { CREATE_DUEL_CU } from "@/lib/config";
 import { DEFAULT_MAX_ENTRY, DEFAULT_RAKE_BPS, DEFAULT_TIERS, DEFAULT_WINDOWS, JOIN_DEADLINES } from "@/lib/defaults";
 import { formatCompact, formatSol, formatUsdCompact, formatWindow } from "@/lib/format";
@@ -122,6 +122,8 @@ export default function CreatePage() {
       ]);
       if (res.ok) router.push(`/duel/${duel.toBase58()}?created=1`);
       else if (!res.cancelled) setSubmitError(res.message);
+    } catch (err) {
+      setSubmitError(unexpectedError(err));
     } finally {
       setSubmitting(false);
     }
