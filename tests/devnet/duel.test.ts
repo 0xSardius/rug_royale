@@ -57,7 +57,8 @@ const WINDOW = 30; // shortest configured window keeps the run short
 const WALLET_SOL = 0.15;
 const SPONSORED = 20_000_000n; // 0.02 SOL prize for freeroll duel D
 
-describe(`devnet: full duels against ${RPC_URL}`, function () {
+// Host only: RPC_URL may carry an API key (e.g. Helius ?api-key=), and this title is screenshotted.
+describe(`devnet: full duels against ${new URL(RPC_URL).host}`, function () {
   const faucet = loadKeypair();
   const ctx = rpcCtx(connection(), faucet);
   const mints: Mints = {
