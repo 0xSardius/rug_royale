@@ -2,6 +2,8 @@
 
 **1v1 trading duels on Solana. Same coin, same pool, one survivor.**
 
+[![Rug Royale lobby](docs/rug_royale_homepage.png)](https://rug-royale-seven.vercel.app)
+
 Two players each escrow an entry, receive identical demo-token bankrolls, and trade the same coin in one shared constant-product pool for a fixed window. When the window closes, the program values both positions on-chain and pays the pot, minus rake, to the higher final value. Coins come from a snapshot of the StonkFun top 10.
 
 Turbin3 capstone by Justin ([@0xSardius](https://github.com/0xSardius)) and Yamin Raad ([@Raad05](https://github.com/Raad05)), with Sidharth contributing to the design phase.
