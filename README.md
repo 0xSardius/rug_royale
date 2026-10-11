@@ -15,9 +15,19 @@ Turbin3 capstone by Justin ([@0xSardius](https://github.com/0xSardius)) and Yami
 
 ## Devnet tests
 
-`pnpm test:devnet` runs real duels against the deployed program: a winner, a true tie, and a cancelled duel, plus typed-error checks along the way (**19 tests, ~3 min**). The LiteSVM suite (`pnpm test`, 108 tests) covers every typed error and the PRD §9 invariants exhaustively.
+**27 passing on devnet** against the deployed program:
 
-> _Screenshot of the passing devnet run goes here._
+![27 devnet tests passing](docs/Q3_26_Builder_0xSardius_rug_royale_devnet_tests_passing.png)
+
+`pnpm test:devnet` plays four real duels in real time, covering all 8 instructions:
+- **A:** a winner, paid exactly the pot minus rake and tip.
+- **B:** a true tie, with both entries returned.
+- **C:** never joined, so it's cancelled with a refund.
+- **D:** a freeroll funded by a sponsor.
+
+Typed-error checks run while the duels wait for their windows. The whole run takes about 3 minutes; `2>/dev/null` hides public-RPC retry noise.
+
+The LiteSVM suite (`pnpm test`, 115 tests) covers every typed error and the PRD §9 invariants exhaustively. Rust unit tests check the math against 855 shared vectors.
 
 ## How a duel works
 
