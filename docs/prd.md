@@ -423,7 +423,7 @@ The MVP is done when every box below is ticked on devnet, not localnet.
 - [ ] A tie duel (nobody trades) and a cancelled duel both complete with exact refunds.
 - [ ] Settle button works when the crank is stopped.
 - [ ] README covers: what it is, the three assets (entry, bankroll, coin), the devnet program ID, the devnet test screenshot, **the architecture in the README itself** (Mermaid ports of diagrams 6.1–6.4, not just a link to the PDF), how to run both test suites, deploy steps, known limits (Section 15), CU numbers, and an implementation note that Escrow is program-owned (diagram 6.2 labels it System Program).
-- [ ] Recordings made of the devnet test run and a browser duel, as demo-day backup.
+- [ ] (Optional, 2026-10-10) Recordings of the devnet test run and a browser duel, as demo-day backup. Turbin3 requires *showing* the devnet tests passing; a recording is allowed but not required.
 - [ ] Deck of at most 5 slides; presentation rehearsed under 5 minutes (demo day, week of Oct 12).
 - [ ] Each member submits an individual reflection on their contribution.
 

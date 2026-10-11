@@ -70,7 +70,7 @@ Status values: `todo` · `doing` · `review` · `done`.
 | README: CU numbers (all handlers, measured) | 13 | done |
 | README: devnet test screenshot (`pnpm test:devnet 2>/dev/null`) | 13 | todo |
 | Light CI (`.github/workflows/ci.yml`) | 13 | done |
-| Recordings: devnet test run, browser duel | 13 | todo |
+| Recordings: devnet test run, browser duel (**optional**; Turbin3 only requires showing the devnet tests passing) | 13 | optional |
 | Demo script (< 5 min, tied to Yamin's deck) | 13 | todo |
 
 ## Open questions
@@ -84,6 +84,7 @@ Status values: `todo` · `doing` · `review` · `done`.
 
 Newest first. Anything that changes the PRD gets a line here **and** an edit to `docs/prd.md`.
 
+- 2026-10-10: **Demo video is optional.** Turbin3 requires showing the devnet tests passing in the presentation; a recording is allowed, not required. Plan: start `pnpm test:devnet 2>/dev/null` just before presenting and show the result; fall back to the README screenshot. Devnet suite at 27 passing (#7 freeroll duel D; `now()` reads the Clock sysvar).
 - 2026-10-10: **Devnet suite complete: 27 passing in 3 min** against the upgraded program (Yamin's run, public RPC). Added freeroll duel D (entry 0, 0.02 SOL sponsored): `ZeroAmount`, `SponsorMismatch` and `DuelNotOpen` for `sponsor_prize`, the holder beats the lone trader, winner gets sponsored − tip, zero rake, escrow back to rent, close. **Ready for the README screenshot (Justin).** All program development is done.
 
 - 2026-10-10: **All 8 handlers live on devnet.** Merged #6 (`sponsor_prize`, Yamin; 115 LiteSVM tests) and upgraded devnet (tx `4gFqrVVrCaw4NsLtGLvrYxpfrJGSy3GDi1xbNq21DGNdari7RQVnupX6sMtaD9UaR2FZ1gR3ecJboh2nh6hyrMkL`, bytes verified). Yamin runs the freeroll devnet scenario next.
