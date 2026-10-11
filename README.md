@@ -27,7 +27,7 @@ Turbin3 capstone by Justin ([@0xSardius](https://github.com/0xSardius)) and Yami
 
 Typed-error checks run while the duels wait for their windows. The whole run takes about 3 minutes; `2>/dev/null` hides public-RPC retry noise.
 
-The LiteSVM suite (`pnpm test`, 115 tests) covers every typed error and the PRD §9 invariants exhaustively. Rust unit tests check the math against 855 shared vectors.
+The LiteSVM suite (`pnpm test`, 116 tests) covers every typed error and the PRD §9 invariants exhaustively. Rust unit tests check the math against 855 shared vectors.
 
 ## How a duel works
 
