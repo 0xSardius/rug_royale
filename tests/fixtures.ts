@@ -13,6 +13,7 @@ import {
   LAMPORTS_PER_SOL,
   PublicKey,
   SendTransactionError,
+  SYSVAR_CLOCK_PUBKEY,
   SystemProgram,
   Transaction,
   TransactionInstruction,
@@ -221,9 +222,17 @@ export class RpcSender implements Sender {
   }
 
   async now() {
-    const slot = await this.connection.getSlot("confirmed");
-    const t = await this.connection.getBlockTime(slot);
-    return BigInt(t ?? Math.floor(Date.now() / 1000));
+    // Read the Clock sysvar: the same clock the program checks (Clock::get()), always
+    // available. getBlockTime on the newest slot fails on some RPCs (Helius: "Block not
+    // available for slot") because recent blocks aren't indexed yet.
+    const info = await this.connection.getAccountInfo(
+      SYSVAR_CLOCK_PUBKEY,
+      "confirmed"
+    );
+    if (!info) throw new Error("Clock sysvar not found");
+    // Clock layout: slot u64, epoch_start_timestamp i64, epoch u64, leader_schedule_epoch u64,
+    // unix_timestamp i64 (offset 32).
+    return info.data.readBigInt64LE(32);
   }
 
   async rentExempt(size: number) {
