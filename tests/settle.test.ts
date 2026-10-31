@@ -333,6 +333,55 @@ describe("settle", () => {
     });
   });
 
+  // Audit M1 (PRD §6.6, 2026-10-31): an emptied player wallet must not block settle.
+  describe("liveness: emptied player wallet", () => {
+    /** LiteSVM only: zero an account's lamports, as if the player swept their wallet. */
+    function empty(ctx: Lite, pk: PublicKey) {
+      const acc = ctx.sender.svm.getAccount(pk);
+      if (!acc) throw new Error("account not found");
+      ctx.sender.svm.setAccount(pk, { ...acc, lamports: 0 });
+    }
+
+    it("a sub-rent payout to an emptied wallet goes to the treasury; settle still succeeds", async () => {
+      const entry = 100_000n; // below the ~0.00089 SOL rent-exempt minimum
+      const { ctx, ref, creator, opponent, settler, treasury, endTs } =
+        await activeDuel({ entry });
+      ctx.sender.warpTo(endTs); // no trades: a tie, entries back in full
+      empty(ctx, opponent.publicKey);
+      const keys = {
+        creator: creator.publicKey,
+        opponent: opponent.publicKey,
+        treasury,
+      };
+      const before = await lamportsOf(ctx, keys);
+
+      expectOk(await settle(ctx, ref, settler, treasury));
+
+      const after = await lamportsOf(ctx, keys);
+      expect(after.creator - before.creator).to.equal(entry);
+      expect(after.opponent).to.equal(0n);
+      expect(after.treasury - before.treasury).to.equal(entry);
+      const [escrow] = findEscrow(ctx.programId, ref.duel);
+      expect(await ctx.sender.lamports(escrow)).to.equal(await escrowRent(ctx));
+      expect((await fetchDuel(ctx, ref.duel)).result).to.equal(DuelResult.Tie);
+    });
+
+    it("a payout big enough to be rent-exempt still reaches an emptied wallet", async () => {
+      const entry = SOL / 100n;
+      const { ctx, ref, creator, opponent, settler, treasury, endTs } =
+        await activeDuel({ entry });
+      ctx.sender.warpTo(endTs);
+      empty(ctx, opponent.publicKey);
+      const before = await ctx.sender.lamports(treasury);
+
+      expectOk(await settle(ctx, ref, settler, treasury));
+
+      expect(await ctx.sender.lamports(opponent.publicKey)).to.equal(entry);
+      expect(await ctx.sender.lamports(treasury)).to.equal(before);
+      expect(creator.publicKey.equals(ref.creator)).to.equal(true);
+    });
+  });
+
   describe("invariants", () => {
     it("I11: treasury, creator and opponent cannot be redirected", async () => {
       const { ctx, ref, settler, treasury, endTs } = await activeDuel({

@@ -116,17 +116,34 @@ pub fn handle_settle(ctx: Context<Settle>) -> Result<()> {
 
     // Escrow is program-owned (G1): debit it directly. Recipients are pinned by `address =`
     // (I11). The settler may also be a player or the treasury; credits then add up.
+    //
+    // PRD §6.6 (2026-10-31, audit M1): a player credit that would leave their account below
+    // the rent-exempt minimum (an emptied wallet receiving a tiny payout) would fail the
+    // whole transaction, and an Active duel has no other exit. That credit goes to the
+    // treasury instead, which init_config guarantees is rent-exempt.
     let escrow = ctx.accounts.escrow.to_account_info();
-    for (to, amount) in [
-        (ctx.accounts.creator.to_account_info(), p.to_creator),
-        (ctx.accounts.opponent.to_account_info(), p.to_opponent),
-        (ctx.accounts.treasury.to_account_info(), p.to_treasury),
-        (ctx.accounts.settler.to_account_info(), p.to_settler),
+    let treasury = ctx.accounts.treasury.to_account_info();
+    let rent = Rent::get()?;
+    for (to, amount, is_player) in [
+        (ctx.accounts.creator.to_account_info(), p.to_creator, true),
+        (ctx.accounts.opponent.to_account_info(), p.to_opponent, true),
+        (treasury.clone(), p.to_treasury, false),
+        (ctx.accounts.settler.to_account_info(), p.to_settler, false),
     ] {
-        if amount > 0 {
-            escrow.sub_lamports(amount)?;
-            to.add_lamports(amount)?;
+        if amount == 0 {
+            continue;
         }
+        let after = to
+            .lamports()
+            .checked_add(amount)
+            .ok_or(RugRoyaleError::MathOverflow)?;
+        let to = if is_player && after < rent.minimum_balance(to.data_len()) {
+            &treasury
+        } else {
+            &to
+        };
+        escrow.sub_lamports(amount)?;
+        to.add_lamports(amount)?;
     }
 
     let duel_key = ctx.accounts.duel.key();
