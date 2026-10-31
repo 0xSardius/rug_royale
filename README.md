@@ -13,7 +13,7 @@ Turbin3 capstone by Justin ([@0xSardius](https://github.com/0xSardius)) and Yami
 | **Devnet program ID** | [`5USpVpECZNcq4ZjRUyATb9ykcSRzZ29vHDwNMYFwNJWE`](https://explorer.solana.com/address/5USpVpECZNcq4ZjRUyATb9ykcSRzZ29vHDwNMYFwNJWE?cluster=devnet) |
 | **Framework** | Anchor 1.1.2, Token-2022 via `token_interface` |
 | **Live app (devnet)** | [rug-royale-seven.vercel.app](https://rug-royale-seven.vercel.app) (Next.js 16, `app/`) |
-| **Specs** | [PRD](docs/prd.md) (source of truth), [architecture PDF](docs/architecture.pdf), [LOI](docs/loi.pdf) |
+| **Specs** | [architecture PDF](docs/architecture.pdf); the PRD is team-internal |
 
 ## Devnet tests
 
@@ -29,7 +29,7 @@ Turbin3 capstone by Justin ([@0xSardius](https://github.com/0xSardius)) and Yami
 
 Typed-error checks run while the duels wait for their windows. The whole run takes about 3 minutes; `2>/dev/null` hides public-RPC retry noise.
 
-The LiteSVM suite (`pnpm test`, 116 tests) covers every typed error and the PRD §9 invariants exhaustively. Rust unit tests check the math against 855 shared vectors.
+The LiteSVM suite (`pnpm test`, 130 tests) covers every typed error and the PRD §9 invariants exhaustively. Rust unit tests check the math against 855 shared vectors.
 
 ## How a duel works
 
@@ -381,7 +381,7 @@ Measured in LiteSVM across 5 runs. Ranges come from PDA derivation, which costs 
 
 | Instruction | CU | Notes |
 | --- | --- | --- |
-| `init_config` | 15,530 | One time |
+| `init_config` | ~25k | One time; upgrade-authority check + 11 mint checks |
 | `create_duel` | 126k – 150k | 7 account inits + 2 pool-seed mints; clients send a 400k CU limit |
 | `join_duel` | 73k – 87k | Entry transfer, 2 vault creations, 2 bankroll mints |
 | `swap` | 36k – 48k | Buy and sell cost the same |

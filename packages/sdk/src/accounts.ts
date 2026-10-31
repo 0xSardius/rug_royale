@@ -13,6 +13,7 @@ import {
   findDuel,
   findEscrow,
   findMintAuthority,
+  findProgramData,
   findPool,
   findVaultAuthority,
 } from "./pdas";
@@ -63,11 +64,31 @@ const requireOpponent = (ref: DuelRef) => {
   return ref.opponent;
 };
 
-export const initConfigAccounts = (programId: PublicKey, admin: PublicKey) => ({
-  admin,
-  config: findConfig(programId)[0],
+/**
+ * Accounts for init_config. `admin` must be the program's upgrade authority. Pass the 10
+ * allowed coin mints with `initConfigRemainingAccounts` via `.remainingAccounts(...)`.
+ */
+export const initConfigAccounts = (args: {
+  programId: PublicKey;
+  admin: PublicKey;
+  treasury: PublicKey;
+  quoteMint: PublicKey;
+}) => ({
+  admin: args.admin,
+  config: findConfig(args.programId)[0],
+  programData: findProgramData(args.programId)[0],
+  treasury: args.treasury,
+  quoteMint: args.quoteMint,
   systemProgram: SystemProgram.programId,
 });
+
+/** init_config's remaining accounts: the allowed coin mints, in Config.allowed_mints order. */
+export const initConfigRemainingAccounts = (allowedMints: PublicKey[]) =>
+  allowedMints.map((pubkey) => ({
+    pubkey,
+    isSigner: false,
+    isWritable: false,
+  }));
 
 /** Accounts for create_duel. Derives the duel address from creator + nonce. */
 export const createDuelAccounts = (args: {

@@ -36,7 +36,9 @@ import {
   findDuel,
   findEscrow,
   findPool,
+  findProgramData,
   initConfigAccounts,
+  initConfigRemainingAccounts,
   joinDuelAccounts,
   playerVaults,
   poolAccounts,
@@ -397,9 +399,14 @@ export async function createMints(ctx: Ctx, payer: Keypair): Promise<Mints> {
   return { quote, coins };
 }
 
+/** init_config's numeric args plus the three Config keys it reads from accounts. */
 export type ConfigArgs = Parameters<
   Program<RugRoyale>["methods"]["initConfig"]
->[0];
+>[0] & {
+  treasury: PublicKey;
+  quoteMint: PublicKey;
+  allowedMints: PublicKey[];
+};
 
 /** PRD §5 defaults. Override any field per test. */
 export function defaultConfigArgs(
@@ -426,16 +433,66 @@ export function defaultConfigArgs(
   };
 }
 
+/**
+ * Sends init_config. On LiteSVM the program is loaded without an upgrade authority, so
+ * this first makes `admin` the upgrade authority unless `opts.upgradeAuthority` says
+ * otherwise (`null` = immutable program).
+ */
 export async function initConfig(
   ctx: Ctx,
   admin: Keypair,
-  args: ConfigArgs
+  args: ConfigArgs,
+  opts: { upgradeAuthority?: PublicKey | null } = {}
 ): Promise<TxResult> {
+  if (ctx.sender instanceof LiteSvmSender) {
+    setUpgradeAuthority(
+      ctx as Ctx & { sender: LiteSvmSender },
+      opts.upgradeAuthority === undefined
+        ? admin.publicKey
+        : opts.upgradeAuthority
+    );
+  }
+  const { treasury, quoteMint, allowedMints, ...numeric } = args;
   const ix = await ctx.program.methods
-    .initConfig(args)
-    .accountsStrict(initConfigAccounts(ctx.programId, admin.publicKey))
+    .initConfig(numeric)
+    .accountsStrict(
+      initConfigAccounts({
+        programId: ctx.programId,
+        admin: admin.publicKey,
+        treasury,
+        quoteMint,
+      })
+    )
+    .remainingAccounts(initConfigRemainingAccounts(allowedMints))
     .instruction();
   return ctx.sender.send([ix], admin);
+}
+
+/**
+ * LiteSVM only: rewrites the ProgramData header's upgrade authority (an Option<Pubkey> at
+ * byte 12, after the u32 variant tag and u64 slot), leaving the ELF untouched.
+ */
+export function setUpgradeAuthority(
+  ctx: Ctx & { sender: LiteSvmSender },
+  authority: PublicKey | null
+) {
+  const [pd] = findProgramData(ctx.programId);
+  const acc = ctx.sender.svm.getAccount(pd);
+  if (!acc) throw new Error("ProgramData not found");
+  const data = Buffer.from(acc.data);
+  data.fill(0, 12, 45);
+  if (authority) {
+    data[12] = 1;
+    authority.toBuffer().copy(data, 13);
+  }
+  ctx.sender.svm.setAccount(pd, { ...acc, data });
+}
+
+/** A treasury that passes init_config's InvalidTreasury check: a funded system account. */
+export async function newTreasury(ctx: Ctx): Promise<PublicKey> {
+  const treasury = Keypair.generate().publicKey;
+  await ctx.sender.fund(treasury, await ctx.sender.rentExempt(0));
+  return treasury;
 }
 
 /** Everything a typical test needs: admin, treasury, mints, and an initialized Config. */
@@ -444,7 +501,7 @@ export async function setupProtocol(
   overrides: Partial<ConfigArgs> = {}
 ) {
   const admin = await newWallet(ctx, 50);
-  const treasury = Keypair.generate().publicKey;
+  const treasury = await newTreasury(ctx);
   const mints = await createMints(ctx, admin);
   const args = defaultConfigArgs(mints, treasury, overrides);
   expectOk(await initConfig(ctx, admin, args));

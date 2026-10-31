@@ -3,11 +3,17 @@
 //   pnpm init-config            dry run: print the args and simulate (sends nothing)
 //   pnpm init-config --send     send for real, then read Config back and diff it
 //
-// Config is permanent (G12: no update_config), so the default is a dry run. Overrides via
+// Config is permanent (G12: no update_config), so the default is a dry run. KEYPAIR must be
+// the program's upgrade authority, and the treasury a funded system account (PRD §6.1). Overrides via
 // .env: TREASURY (default: the admin wallet), CONFIG_WINDOWS (e.g. "30,120,300,900").
 import { PublicKey } from "@solana/web3.js";
 import { BN } from "@anchor-lang/core";
-import { decodeConfig, findConfig, initConfigAccounts } from "@rug-royale/sdk";
+import {
+  decodeConfig,
+  findConfig,
+  initConfigAccounts,
+  initConfigRemainingAccounts,
+} from "@rug-royale/sdk";
 import {
   PROGRAM_ID,
   RPC_URL,
@@ -81,9 +87,6 @@ async function main() {
 
   const ix = await programFor(conn, admin)
     .methods.initConfig({
-      treasury,
-      quoteMint: new PublicKey(quote),
-      allowedMints: mints.map((m) => new PublicKey(m!)),
       tiers: DEFAULTS.tiers.map((t) => new BN(t.toString())),
       windows,
       poolSeedRatio: new BN(DEFAULTS.poolSeedRatio.toString()),
@@ -92,7 +95,18 @@ async function main() {
       rakeBps: DEFAULTS.rakeBps,
       swapFeeBps: DEFAULTS.swapFeeBps,
     })
-    .accountsStrict(initConfigAccounts(PROGRAM_ID, admin.publicKey))
+    // admin must be the program's upgrade authority (PRD §6.1).
+    .accountsStrict(
+      initConfigAccounts({
+        programId: PROGRAM_ID,
+        admin: admin.publicKey,
+        treasury,
+        quoteMint: new PublicKey(quote),
+      })
+    )
+    .remainingAccounts(
+      initConfigRemainingAccounts(mints.map((m) => new PublicKey(m!)))
+    )
     .instruction();
 
   if (!send) {

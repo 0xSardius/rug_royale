@@ -121,13 +121,17 @@ describe("sdk", () => {
   });
 
   it("maps every program error code to a message", () => {
-    expect(IDL_JSON.errors).to.have.length(32);
+    expect(IDL_JSON.errors).to.have.length(36);
     for (const e of IDL_JSON.errors)
       expect(programError(e.code)?.name).to.equal(e.name);
     expect(programError(6019)?.name).to.equal("WindowEnded");
     expect(programError(6019)?.message).to.equal(
       "The trading window has ended."
     );
+    // Appended 2026-10-31 (PRD §8): codes of existing errors must not shift.
+    expect(programError(6031)?.name).to.equal("InvalidSeedRatio");
+    expect(programError(6032)?.name).to.equal("Unauthorized");
+    expect(programError(6035)?.name).to.equal("InvalidMintAccount");
     expect(programError(9999)).to.equal(null);
     expect(
       programErrorFromLogs([

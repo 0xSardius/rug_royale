@@ -75,4 +75,13 @@ pub enum RugRoyaleError {
     // Appended 2026-10-05 (PRD §8): init_config's pool_seed_ratio >= 1 check.
     #[msg("Pool seed ratio must be at least 1")]
     InvalidSeedRatio,
+    // Appended 2026-10-31 (PRD §6.1, §8): init_config mainnet hardening.
+    #[msg("Signer is not the program's upgrade authority")]
+    Unauthorized,
+    #[msg("Treasury must be a funded, rent-exempt system account")]
+    InvalidTreasury,
+    #[msg("Settler tip exceeds the maximum")]
+    TipTooHigh,
+    #[msg("Mint must be a Token-2022 mint with no extensions, no freeze authority, and the program as mint authority")]
+    InvalidMintAccount,
 }

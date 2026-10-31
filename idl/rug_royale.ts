@@ -751,6 +751,93 @@ export type RugRoyale = {
           }
         },
         {
+          "name": "programData",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  66,
+                  118,
+                  159,
+                  130,
+                  134,
+                  39,
+                  157,
+                  48,
+                  18,
+                  34,
+                  195,
+                  216,
+                  91,
+                  5,
+                  107,
+                  153,
+                  109,
+                  210,
+                  184,
+                  69,
+                  64,
+                  160,
+                  131,
+                  0,
+                  248,
+                  102,
+                  57,
+                  64,
+                  241,
+                  146,
+                  128,
+                  43
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                2,
+                168,
+                246,
+                145,
+                78,
+                136,
+                161,
+                176,
+                226,
+                16,
+                21,
+                62,
+                247,
+                99,
+                174,
+                43,
+                0,
+                194,
+                185,
+                61,
+                22,
+                193,
+                36,
+                210,
+                192,
+                83,
+                122,
+                16,
+                4,
+                128,
+                0,
+                0
+              ]
+            }
+          }
+        },
+        {
+          "name": "treasury"
+        },
+        {
+          "name": "quoteMint"
+        },
+        {
           "name": "systemProgram",
           "address": "11111111111111111111111111111111"
         }
@@ -2182,6 +2269,26 @@ export type RugRoyale = {
       "code": 6031,
       "name": "invalidSeedRatio",
       "msg": "Pool seed ratio must be at least 1"
+    },
+    {
+      "code": 6032,
+      "name": "unauthorized",
+      "msg": "Signer is not the program's upgrade authority"
+    },
+    {
+      "code": 6033,
+      "name": "invalidTreasury",
+      "msg": "Treasury must be a funded, rent-exempt system account"
+    },
+    {
+      "code": 6034,
+      "name": "tipTooHigh",
+      "msg": "Settler tip exceeds the maximum"
+    },
+    {
+      "code": 6035,
+      "name": "invalidMintAccount",
+      "msg": "Mint must be a Token-2022 mint with no extensions, no freeze authority, and the program as mint authority"
     }
   ],
   "types": [
@@ -2557,28 +2664,11 @@ export type RugRoyale = {
     {
       "name": "initConfigArgs",
       "docs": [
-        "Every `Config` field except `admin` (the signer) and bumps."
+        "The numeric `Config` fields. `treasury`, `quote_mint` and `allowed_mints` come from accounts."
       ],
       "type": {
         "kind": "struct",
         "fields": [
-          {
-            "name": "treasury",
-            "type": "pubkey"
-          },
-          {
-            "name": "quoteMint",
-            "type": "pubkey"
-          },
-          {
-            "name": "allowedMints",
-            "type": {
-              "array": [
-                "pubkey",
-                10
-              ]
-            }
-          },
           {
             "name": "tiers",
             "type": {

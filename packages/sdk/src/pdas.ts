@@ -17,6 +17,16 @@ export const u64Le = (v: bigint) => {
 export const findConfig = (programId: PublicKey) =>
   PublicKey.findProgramAddressSync([seed("config")], programId);
 
+/** The program's ProgramData account (BPF upgradeable loader); init_config reads its upgrade authority. */
+export const BPF_LOADER_UPGRADEABLE_ID = new PublicKey(
+  "BPFLoaderUpgradeab1e11111111111111111111111"
+);
+export const findProgramData = (programId: PublicKey) =>
+  PublicKey.findProgramAddressSync(
+    [programId.toBuffer()],
+    BPF_LOADER_UPGRADEABLE_ID
+  );
+
 export const findMintAuthority = (programId: PublicKey) =>
   PublicKey.findProgramAddressSync([seed("mint_authority")], programId);
 
