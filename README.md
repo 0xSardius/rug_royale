@@ -338,7 +338,7 @@ scripts/               snapshot, setup-mints, init-config, crank, checkpoint
 app/                   Next.js frontend
 idl/                   frozen IDL and TS types
 coins.json             StonkFun top 10 and their devnet demo mints
-docs/                  PRD, architecture, LOI, Turbin3 brief, build plan, progress
+docs/                  architecture PDF and README images
 ```
 
 ## Running it

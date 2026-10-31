@@ -6,3 +6,4 @@ dist
 build
 test-ledger
 idl/
+rug_royale_internal/

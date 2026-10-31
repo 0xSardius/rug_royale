@@ -13,3 +13,6 @@ node_modules/
 dist/
 test-ledger/
 .DS_Store
+
+# Private team docs: its own clone of github.com/0xSardius/rug_royale_internal (private)
+rug_royale_internal/
