@@ -9,18 +9,18 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "next": "16.3.8",
-    "react": "19.2.8",
-    "react-dom": "19.2.8",
-    "@rug-royale/sdk": "workspace:*",
     "@anchor-lang/core": "=1.1.2",
-    "@solana/web3.js": "^1.98.4",
+    "@rug-royale/sdk": "workspace:*",
     "@solana/spl-token": "^0.4.15",
     "@solana/wallet-adapter-base": "^0.9.28",
     "@solana/wallet-adapter-react": "^0.15.40",
     "@solana/wallet-adapter-react-ui": "^0.9.40",
+    "@solana/web3.js": "^1.98.4",
     "@tanstack/react-query": "^5.104.1",
-    "lucide-react": "^1.52.0"
+    "lucide-react": "^1.52.0",
+    "next": "16.4.3",
+    "react": "19.2.8",
+    "react-dom": "19.2.8"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
@@ -28,7 +28,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.3.8",
+    "eslint-config-next": "16.4.3",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
