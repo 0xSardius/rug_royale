@@ -147,7 +147,7 @@ describe("cancel_duel", () => {
 
     it("a sponsored duel can't cancel without the sponsor account", async () => {
       const { ctx, caller, ref, joinDeadline } = await openDuel();
-      expectOk(await sponsorPrize(ctx, ref, await newWallet(ctx), 1_000_000n));
+      expectOk(await sponsorPrize(ctx, ref, await newWallet(ctx), 10_000_000n));
       ctx.sender.warpTo(joinDeadline);
       expectError(
         await cancelDuel(ctx, ref, caller, null),
@@ -157,7 +157,7 @@ describe("cancel_duel", () => {
 
     it("the sponsor refund can't be redirected (ConstraintAddress)", async () => {
       const { ctx, caller, ref, joinDeadline } = await openDuel();
-      expectOk(await sponsorPrize(ctx, ref, await newWallet(ctx), 1_000_000n));
+      expectOk(await sponsorPrize(ctx, ref, await newWallet(ctx), 10_000_000n));
       ctx.sender.warpTo(joinDeadline);
       expectError(
         await cancelDuel(ctx, ref, caller, caller.publicKey),

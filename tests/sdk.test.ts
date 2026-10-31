@@ -121,7 +121,7 @@ describe("sdk", () => {
   });
 
   it("maps every program error code to a message", () => {
-    expect(IDL_JSON.errors).to.have.length(36);
+    expect(IDL_JSON.errors).to.have.length(37);
     for (const e of IDL_JSON.errors)
       expect(programError(e.code)?.name).to.equal(e.name);
     expect(programError(6019)?.name).to.equal("WindowEnded");
@@ -132,6 +132,7 @@ describe("sdk", () => {
     expect(programError(6031)?.name).to.equal("InvalidSeedRatio");
     expect(programError(6032)?.name).to.equal("Unauthorized");
     expect(programError(6035)?.name).to.equal("InvalidMintAccount");
+    expect(programError(6036)?.name).to.equal("SponsorTooSmall");
     expect(programError(9999)).to.equal(null);
     expect(
       programErrorFromLogs([

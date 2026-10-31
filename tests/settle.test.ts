@@ -210,7 +210,7 @@ describe("settle", () => {
 
     it("scenario 3: tie returns entries, tips from sponsored only, odd lamport to creator", async () => {
       const entry = SOL / 20n;
-      const sponsored = 3_000_001n; // tip 1,000,000 leaves an odd 2,000,001
+      const sponsored = 10_000_001n; // tip 1,000,000 leaves an odd 9,000,001
       const {
         ctx,
         ref,

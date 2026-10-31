@@ -84,4 +84,7 @@ pub enum RugRoyaleError {
     TipTooHigh,
     #[msg("Mint must be a Token-2022 mint with no extensions, no freeze authority, and the program as mint authority")]
     InvalidMintAccount,
+    // Appended 2026-10-31 (PRD §6.3, §8): audit L2.
+    #[msg("First sponsorship is below the 0.01 SOL minimum")]
+    SponsorTooSmall,
 }

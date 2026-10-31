@@ -33,6 +33,10 @@ pub fn handle_sponsor_prize(ctx: Context<SponsorPrize>, amount: u64) -> Result<(
         duel.sponsor == Pubkey::default() || duel.sponsor == sponsor,
         RugRoyaleError::SponsorMismatch
     );
+    require!(
+        duel.sponsor == sponsor || amount >= MIN_SPONSOR_LAMPORTS,
+        RugRoyaleError::SponsorTooSmall
+    );
     let total = duel
         .sponsored_lamports
         .checked_add(amount)

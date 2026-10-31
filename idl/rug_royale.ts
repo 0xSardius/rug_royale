@@ -2289,6 +2289,11 @@ export type RugRoyale = {
       "code": 6035,
       "name": "invalidMintAccount",
       "msg": "Mint must be a Token-2022 mint with no extensions, no freeze authority, and the program as mint authority"
+    },
+    {
+      "code": 6036,
+      "name": "sponsorTooSmall",
+      "msg": "First sponsorship is below the 0.01 SOL minimum"
     }
   ],
   "types": [

@@ -16,6 +16,9 @@ pub const MAX_RAKE_BPS: u16 = 1_000;
 pub const MAX_SWAP_FEE_BPS: u16 = 1_000;
 /// Cap on `Config.settler_tip_lamports` (0.01 SOL).
 pub const MAX_SETTLER_TIP_LAMPORTS: u64 = 10_000_000;
+/// Minimum first sponsorship (0.01 SOL), so taking a duel's single sponsor slot costs
+/// real money (audit L2). Top-ups by the same sponsor can be any amount.
+pub const MIN_SPONSOR_LAMPORTS: u64 = 10_000_000;
 /// Size of a Token-2022 mint with no extensions (G3).
 pub const MINT_BASE_LEN: usize = 82;
 

@@ -18,6 +18,7 @@ import {
 const ESCROW_SPACE = 9;
 const TX_FEE = 5_000n;
 const ENTRY = 100_000_000n;
+const MIN = 10_000_000n; // MIN_SPONSOR_LAMPORTS
 
 describe("sponsor_prize", () => {
   async function openDuel(p: Partial<CreateDuelParams> = {}) {
@@ -71,28 +72,33 @@ describe("sponsor_prize", () => {
 
     it("the same sponsor can top up; total accumulates", async () => {
       const { ctx, ref, sponsor } = await openDuel();
-      expectOk(await sponsorPrize(ctx, ref, sponsor, 100n));
+      expectOk(await sponsorPrize(ctx, ref, sponsor, MIN));
+      // Top-ups by the same sponsor are not held to the minimum.
       const res = await sponsorPrize(ctx, ref, sponsor, 250n);
       expectOk(res);
-      expect((await fetchDuel(ctx, ref.duel)).sponsoredLamports).to.equal(350n);
+      expect((await fetchDuel(ctx, ref.duel)).sponsoredLamports).to.equal(
+        MIN + 250n
+      );
       const ev = parseEvents(res.logs, ctx.programId).find(
         (e) => e.name === "prizeSponsored"
       )!;
       expect([
         bnToBigInt(ev.data.amount),
         bnToBigInt(ev.data.total),
-      ]).to.deep.equal([250n, 350n]);
+      ]).to.deep.equal([250n, MIN + 250n]);
     });
 
     it("I1: escrow = rent + entries + sponsored after create, sponsor and join", async () => {
       const { ctx, ref, opponent, sponsor, escrow } = await openDuel();
       const rent = await ctx.sender.rentExempt(ESCROW_SPACE);
       expect(await ctx.sender.lamports(escrow)).to.equal(rent + ENTRY);
-      expectOk(await sponsorPrize(ctx, ref, sponsor, 7n));
-      expect(await ctx.sender.lamports(escrow)).to.equal(rent + ENTRY + 7n);
+      expectOk(await sponsorPrize(ctx, ref, sponsor, MIN + 7n));
+      expect(await ctx.sender.lamports(escrow)).to.equal(
+        rent + ENTRY + MIN + 7n
+      );
       expectOk((await joinDuel(ctx, ref, opponent)).res);
       expect(await ctx.sender.lamports(escrow)).to.equal(
-        rent + 2n * ENTRY + 7n
+        rent + 2n * ENTRY + MIN + 7n
       );
     });
   });
@@ -123,9 +129,19 @@ describe("sponsor_prize", () => {
 
     it("SponsorMismatch for a second, different sponsor", async () => {
       const { ctx, ref, sponsor } = await openDuel();
-      expectOk(await sponsorPrize(ctx, ref, sponsor, 10n));
+      expectOk(await sponsorPrize(ctx, ref, sponsor, MIN));
       const other = await newWallet(ctx);
-      expectError(await sponsorPrize(ctx, ref, other, 10n), "SponsorMismatch");
+      expectError(await sponsorPrize(ctx, ref, other, MIN), "SponsorMismatch");
+    });
+
+    it("SponsorTooSmall for a first sponsorship below 0.01 SOL (audit L2)", async () => {
+      const { ctx, ref, sponsor } = await openDuel();
+      expectError(
+        await sponsorPrize(ctx, ref, sponsor, MIN - 1n),
+        "SponsorTooSmall"
+      );
+      expectError(await sponsorPrize(ctx, ref, sponsor, 1n), "SponsorTooSmall");
+      expectOk(await sponsorPrize(ctx, ref, sponsor, MIN));
     });
 
     it("the first failing check wins", async () => {
@@ -138,10 +154,15 @@ describe("sponsor_prize", () => {
       );
       // Wrong sponsor + zero amount: ZeroAmount comes before SponsorMismatch.
       const b = await openDuel();
-      expectOk(await sponsorPrize(b.ctx, b.ref, b.sponsor, 10n));
+      expectOk(await sponsorPrize(b.ctx, b.ref, b.sponsor, MIN));
       expectError(
         await sponsorPrize(b.ctx, b.ref, await newWallet(b.ctx), 0n),
         "ZeroAmount"
+      );
+      // A different sponsor with a tiny amount: SponsorMismatch comes before SponsorTooSmall.
+      expectError(
+        await sponsorPrize(b.ctx, b.ref, await newWallet(b.ctx), 1n),
+        "SponsorMismatch"
       );
     });
   });
