@@ -6,9 +6,9 @@ Rug Royale is a 1v1 trading duel on Solana and the team's Turbin3 capstone. Two 
 
 ## Start every session here
 
-1. Read `docs/progress/STATUS.md` (gates, owners, open questions) and the newest file in `docs/progress/checkpoints/`.
-2. The plan is `docs/progress/BUILD_PLAN.md`; what Turbin3 grades is in `docs/turbin3_requirements.md` (devnet deploy, a full test suite passing **on devnet**, architecture in the README).
-3. The spec is `docs/prd.md`. It **wins** over `docs/architecture.pdf`, and the LOI (`docs/loi.pdf`) is background only. The LOI's rival coins, `emergency_refund`, and 9 handlers are all superseded.
+1. Read `rug_royale_internal/progress/STATUS.md` (gates, owners, open questions) and the newest file in `rug_royale_internal/progress/checkpoints/`.
+2. The plan is `rug_royale_internal/progress/BUILD_PLAN.md`; what Turbin3 grades is in `rug_royale_internal/turbin3_requirements.md` (devnet deploy, a full test suite passing **on devnet**, architecture in the README).
+3. The spec is `rug_royale_internal/prd.md`. It **wins** over `docs/architecture.pdf`, and the LOI (`rug_royale_internal/loi.pdf`) is background only. The LOI's rival coins, `emergency_refund`, and 9 handlers are all superseded.
 4. If a task needs a decision the PRD does not make, stop and ask. Do not invent fields, accounts, or handlers.
 
 ## Commands
@@ -79,9 +79,9 @@ Key cross-file facts:
 
 ## Progress tracking
 
-The team is three people working in parallel, so progress state lives in the repo:
-- `docs/progress/STATUS.md` is the **present**: daily gates, per-owner task tables, open questions, and the decision log. Edit it in the same commit as the work it describes.
-- `docs/progress/checkpoints/` is the **history**: one append-only file per meaningful milestone, created by `pnpm checkpoint <slug> [--verify]`. The script fills in git state since the previous checkpoint and, with `--verify`, build and test results. Fill in its Summary, Decisions, and Next sections, then point STATUS's "Latest checkpoint" at it.
+The team is three people working in parallel. Team docs (PRD, progress, LOI) live in `rug_royale_internal/`, a gitignored clone of the private repo `github.com/0xSardius/rug_royale_internal`; clone it there to get them, and commit doc changes in that repo:
+- `rug_royale_internal/progress/STATUS.md` is the **present**: daily gates, per-owner task tables, open questions, and the decision log. Update it alongside the work it describes.
+- `rug_royale_internal/progress/checkpoints/` is the **history**: one append-only file per meaningful milestone, created by `pnpm checkpoint <slug> [--verify]`. The script fills in git state since the previous checkpoint and, with `--verify`, build and test results. Fill in its Summary, Decisions, and Next sections, then point STATUS's "Latest checkpoint" at it.
 - Write a checkpoint when a handler or feature lands, a daily gate passes, a decision changes the plan, or before ending a long session with work in flight.
 
 ## Frozen IDL

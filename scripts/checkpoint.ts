@@ -1,4 +1,4 @@
-// Write a progress checkpoint: docs/progress/checkpoints/<timestamp>-<slug>.md
+// Write a progress checkpoint: rug_royale_internal/progress/checkpoints/<timestamp>-<slug>.md
 //
 //   pnpm checkpoint <slug> [--verify]
 //
@@ -6,11 +6,17 @@
 // anchor build / Rust test / TS test results. The "Summary", "Decisions",
 // and "Next" sections are left for the author (human or Claude) to fill in.
 import { execSync } from "child_process";
-import { existsSync, mkdirSync, readdirSync, writeFileSync } from "fs";
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  writeFileSync,
+} from "fs";
 import path from "path";
 
 const ROOT = path.join(__dirname, "..");
-const DIR = path.join(ROOT, "docs/progress/checkpoints");
+const DIR = path.join(ROOT, "rug_royale_internal/progress/checkpoints");
 
 const args = process.argv.slice(2);
 const verify = args.includes("--verify");
@@ -60,9 +66,15 @@ const previous = readdirSync(DIR)
   .filter((f) => f.endsWith(".md"))
   .sort()
   .pop();
-// The commit that added the previous checkpoint file is the baseline for "since last checkpoint".
-const base = previous
-  ? sh(`git log -n 1 --format=%H -- docs/progress/checkpoints/${previous}`)
+// Checkpoints live in the private rug_royale_internal repo, so the baseline for "since last
+// checkpoint" is the code-repo HEAD recorded in the previous checkpoint's "Branch / HEAD" line.
+const prevHead = previous
+  ? readFileSync(path.join(DIR, previous), "utf8").match(
+      /\*\*Branch \/ HEAD:\*\* `[^`]*` \/ ([0-9a-f]{7,40})/
+    )?.[1]
+  : undefined;
+const base = prevHead
+  ? sh(`git rev-parse --verify --quiet ${prevHead}^{commit}`)
   : "";
 const range = base ? `${base}..HEAD` : "HEAD";
 

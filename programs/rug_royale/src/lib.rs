@@ -1,4 +1,4 @@
-//! Rug Royale: 1v1 trading duels. Source of truth: docs/prd.md.
+//! Rug Royale: 1v1 trading duels. Source of truth: the PRD (team-internal).
 //! Handlers here are thin wrappers; logic lives in `instructions/`, math in `math/`.
 
 pub mod constants;
