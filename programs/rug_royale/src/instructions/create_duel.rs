@@ -11,6 +11,10 @@ use crate::events::DuelCreated;
 use crate::state::{Config, Duel, DuelStatus, Escrow, Pool};
 
 /// PRD §6.2 — owner: Sidharth.
+/// The four token vaults use `init_if_needed` (audit L1): their addresses are predictable
+/// from creator + nonce, so a plain `init` let anyone block a create by making one of the
+/// ATAs first. An existing ATA is accepted only with the right mint, owner and token
+/// program, and an amount of 0.
 /// `coin_mint` is deliberately unconstrained here: membership in `config.allowed_mints`
 /// is a handler check so it raises `MintNotAllowed` in PRD order.
 #[derive(Accounts)]
@@ -40,19 +44,21 @@ pub struct CreateDuel<'info> {
     #[account(seeds = [VAULT_SEED, duel.key().as_ref(), creator.key().as_ref()], bump)]
     pub creator_vault_authority: UncheckedAccount<'info>,
     #[account(
-        init,
+        init_if_needed,
         payer = creator,
         associated_token::mint = quote_mint,
         associated_token::authority = creator_vault_authority,
         associated_token::token_program = token_program,
+        constraint = creator_quote_vault.amount == 0,
     )]
     pub creator_quote_vault: Box<InterfaceAccount<'info, TokenAccount>>,
     #[account(
-        init,
+        init_if_needed,
         payer = creator,
         associated_token::mint = coin_mint,
         associated_token::authority = creator_vault_authority,
         associated_token::token_program = token_program,
+        constraint = creator_coin_vault.amount == 0,
     )]
     pub creator_coin_vault: Box<InterfaceAccount<'info, TokenAccount>>,
     #[account(
@@ -64,19 +70,21 @@ pub struct CreateDuel<'info> {
     )]
     pub pool: Box<Account<'info, Pool>>,
     #[account(
-        init,
+        init_if_needed,
         payer = creator,
         associated_token::mint = quote_mint,
         associated_token::authority = pool,
         associated_token::token_program = token_program,
+        constraint = pool_quote_vault.amount == 0,
     )]
     pub pool_quote_vault: Box<InterfaceAccount<'info, TokenAccount>>,
     #[account(
-        init,
+        init_if_needed,
         payer = creator,
         associated_token::mint = coin_mint,
         associated_token::authority = pool,
         associated_token::token_program = token_program,
+        constraint = pool_coin_vault.amount == 0,
     )]
     pub pool_coin_vault: Box<InterfaceAccount<'info, TokenAccount>>,
     #[account(mut, address = config.quote_mint)]

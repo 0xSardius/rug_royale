@@ -1,9 +1,15 @@
 import { expect } from "chai";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  TOKEN_2022_PROGRAM_ID,
+  createAssociatedTokenAccountIdempotentInstruction,
+} from "@solana/spl-token";
+import {
   DuelResult,
   DuelStatus,
   createDemoMintIxs,
+  findDuel,
   findEscrow,
   parseEvents,
   playerVaults,
@@ -137,6 +143,53 @@ describe("create_duel", () => {
           })
         ).res
       );
+    });
+  });
+
+  // Audit L1: vault addresses are predictable from creator + nonce, so a griefer could
+  // create them first and make a plain `init` fail with "already in use".
+  describe("front-run griefing", () => {
+    it("succeeds when a griefer pre-created the creator's and the pool's vaults", async () => {
+      const { ctx, creator, create, mints } = await setup();
+      const griefer = await newWallet(ctx);
+      const nonce = 4242n;
+      const coin = mints.coins[0];
+      const [duel] = findDuel(ctx.programId, creator.publicKey, nonce);
+      const ref = {
+        programId: ctx.programId,
+        duel,
+        creator: creator.publicKey,
+        quoteMint: mints.quote,
+        coinMint: coin,
+      };
+      const v = playerVaults(ref, creator.publicKey);
+      const p = poolAccounts(ref);
+      const targets: [PublicKey, PublicKey, PublicKey][] = [
+        [v.quote, v.authority, mints.quote],
+        [v.coin, v.authority, coin],
+        [p.quote, p.pool, mints.quote],
+        [p.coin, p.pool, coin],
+      ];
+      expectOk(
+        await ctx.sender.send(
+          targets.map(([ata, owner, mint]) =>
+            createAssociatedTokenAccountIdempotentInstruction(
+              griefer.publicKey,
+              ata,
+              owner,
+              mint,
+              TOKEN_2022_PROGRAM_ID,
+              ASSOCIATED_TOKEN_PROGRAM_ID
+            )
+          ),
+          griefer
+        )
+      );
+
+      const { res } = await create({ nonce, coin });
+      expectOk(res);
+      expect((await fetchDuel(ctx, duel)).status).to.equal(DuelStatus.Open);
+      expect((await tokenBalance(ctx, p.quote)) > 0n).to.equal(true);
     });
   });
 
