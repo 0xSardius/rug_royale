@@ -10,6 +10,7 @@ pub mod math;
 pub mod state;
 
 use instructions::admin_checks::{ArenaArgs, ProtocolArgs};
+use instructions::create_match::CreateMatchArgs;
 use instructions::*;
 
 declare_id!("2hcR5rib7mNkcFHnPEfjhH1yJdNsPmK6SVkU3dDjD9Cr");
@@ -37,5 +38,14 @@ pub mod rug_royale_v2 {
 
     pub fn update_arena(ctx: Context<UpdateArena>, args: ArenaArgs) -> Result<()> {
         instructions::update_arena::handle_update_arena(ctx, args)
+    }
+
+    // Contest (§6.2)
+    pub fn create_match(
+        ctx: Context<CreateMatch>,
+        arena_id: u16,
+        args: CreateMatchArgs,
+    ) -> Result<()> {
+        instructions::create_match::handle_create_match(ctx, arena_id, args)
     }
 }

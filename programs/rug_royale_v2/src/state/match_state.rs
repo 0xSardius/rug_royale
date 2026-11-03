@@ -40,6 +40,9 @@ pub struct Match {
     pub nonce: u64,
     pub start_ts: i64,
     pub end_ts: i64,
+    /// Snapshotted from the arena at create so admin changes never touch a live match (I9).
+    pub trade_fee_bps: u16,
+    pub max_price_age_s: u32,
     pub pot: Pubkey,
     /// [creator, opponent]
     pub seats: [Seat; NUM_SEATS],
@@ -68,6 +71,8 @@ mod tests {
             nonce: 0,
             start_ts: 0,
             end_ts: 0,
+            trade_fee_bps: 0,
+            max_price_age_s: 0,
             pot: Pubkey::default(),
             seats: [Seat::default(); NUM_SEATS],
             final_values: [0; NUM_SEATS],

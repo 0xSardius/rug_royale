@@ -268,3 +268,73 @@ export function v2Events(res: TxResult): { name: string; data: any }[] {
   }
   return out;
 }
+
+// ---------------------------------------------------------------------------
+// Matches
+
+/** Devnet ER validator identities (spike 02). */
+export const VALIDATORS = {
+  us: new PublicKey("MUS3hc9TCw4cGC12vHNoYcCGzJG1txjgQLZWVoeNHNd"),
+  eu: new PublicKey("MEUGGrYPxKk17hCr7wpT6s8dtNokZj5U2L57vjYMS8e"),
+  as: new PublicKey("MAS1Dt9qreoRMQ14YQuhg8UTZMMzDdKhmkZMECCzk57"),
+};
+
+export interface MatchRef {
+  matchAccount: PublicKey;
+  pot: PublicKey;
+  creator: PublicKey;
+  nonce: bigint;
+  arenaId: number;
+}
+
+export interface CreateMatchParams {
+  creator: Keypair;
+  arenaId?: number;
+  nonce?: bigint;
+  windowSecs?: number;
+  entryLamports?: bigint;
+  allowedOpponent?: PublicKey;
+  /** Absolute unix time. Defaults to now + 3600. */
+  joinDeadline?: bigint;
+  sessionKey?: PublicKey;
+  validator?: PublicKey;
+}
+
+let nonceCounter = 0n;
+
+export async function createMatch(
+  ctx: V2Ctx,
+  p: CreateMatchParams
+): Promise<{ res: TxResult; ref: MatchRef }> {
+  const arenaId = p.arenaId ?? 1;
+  const nonce = p.nonce ?? ++nonceCounter;
+  const { matchAccount, pot, accounts } = v2.createMatchAccounts({
+    programId: ctx.programId,
+    creator: p.creator.publicKey,
+    arenaId,
+    nonce,
+  });
+  const joinDeadline = p.joinDeadline ?? (await ctx.sender.now()) + 3_600n;
+  const ix = await ctx.program.methods
+    .createMatch(arenaId, {
+      nonce: new BN(nonce.toString()),
+      windowSecs: p.windowSecs ?? 300,
+      entryLamports: new BN((p.entryLamports ?? 0n).toString()),
+      allowedOpponent: p.allowedOpponent ?? PublicKey.default,
+      joinDeadline: new BN(joinDeadline.toString()),
+      sessionKey: p.sessionKey ?? PublicKey.default,
+      validator: p.validator ?? VALIDATORS.us,
+    })
+    .accountsStrict(accounts)
+    .instruction();
+  const res = await ctx.sender.send([ix], p.creator);
+  return {
+    res,
+    ref: { matchAccount, pot, creator: p.creator.publicKey, nonce, arenaId },
+  };
+}
+
+export const fetchMatch = (ctx: V2Ctx, m: PublicKey) => read(ctx, m, "match");
+export const fetchPot = (ctx: V2Ctx, pot: PublicKey) => read(ctx, pot, "pot");
+export const fetchStats = (ctx: V2Ctx, wallet: PublicKey) =>
+  read(ctx, v2.findPlayerStats(ctx.programId, wallet)[0], "playerStats");

@@ -1,7 +1,14 @@
 // Full account maps for v2 instructions, keyed by the IDL's camelCase names, for
 // `program.methods.<ix>(...).accountsStrict(...)`. Must match idl/rug_royale_v2.json.
 import { PublicKey, SystemProgram } from "@solana/web3.js";
-import { findArena, findProgramData, findProtocol } from "./pdas";
+import {
+  findArena,
+  findMatch,
+  findPlayerStats,
+  findPot,
+  findProgramData,
+  findProtocol,
+} from "./pdas";
 
 export const initProtocolAccounts = (a: {
   programId: PublicKey;
@@ -45,3 +52,27 @@ export const updateArenaAccounts = (a: {
   protocol: findProtocol(a.programId)[0],
   arena: findArena(a.programId, a.arenaId)[0],
 });
+
+/** Accounts for create_match. Derives the match from creator + nonce and the pot from the match. */
+export const createMatchAccounts = (a: {
+  programId: PublicKey;
+  creator: PublicKey;
+  arenaId: number;
+  nonce: bigint;
+}) => {
+  const [matchAccount] = findMatch(a.programId, a.creator, a.nonce);
+  const [pot] = findPot(a.programId, matchAccount);
+  return {
+    matchAccount,
+    pot,
+    accounts: {
+      creator: a.creator,
+      protocol: findProtocol(a.programId)[0],
+      arena: findArena(a.programId, a.arenaId)[0],
+      matchAccount,
+      pot,
+      creatorStats: findPlayerStats(a.programId, a.creator)[0],
+      systemProgram: SystemProgram.programId,
+    },
+  };
+};

@@ -16,3 +16,16 @@ pub struct ProtocolUpdated {
 pub struct ArenaUpdated {
     pub arena_id: u16,
 }
+
+#[event]
+pub struct MatchCreated {
+    pub match_account: Pubkey,
+    pub pot: Pubkey,
+    pub creator: Pubkey,
+    pub arena_id: u16,
+    pub window_secs: u32,
+    pub entry_lamports: u64,
+    pub allowed_opponent: Pubkey,
+    pub join_deadline: i64,
+    pub validator: Pubkey,
+}

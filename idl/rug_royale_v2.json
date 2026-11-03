@@ -88,6 +88,154 @@
       ]
     },
     {
+      "name": "create_match",
+      "discriminator": [
+        107,
+        2,
+        184,
+        145,
+        70,
+        142,
+        17,
+        165
+      ],
+      "accounts": [
+        {
+          "name": "creator",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "arena",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  114,
+                  101,
+                  110,
+                  97
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "arena_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "match_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  116,
+                  99,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "creator"
+              },
+              {
+                "kind": "arg",
+                "path": "args.nonce"
+              }
+            ]
+          }
+        },
+        {
+          "name": "pot",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "match_account"
+              }
+            ]
+          }
+        },
+        {
+          "name": "creator_stats",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "creator"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "arena_id",
+          "type": "u16"
+        },
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "CreateMatchArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "init_protocol",
       "discriminator": [
         3,
@@ -371,6 +519,45 @@
       ]
     },
     {
+      "name": "Match",
+      "discriminator": [
+        236,
+        63,
+        169,
+        38,
+        15,
+        56,
+        196,
+        162
+      ]
+    },
+    {
+      "name": "PlayerStats",
+      "discriminator": [
+        169,
+        146,
+        242,
+        176,
+        102,
+        118,
+        231,
+        172
+      ]
+    },
+    {
+      "name": "Pot",
+      "discriminator": [
+        238,
+        118,
+        60,
+        175,
+        178,
+        191,
+        59,
+        58
+      ]
+    },
+    {
       "name": "Protocol",
       "discriminator": [
         45,
@@ -396,6 +583,19 @@
         173,
         225,
         21
+      ]
+    },
+    {
+      "name": "MatchCreated",
+      "discriminator": [
+        151,
+        176,
+        11,
+        24,
+        34,
+        225,
+        227,
+        16
       ]
     },
     {
@@ -872,6 +1072,413 @@
       }
     },
     {
+      "name": "CreateMatchArgs",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "nonce",
+            "type": "u64"
+          },
+          {
+            "name": "window_secs",
+            "type": "u32"
+          },
+          {
+            "name": "entry_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "allowed_opponent",
+            "docs": [
+              "Default = anyone may join."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "join_deadline",
+            "type": "i64"
+          },
+          {
+            "name": "session_key",
+            "docs": [
+              "V5: browser-held key that may sign `trade` for this seat. Default = wallet only."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "validator",
+            "docs": [
+              "V4 / D6: ER validator identity (region) pinned at delegation."
+            ],
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Match",
+      "docs": [
+        "Seeds `[\"match\", creator, nonce.to_le_bytes()]`. Base while Open; delegated to the ER",
+        "from `delegate_match` until `finalize_match` commits and undelegates it (V1).",
+        "",
+        "FIXED LAYOUT (G9): `status` @ 8. Do not reorder or insert fields."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "MatchStatus"
+              }
+            }
+          },
+          {
+            "name": "result",
+            "docs": [
+              "RESULT_PENDING | RESULT_CREATOR | RESULT_OPPONENT | RESULT_TIE"
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "asset_count",
+            "docs": [
+              "Copied from the arena at create."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "arena_id",
+            "type": "u16"
+          },
+          {
+            "name": "nonce",
+            "type": "u64"
+          },
+          {
+            "name": "start_ts",
+            "type": "i64"
+          },
+          {
+            "name": "end_ts",
+            "type": "i64"
+          },
+          {
+            "name": "trade_fee_bps",
+            "docs": [
+              "Snapshotted from the arena at create so admin changes never touch a live match (I9)."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "max_price_age_s",
+            "type": "u32"
+          },
+          {
+            "name": "pot",
+            "type": "pubkey"
+          },
+          {
+            "name": "seats",
+            "docs": [
+              "[creator, opponent]"
+            ],
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "Seat"
+                  }
+                },
+                2
+              ]
+            }
+          },
+          {
+            "name": "final_values",
+            "docs": [
+              "Micro-USD."
+            ],
+            "type": {
+              "array": [
+                "u64",
+                2
+              ]
+            }
+          },
+          {
+            "name": "mark_prices",
+            "docs": [
+              "Raw feed price used per asset at finalize (audit trail); 0 when unused."
+            ],
+            "type": {
+              "array": [
+                "u64",
+                10
+              ]
+            }
+          },
+          {
+            "name": "mark_publish_time",
+            "docs": [
+              "Oldest `publish_time` among the marks used."
+            ],
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MatchCreated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "match_account",
+            "type": "pubkey"
+          },
+          {
+            "name": "pot",
+            "type": "pubkey"
+          },
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "arena_id",
+            "type": "u16"
+          },
+          {
+            "name": "window_secs",
+            "type": "u32"
+          },
+          {
+            "name": "entry_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "allowed_opponent",
+            "type": "pubkey"
+          },
+          {
+            "name": "join_deadline",
+            "type": "i64"
+          },
+          {
+            "name": "validator",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MatchStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Open"
+          },
+          {
+            "name": "Active"
+          },
+          {
+            "name": "Finalized"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PlayerStats",
+      "docs": [
+        "Seeds `[\"player\", wallet]`. Freeroll cap (V9) plus lifetime stats."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "wallet",
+            "type": "pubkey"
+          },
+          {
+            "name": "day",
+            "docs": [
+              "`unix_ts / 86_400` of the last freeroll counted."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "freerolls_today",
+            "type": "u8"
+          },
+          {
+            "name": "matches",
+            "type": "u32"
+          },
+          {
+            "name": "wins",
+            "type": "u32"
+          },
+          {
+            "name": "ties",
+            "type": "u32"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Pot",
+      "docs": [
+        "Seeds `[\"pot\", match]`. Holds the real SOL; base only, never delegated (V1, G1).",
+        "",
+        "FIXED LAYOUT (G9). No `Option` fields; `Pubkey::default()` means unset. Lobby `memcmp`",
+        "filters read the offsets below (mirrored in packages/sdk/src/v2/layout.ts). Do not",
+        "reorder or insert fields."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "status",
+            "type": {
+              "defined": {
+                "name": "PotStatus"
+              }
+            }
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "arena_id",
+            "type": "u16"
+          },
+          {
+            "name": "window_secs",
+            "type": "u32"
+          },
+          {
+            "name": "entry_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "sponsored_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "match_fee_lamports",
+            "docs": [
+              "F, snapshotted from Protocol at create."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "fee_share_lamports",
+            "docs": [
+              "ceil(F/2) if entry == 0, else 0 (V7, Q1)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "settler_tip_lamports",
+            "docs": [
+              "Snapshotted at create."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "rake_bps",
+            "docs": [
+              "Snapshotted at create."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "join_deadline",
+            "type": "i64"
+          },
+          {
+            "name": "end_ts",
+            "docs": [
+              "Set at join."
+            ],
+            "type": "i64"
+          },
+          {
+            "name": "match_account",
+            "type": "pubkey"
+          },
+          {
+            "name": "creator",
+            "type": "pubkey"
+          },
+          {
+            "name": "opponent",
+            "docs": [
+              "Default until joined."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "allowed_opponent",
+            "docs": [
+              "Default = anyone."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "sponsor",
+            "docs": [
+              "Default = none."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "validator",
+            "docs": [
+              "ER validator identity (region) pinned at delegation (V4)."
+            ],
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PotStatus",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Open"
+          },
+          {
+            "name": "Active"
+          },
+          {
+            "name": "Settled"
+          },
+          {
+            "name": "Cancelled"
+          },
+          {
+            "name": "Refunded"
+          }
+        ]
+      }
+    },
+    {
       "name": "Protocol",
       "docs": [
         "Seeds `[\"protocol\"]`. Global caps, admin-adjustable behind a Squads multisig (V2)."
@@ -1002,6 +1609,48 @@
           {
             "name": "paused",
             "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Seat",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "session_key",
+            "docs": [
+              "V5: may sign `trade` for this seat only, while the window is open. Default = wallet only."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "cash",
+            "docs": [
+              "Micro-USD."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "qty",
+            "docs": [
+              "Per arena asset, 1e-6 token units."
+            ],
+            "type": {
+              "array": [
+                "u64",
+                10
+              ]
+            }
+          },
+          {
+            "name": "trades",
+            "type": "u32"
           }
         ]
       }
