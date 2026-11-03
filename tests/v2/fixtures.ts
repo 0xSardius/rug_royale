@@ -1,6 +1,6 @@
 // v2 test fixtures (LiteSVM). Reuses v1's Sender/TxResult/assertions; v2 programs and
 // account maps come from `@rug-royale/sdk` (`v2`).
-import { readFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import path from "path";
 import {
   Connection,
@@ -22,13 +22,22 @@ export interface V2Ctx {
   programId: PublicKey;
 }
 
-/** Fresh LiteSVM with the built v2 program loaded. */
+/**
+ * Fresh LiteSVM with the built v2 program loaded, plus MagicBlock's Delegation Program
+ * (tests/v2/programs/dlp.so, dumped from devnet) so `delegate_match` runs for real.
+ */
 export function v2Ctx(): V2Ctx {
   const svm = new LiteSVM();
   svm.addProgram(
     v2.PROGRAM_ID,
     readFileSync(path.join(__dirname, "../../target/deploy/rug_royale_v2.so"))
   );
+  const dlp = path.join(__dirname, "programs/dlp.so");
+  if (!existsSync(dlp))
+    throw new Error(
+      `${dlp} missing: run \`pnpm v2:programs\` (dumps MagicBlock's Delegation Program from devnet)`
+    );
+  svm.addProgram(v2.DELEGATION_PROGRAM_ID, readFileSync(dlp));
   const program = new Program<v2.RugRoyaleV2>(
     v2.IDL_JSON,
     new AnchorProvider({} as Connection, new Wallet(Keypair.generate()), {})
@@ -423,4 +432,58 @@ export function emptyWallet(ctx: V2Ctx, pk: PublicKey) {
   const acc = ctx.sender.svm.getAccount(pk);
   if (!acc) throw new Error("account not found");
   ctx.sender.svm.setAccount(pk, { ...acc, lamports: 0 });
+}
+
+export async function delegateMatchIx(
+  ctx: V2Ctx,
+  ref: MatchRef,
+  payer: PublicKey
+) {
+  return ctx.program.methods
+    .delegateMatch()
+    .accountsStrict(
+      v2.delegateMatchAccounts({
+        programId: ctx.programId,
+        payer,
+        matchAccount: ref.matchAccount,
+      })
+    )
+    .instruction();
+}
+
+export async function delegateMatch(
+  ctx: V2Ctx,
+  ref: MatchRef,
+  payer: Keypair
+): Promise<TxResult> {
+  return ctx.sender.send(
+    [await delegateMatchIx(ctx, ref, payer.publicKey)],
+    payer
+  );
+}
+
+/** The real client flow: join_match + delegate_match in ONE opponent-signed transaction. */
+export async function joinAndDelegate(
+  ctx: V2Ctx,
+  ref: MatchRef,
+  opponent: Keypair,
+  sessionKey: PublicKey = PublicKey.default
+): Promise<TxResult> {
+  const join = await ctx.program.methods
+    .joinMatch(sessionKey)
+    .accountsStrict(
+      v2.joinMatchAccounts({
+        programId: ctx.programId,
+        opponent: opponent.publicKey,
+        creator: ref.creator,
+        matchAccount: ref.matchAccount,
+        pot: ref.pot,
+        arenaId: ref.arenaId,
+      })
+    )
+    .instruction();
+  return ctx.sender.send(
+    [join, await delegateMatchIx(ctx, ref, opponent.publicKey)],
+    opponent
+  );
 }

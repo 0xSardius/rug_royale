@@ -16,3 +16,6 @@ test-ledger/
 
 # Private team docs: its own clone of github.com/0xSardius/rug_royale_internal (private)
 rug_royale_internal/
+
+# Third-party program binaries for LiteSVM tests (pnpm v2:programs)
+tests/v2/programs/

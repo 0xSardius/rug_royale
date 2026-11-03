@@ -2,7 +2,11 @@
 // `program.methods.<ix>(...).accountsStrict(...)`. Must match idl/rug_royale_v2.json.
 import { PublicKey, SystemProgram } from "@solana/web3.js";
 import {
+  DELEGATION_PROGRAM_ID,
   findArena,
+  findDelegationBuffer,
+  findDelegationMetadata,
+  findDelegationRecord,
   findMatch,
   findPlayerStats,
   findPot,
@@ -125,4 +129,21 @@ export const cancelMatchAccounts = (a: {
   creator: a.creator,
   sponsor: a.sponsor,
   treasury: a.treasury,
+});
+
+/** Accounts for delegate_match (the `#[delegate]` macro's buffer/record/metadata included). */
+export const delegateMatchAccounts = (a: {
+  programId: PublicKey;
+  payer: PublicKey;
+  matchAccount: PublicKey;
+}) => ({
+  payer: a.payer,
+  pot: findPot(a.programId, a.matchAccount)[0],
+  bufferMatchAccount: findDelegationBuffer(a.programId, a.matchAccount)[0],
+  delegationRecordMatchAccount: findDelegationRecord(a.matchAccount)[0],
+  delegationMetadataMatchAccount: findDelegationMetadata(a.matchAccount)[0],
+  matchAccount: a.matchAccount,
+  ownerProgram: a.programId,
+  delegationProgram: DELEGATION_PROGRAM_ID,
+  systemProgram: SystemProgram.programId,
 });

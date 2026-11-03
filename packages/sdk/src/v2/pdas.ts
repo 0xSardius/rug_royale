@@ -53,3 +53,33 @@ export const findPriceFeed = (lazerId: number) =>
     [seed("price_feed"), seed("pyth-lazer"), seed(String(lazerId))],
     ORACLE_PROGRAM_ID
   );
+
+// MagicBlock delegation (v2 PRD §6.2 delegate_match). Seeds from ephemeral-rollups-sdk
+// (DELEGATE_BUFFER_TAG, DELEGATION_RECORD_TAG, DELEGATION_METADATA_TAG).
+export const DELEGATION_PROGRAM_ID = new PublicKey(
+  "DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh"
+);
+
+/** Temporary copy of the delegated account's data; a PDA of the *owner* program. */
+export const findDelegationBuffer = (
+  programId: PublicKey,
+  delegated: PublicKey
+) =>
+  PublicKey.findProgramAddressSync(
+    [seed("buffer"), delegated.toBuffer()],
+    programId
+  );
+
+/** Owner program, validator and commit frequency of a delegation (Delegation Program PDA). */
+export const findDelegationRecord = (delegated: PublicKey) =>
+  PublicKey.findProgramAddressSync(
+    [seed("delegation"), delegated.toBuffer()],
+    DELEGATION_PROGRAM_ID
+  );
+
+/** Seeds, rent payer and commit count of a delegation (Delegation Program PDA). */
+export const findDelegationMetadata = (delegated: PublicKey) =>
+  PublicKey.findProgramAddressSync(
+    [seed("delegation-metadata"), delegated.toBuffer()],
+    DELEGATION_PROGRAM_ID
+  );

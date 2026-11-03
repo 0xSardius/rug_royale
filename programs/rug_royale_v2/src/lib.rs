@@ -1,6 +1,7 @@
 //! Rug Royale v2: 1v1 paper-trading duels on live prices. Source of truth: the v2 PRD
 //! (team-internal). Thin handler wrappers; logic lives in `instructions/<name>.rs`.
 use anchor_lang::prelude::*;
+use ephemeral_rollups_sdk::anchor::ephemeral;
 
 pub mod constants;
 pub mod errors;
@@ -15,6 +16,10 @@ use instructions::*;
 
 declare_id!("2hcR5rib7mNkcFHnPEfjhH1yJdNsPmK6SVkU3dDjD9Cr");
 
+/// `#[ephemeral]` injects `process_undelegation`, the callback MagicBlock's Delegation
+/// Program invokes to hand `Match` back to this program after `finalize_match` commits and
+/// undelegates it. It must sit before `#[program]`.
+#[ephemeral]
 #[program]
 pub mod rug_royale_v2 {
     use super::*;
@@ -59,5 +64,9 @@ pub mod rug_royale_v2 {
 
     pub fn cancel_match(ctx: Context<CancelMatch>) -> Result<()> {
         instructions::cancel_match::handle_cancel_match(ctx)
+    }
+
+    pub fn delegate_match(ctx: Context<DelegateMatch>) -> Result<()> {
+        instructions::delegate_match::handle_delegate_match(ctx)
     }
 }

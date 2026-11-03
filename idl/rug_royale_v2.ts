@@ -12,6 +12,11 @@ export type RugRoyaleV2 = {
     "spec": "0.1.0",
     "description": "Rug Royale v2: 1v1 paper-trading duels on live prices (MagicBlock ER)"
   },
+  "docs": [
+    "`#[ephemeral]` injects `process_undelegation`, the callback MagicBlock's Delegation",
+    "Program invokes to hand `Match` back to this program after `finalize_match` commits and",
+    "undelegates it. It must sit before `#[program]`."
+  ],
   "instructions": [
     {
       "name": "cancelMatch",
@@ -319,6 +324,197 @@ export type RugRoyaleV2 = {
       ]
     },
     {
+      "name": "delegateMatch",
+      "discriminator": [
+        30,
+        116,
+        9,
+        69,
+        147,
+        61,
+        133,
+        238
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "pot",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "matchAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "bufferMatchAccount",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  117,
+                  102,
+                  102,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "matchAccount"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                25,
+                66,
+                246,
+                163,
+                13,
+                39,
+                44,
+                71,
+                124,
+                78,
+                247,
+                49,
+                139,
+                219,
+                90,
+                70,
+                107,
+                26,
+                206,
+                66,
+                146,
+                5,
+                114,
+                129,
+                149,
+                225,
+                89,
+                28,
+                85,
+                80,
+                164,
+                207
+              ]
+            }
+          }
+        },
+        {
+          "name": "delegationRecordMatchAccount",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "matchAccount"
+              }
+            ],
+            "program": {
+              "kind": "account",
+              "path": "delegationProgram"
+            }
+          }
+        },
+        {
+          "name": "delegationMetadataMatchAccount",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110,
+                  45,
+                  109,
+                  101,
+                  116,
+                  97,
+                  100,
+                  97,
+                  116,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "matchAccount"
+              }
+            ],
+            "program": {
+              "kind": "account",
+              "path": "delegationProgram"
+            }
+          }
+        },
+        {
+          "name": "matchAccount",
+          "docs": [
+            "owner and status are checked in the handler. `del` makes `#[delegate]` add the",
+            "buffer / record / metadata accounts and `delegate_match_account`."
+          ],
+          "writable": true
+        },
+        {
+          "name": "ownerProgram",
+          "address": "2hcR5rib7mNkcFHnPEfjhH1yJdNsPmK6SVkU3dDjD9Cr"
+        },
+        {
+          "name": "delegationProgram",
+          "address": "DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "initProtocol",
       "discriminator": [
         3,
@@ -621,6 +817,111 @@ export type RugRoyaleV2 = {
         {
           "name": "sessionKey",
           "type": "pubkey"
+        }
+      ]
+    },
+    {
+      "name": "processUndelegation",
+      "discriminator": [
+        196,
+        28,
+        41,
+        206,
+        48,
+        37,
+        51,
+        167
+      ],
+      "accounts": [
+        {
+          "name": "baseAccount",
+          "writable": true
+        },
+        {
+          "name": "buffer",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  110,
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  101,
+                  45,
+                  98,
+                  117,
+                  102,
+                  102,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "baseAccount"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                181,
+                183,
+                0,
+                225,
+                242,
+                87,
+                58,
+                192,
+                204,
+                6,
+                34,
+                1,
+                52,
+                74,
+                207,
+                151,
+                184,
+                53,
+                6,
+                235,
+                140,
+                229,
+                25,
+                152,
+                204,
+                98,
+                126,
+                24,
+                147,
+                128,
+                167,
+                62
+              ]
+            }
+          }
+        },
+        {
+          "name": "payer",
+          "writable": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "accountSeeds",
+          "type": {
+            "vec": "bytes"
+          }
         }
       ]
     },
