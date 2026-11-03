@@ -357,3 +357,25 @@ export async function sponsorMatch(
     .instruction();
   return ctx.sender.send([ix], sponsor);
 }
+
+export async function joinMatch(
+  ctx: V2Ctx,
+  ref: MatchRef,
+  opponent: Keypair,
+  sessionKey: PublicKey = PublicKey.default
+): Promise<TxResult> {
+  const ix = await ctx.program.methods
+    .joinMatch(sessionKey)
+    .accountsStrict(
+      v2.joinMatchAccounts({
+        programId: ctx.programId,
+        opponent: opponent.publicKey,
+        creator: ref.creator,
+        matchAccount: ref.matchAccount,
+        pot: ref.pot,
+        arenaId: ref.arenaId,
+      })
+    )
+    .instruction();
+  return ctx.sender.send([ix], opponent);
+}

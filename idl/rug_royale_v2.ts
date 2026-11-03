@@ -381,6 +381,173 @@ export type RugRoyaleV2 = {
       ]
     },
     {
+      "name": "joinMatch",
+      "discriminator": [
+        244,
+        8,
+        47,
+        130,
+        192,
+        59,
+        179,
+        44
+      ],
+      "accounts": [
+        {
+          "name": "opponent",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "arena",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  114,
+                  101,
+                  110,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pot.arenaId",
+                "account": "pot"
+              }
+            ]
+          }
+        },
+        {
+          "name": "matchAccount",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  116,
+                  99,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pot.creator",
+                "account": "pot"
+              },
+              {
+                "kind": "account",
+                "path": "matchAccount.nonce",
+                "account": "match"
+              }
+            ]
+          }
+        },
+        {
+          "name": "pot",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "matchAccount"
+              }
+            ]
+          }
+        },
+        {
+          "name": "creatorStats",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pot.creator",
+                "account": "pot"
+              }
+            ]
+          }
+        },
+        {
+          "name": "opponentStats",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "opponent"
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "sessionKey",
+          "type": "pubkey"
+        }
+      ]
+    },
+    {
       "name": "sponsorMatch",
       "discriminator": [
         94,
@@ -673,6 +840,19 @@ export type RugRoyaleV2 = {
         225,
         227,
         16
+      ]
+    },
+    {
+      "name": "matchJoined",
+      "discriminator": [
+        94,
+        7,
+        113,
+        154,
+        236,
+        126,
+        100,
+        39
       ]
     },
     {
@@ -1364,6 +1544,30 @@ export type RugRoyaleV2 = {
           {
             "name": "validator",
             "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "matchJoined",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "matchAccount",
+            "type": "pubkey"
+          },
+          {
+            "name": "opponent",
+            "type": "pubkey"
+          },
+          {
+            "name": "startTs",
+            "type": "i64"
+          },
+          {
+            "name": "endTs",
+            "type": "i64"
           }
         ]
       }

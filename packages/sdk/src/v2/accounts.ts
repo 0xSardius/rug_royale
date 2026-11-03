@@ -87,3 +87,22 @@ export const sponsorMatchAccounts = (a: {
   pot: a.pot,
   systemProgram: SystemProgram.programId,
 });
+
+/** Accounts for join_match. `arenaId` comes from the pot (Pot.arena_id). */
+export const joinMatchAccounts = (a: {
+  programId: PublicKey;
+  opponent: PublicKey;
+  creator: PublicKey;
+  matchAccount: PublicKey;
+  pot: PublicKey;
+  arenaId: number;
+}) => ({
+  opponent: a.opponent,
+  protocol: findProtocol(a.programId)[0],
+  arena: findArena(a.programId, a.arenaId)[0],
+  matchAccount: a.matchAccount,
+  pot: a.pot,
+  creatorStats: findPlayerStats(a.programId, a.creator)[0],
+  opponentStats: findPlayerStats(a.programId, a.opponent)[0],
+  systemProgram: SystemProgram.programId,
+});

@@ -37,3 +37,11 @@ pub struct MatchSponsored {
     pub amount: u64,
     pub total: u64,
 }
+
+#[event]
+pub struct MatchJoined {
+    pub match_account: Pubkey,
+    pub opponent: Pubkey,
+    pub start_ts: i64,
+    pub end_ts: i64,
+}

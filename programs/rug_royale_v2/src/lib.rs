@@ -52,4 +52,8 @@ pub mod rug_royale_v2 {
     pub fn sponsor_match(ctx: Context<SponsorMatch>, amount: u64) -> Result<()> {
         instructions::sponsor_match::handle_sponsor_match(ctx, amount)
     }
+
+    pub fn join_match(ctx: Context<JoinMatch>, session_key: Pubkey) -> Result<()> {
+        instructions::join_match::handle_join_match(ctx, session_key)
+    }
 }
