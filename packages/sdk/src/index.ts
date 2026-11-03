@@ -8,3 +8,4 @@ export * from "./mints";
 export * from "./pdas";
 export * from "./math";
 export * from "./coins";
+export * as v2 from "./v2";

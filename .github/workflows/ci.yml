@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@v4
       # rust-toolchain.toml pins the version; rustup installs it on first cargo call.
       - uses: Swatinem/rust-cache@v2
-      - run: cargo test -p rug_royale
+      - run: cargo test -p rug_royale -p rug_royale_v2
 
   offchain:
     name: SDK, scripts, tests (typecheck + math)

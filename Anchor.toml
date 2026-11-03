@@ -8,9 +8,11 @@ skip-lint = false
 
 [programs.localnet]
 rug_royale = "5USpVpECZNcq4ZjRUyATb9ykcSRzZ29vHDwNMYFwNJWE"
+rug_royale_v2 = "2hcR5rib7mNkcFHnPEfjhH1yJdNsPmK6SVkU3dDjD9Cr"
 
 [programs.devnet]
 rug_royale = "5USpVpECZNcq4ZjRUyATb9ykcSRzZ29vHDwNMYFwNJWE"
+rug_royale_v2 = "2hcR5rib7mNkcFHnPEfjhH1yJdNsPmK6SVkU3dDjD9Cr"
 
 [provider]
 cluster = "localnet"
