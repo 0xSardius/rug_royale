@@ -48,4 +48,8 @@ pub mod rug_royale_v2 {
     ) -> Result<()> {
         instructions::create_match::handle_create_match(ctx, arena_id, args)
     }
+
+    pub fn sponsor_match(ctx: Context<SponsorMatch>, amount: u64) -> Result<()> {
+        instructions::sponsor_match::handle_sponsor_match(ctx, amount)
+    }
 }

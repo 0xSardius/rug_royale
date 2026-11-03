@@ -76,3 +76,14 @@ export const createMatchAccounts = (a: {
     },
   };
 };
+
+export const sponsorMatchAccounts = (a: {
+  programId: PublicKey;
+  sponsor: PublicKey;
+  pot: PublicKey;
+}) => ({
+  sponsor: a.sponsor,
+  protocol: findProtocol(a.programId)[0],
+  pot: a.pot,
+  systemProgram: SystemProgram.programId,
+});

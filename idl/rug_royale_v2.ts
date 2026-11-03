@@ -381,6 +381,77 @@ export type RugRoyaleV2 = {
       ]
     },
     {
+      "name": "sponsorMatch",
+      "discriminator": [
+        94,
+        2,
+        117,
+        187,
+        177,
+        159,
+        99,
+        58
+      ],
+      "accounts": [
+        {
+          "name": "sponsor",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "pot",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pot.matchAccount",
+                "account": "pot"
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "updateArena",
       "discriminator": [
         179,
@@ -602,6 +673,19 @@ export type RugRoyaleV2 = {
         225,
         227,
         16
+      ]
+    },
+    {
+      "name": "matchSponsored",
+      "discriminator": [
+        118,
+        143,
+        238,
+        136,
+        80,
+        70,
+        167,
+        68
       ]
     },
     {
@@ -1280,6 +1364,30 @@ export type RugRoyaleV2 = {
           {
             "name": "validator",
             "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "matchSponsored",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "matchAccount",
+            "type": "pubkey"
+          },
+          {
+            "name": "sponsor",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "total",
+            "type": "u64"
           }
         ]
       }

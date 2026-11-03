@@ -338,3 +338,22 @@ export const fetchMatch = (ctx: V2Ctx, m: PublicKey) => read(ctx, m, "match");
 export const fetchPot = (ctx: V2Ctx, pot: PublicKey) => read(ctx, pot, "pot");
 export const fetchStats = (ctx: V2Ctx, wallet: PublicKey) =>
   read(ctx, v2.findPlayerStats(ctx.programId, wallet)[0], "playerStats");
+
+export async function sponsorMatch(
+  ctx: V2Ctx,
+  ref: MatchRef,
+  sponsor: Keypair,
+  amount: bigint
+): Promise<TxResult> {
+  const ix = await ctx.program.methods
+    .sponsorMatch(new BN(amount.toString()))
+    .accountsStrict(
+      v2.sponsorMatchAccounts({
+        programId: ctx.programId,
+        sponsor: sponsor.publicKey,
+        pot: ref.pot,
+      })
+    )
+    .instruction();
+  return ctx.sender.send([ix], sponsor);
+}

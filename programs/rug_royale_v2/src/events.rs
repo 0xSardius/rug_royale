@@ -29,3 +29,11 @@ pub struct MatchCreated {
     pub join_deadline: i64,
     pub validator: Pubkey,
 }
+
+#[event]
+pub struct MatchSponsored {
+    pub match_account: Pubkey,
+    pub sponsor: Pubkey,
+    pub amount: u64,
+    pub total: u64,
+}
