@@ -1,0 +1,1010 @@
+{
+  "address": "2hcR5rib7mNkcFHnPEfjhH1yJdNsPmK6SVkU3dDjD9Cr",
+  "metadata": {
+    "name": "rug_royale_v2",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Rug Royale v2: 1v1 paper-trading duels on live prices (MagicBlock ER)"
+  },
+  "instructions": [
+    {
+      "name": "create_arena",
+      "discriminator": [
+        174,
+        236,
+        45,
+        61,
+        197,
+        215,
+        149,
+        169
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "arena",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  114,
+                  101,
+                  110,
+                  97
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "arena_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "arena_id",
+          "type": "u16"
+        },
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "ArenaArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "init_protocol",
+      "discriminator": [
+        3,
+        188,
+        141,
+        237,
+        225,
+        226,
+        232,
+        210
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "protocol",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "program_data",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  25,
+                  66,
+                  246,
+                  163,
+                  13,
+                  39,
+                  44,
+                  71,
+                  124,
+                  78,
+                  247,
+                  49,
+                  139,
+                  219,
+                  90,
+                  70,
+                  107,
+                  26,
+                  206,
+                  66,
+                  146,
+                  5,
+                  114,
+                  129,
+                  149,
+                  225,
+                  89,
+                  28,
+                  85,
+                  80,
+                  164,
+                  207
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                2,
+                168,
+                246,
+                145,
+                78,
+                136,
+                161,
+                176,
+                226,
+                16,
+                21,
+                62,
+                247,
+                99,
+                174,
+                43,
+                0,
+                194,
+                185,
+                61,
+                22,
+                193,
+                36,
+                210,
+                192,
+                83,
+                122,
+                16,
+                4,
+                128,
+                0,
+                0
+              ]
+            }
+          }
+        },
+        {
+          "name": "treasury"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "ProtocolArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "update_arena",
+      "discriminator": [
+        179,
+        14,
+        84,
+        80,
+        59,
+        23,
+        182,
+        226
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true
+        },
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "arena",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  114,
+                  101,
+                  110,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "arena.arena_id",
+                "account": "Arena"
+              }
+            ]
+          }
+        }
+      ],
+      "args": [
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "ArenaArgs"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "update_protocol",
+      "discriminator": [
+        206,
+        25,
+        218,
+        114,
+        109,
+        41,
+        74,
+        173
+      ],
+      "accounts": [
+        {
+          "name": "admin",
+          "signer": true
+        },
+        {
+          "name": "protocol",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury"
+        }
+      ],
+      "args": [
+        {
+          "name": "new_admin",
+          "type": "pubkey"
+        },
+        {
+          "name": "args",
+          "type": {
+            "defined": {
+              "name": "ProtocolArgs"
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Arena",
+      "discriminator": [
+        243,
+        215,
+        44,
+        44,
+        231,
+        211,
+        232,
+        168
+      ]
+    },
+    {
+      "name": "Protocol",
+      "discriminator": [
+        45,
+        39,
+        101,
+        43,
+        115,
+        72,
+        131,
+        40
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "ArenaUpdated",
+      "discriminator": [
+        38,
+        87,
+        53,
+        48,
+        142,
+        173,
+        225,
+        21
+      ]
+    },
+    {
+      "name": "ProtocolUpdated",
+      "discriminator": [
+        52,
+        35,
+        157,
+        26,
+        20,
+        117,
+        63,
+        218
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "Unauthorized",
+      "msg": "Signer is not authorized"
+    },
+    {
+      "code": 6001,
+      "name": "RakeTooHigh",
+      "msg": "Rake exceeds the maximum"
+    },
+    {
+      "code": 6002,
+      "name": "FeeTooHigh",
+      "msg": "Fee exceeds the 10% maximum"
+    },
+    {
+      "code": 6003,
+      "name": "TipTooHigh",
+      "msg": "Settler tip exceeds the maximum"
+    },
+    {
+      "code": 6004,
+      "name": "InvalidTreasury",
+      "msg": "Treasury must be a funded, rent-exempt system account"
+    },
+    {
+      "code": 6005,
+      "name": "InvalidAssetList",
+      "msg": "Arena asset list is invalid"
+    },
+    {
+      "code": 6006,
+      "name": "InvalidWindowSet",
+      "msg": "Windows must be a non-zero ascending prefix"
+    },
+    {
+      "code": 6007,
+      "name": "InvalidBankroll",
+      "msg": "Bankroll must be greater than zero"
+    },
+    {
+      "code": 6008,
+      "name": "InvalidEntryRange",
+      "msg": "Entry range is invalid"
+    },
+    {
+      "code": 6009,
+      "name": "InvalidStartDelay",
+      "msg": "Start delay is out of range"
+    },
+    {
+      "code": 6010,
+      "name": "Paused",
+      "msg": "Protocol or arena is paused"
+    },
+    {
+      "code": 6011,
+      "name": "InvalidWindow",
+      "msg": "Window is not one of the arena's windows"
+    },
+    {
+      "code": 6012,
+      "name": "EntryOutOfRange",
+      "msg": "Entry is outside the allowed range"
+    },
+    {
+      "code": 6013,
+      "name": "DeadlineTooSoon",
+      "msg": "Join deadline is too soon"
+    },
+    {
+      "code": 6014,
+      "name": "DeadlineTooFar",
+      "msg": "Join deadline is too far in the future"
+    },
+    {
+      "code": 6015,
+      "name": "CannotJoinOwnMatch",
+      "msg": "Creator cannot join their own match"
+    },
+    {
+      "code": 6016,
+      "name": "InvalidValidator",
+      "msg": "Validator (ER region) must be set"
+    },
+    {
+      "code": 6017,
+      "name": "MatchNotOpen",
+      "msg": "Match is not open"
+    },
+    {
+      "code": 6018,
+      "name": "JoinDeadlinePassed",
+      "msg": "Join deadline has passed"
+    },
+    {
+      "code": 6019,
+      "name": "OpponentNotAllowed",
+      "msg": "Signer is not the allowed opponent"
+    },
+    {
+      "code": 6020,
+      "name": "FreerollCapReached",
+      "msg": "Daily freeroll limit reached"
+    },
+    {
+      "code": 6021,
+      "name": "ZeroAmount",
+      "msg": "Amount must be greater than zero"
+    },
+    {
+      "code": 6022,
+      "name": "SponsorMismatch",
+      "msg": "Match already has a different sponsor"
+    },
+    {
+      "code": 6023,
+      "name": "SponsorTooSmall",
+      "msg": "First sponsorship is below the 0.01 SOL minimum"
+    },
+    {
+      "code": 6024,
+      "name": "NotAParticipant",
+      "msg": "Signer is not a participant in this match"
+    },
+    {
+      "code": 6025,
+      "name": "MatchNotActive",
+      "msg": "Match is not active"
+    },
+    {
+      "code": 6026,
+      "name": "WindowNotStarted",
+      "msg": "Trading window has not started"
+    },
+    {
+      "code": 6027,
+      "name": "WindowEnded",
+      "msg": "Trading window has ended"
+    },
+    {
+      "code": 6028,
+      "name": "InvalidAsset",
+      "msg": "Asset index is out of range"
+    },
+    {
+      "code": 6029,
+      "name": "AssetDisabled",
+      "msg": "Asset is disabled for new buys"
+    },
+    {
+      "code": 6030,
+      "name": "WrongPriceFeed",
+      "msg": "Price feed does not match the arena asset"
+    },
+    {
+      "code": 6031,
+      "name": "PriceInvalid",
+      "msg": "Price feed data is invalid"
+    },
+    {
+      "code": 6032,
+      "name": "PriceStale",
+      "msg": "Price is stale"
+    },
+    {
+      "code": 6033,
+      "name": "LimitPriceExceeded",
+      "msg": "Price is past the limit price"
+    },
+    {
+      "code": 6034,
+      "name": "InsufficientCash",
+      "msg": "Not enough cash"
+    },
+    {
+      "code": 6035,
+      "name": "InsufficientQty",
+      "msg": "Not enough quantity"
+    },
+    {
+      "code": 6036,
+      "name": "ZeroOutput",
+      "msg": "Trade output rounds to zero"
+    },
+    {
+      "code": 6037,
+      "name": "WindowNotEnded",
+      "msg": "Trading window has not ended"
+    },
+    {
+      "code": 6038,
+      "name": "MarkWindowMissed",
+      "msg": "No valid mark price within the mark window"
+    },
+    {
+      "code": 6039,
+      "name": "PotNotActive",
+      "msg": "Pot is not active"
+    },
+    {
+      "code": 6040,
+      "name": "MatchStillDelegated",
+      "msg": "Match is still delegated to the ER"
+    },
+    {
+      "code": 6041,
+      "name": "MatchNotFinalized",
+      "msg": "Match is not finalized"
+    },
+    {
+      "code": 6042,
+      "name": "DeadlineNotReached",
+      "msg": "Join deadline has not been reached"
+    },
+    {
+      "code": 6043,
+      "name": "NotStaleYet",
+      "msg": "Refund is not available yet"
+    },
+    {
+      "code": 6044,
+      "name": "MatchStillLive",
+      "msg": "Match is still open or active"
+    },
+    {
+      "code": 6045,
+      "name": "MathOverflow",
+      "msg": "Math overflow"
+    }
+  ],
+  "types": [
+    {
+      "name": "Arena",
+      "docs": [
+        "Seeds `[\"arena\", arena_id.to_le_bytes()]`. Base only; cloned read-only into the ER."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "arena_id",
+            "type": "u16"
+          },
+          {
+            "name": "mode",
+            "docs": [
+              "0 = LIVE_PRICE_DUEL."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "paused",
+            "docs": [
+              "Blocks create/join only."
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "asset_count",
+            "docs": [
+              "1..=MAX_ASSETS; entries at index >= asset_count are zeroed."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "assets",
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "ArenaAsset"
+                  }
+                },
+                10
+              ]
+            }
+          },
+          {
+            "name": "windows",
+            "docs": [
+              "Seconds, a non-zero ascending prefix; 0 = unused slot."
+            ],
+            "type": {
+              "array": [
+                "u32",
+                4
+              ]
+            }
+          },
+          {
+            "name": "bankroll",
+            "docs": [
+              "Virtual bankroll per seat, micro-USD."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "min_entry_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "max_entry_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "trade_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "rake_bps",
+            "type": "u16"
+          },
+          {
+            "name": "max_price_age_s",
+            "type": "u32"
+          },
+          {
+            "name": "start_delay_secs",
+            "docs": [
+              "Q2: delay from join to the start of trading."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "freeroll_daily_cap",
+            "docs": [
+              "D4: sponsored freerolls per wallet per day."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ArenaArgs",
+      "docs": [
+        "Every `Arena` field except `arena_id` (seed), `mode` (always LIVE_PRICE_DUEL in v2.1)",
+        "and `bump`."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "paused",
+            "type": "bool"
+          },
+          {
+            "name": "asset_count",
+            "type": "u8"
+          },
+          {
+            "name": "assets",
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "ArenaAsset"
+                  }
+                },
+                10
+              ]
+            }
+          },
+          {
+            "name": "windows",
+            "type": {
+              "array": [
+                "u32",
+                4
+              ]
+            }
+          },
+          {
+            "name": "bankroll",
+            "type": "u64"
+          },
+          {
+            "name": "min_entry_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "max_entry_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "trade_fee_bps",
+            "type": "u16"
+          },
+          {
+            "name": "rake_bps",
+            "type": "u16"
+          },
+          {
+            "name": "max_price_age_s",
+            "type": "u32"
+          },
+          {
+            "name": "start_delay_secs",
+            "type": "u16"
+          },
+          {
+            "name": "freeroll_daily_cap",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ArenaAsset",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "feed",
+            "docs": [
+              "Oracle feed PDA `[\"price_feed\", \"pyth-lazer\", <lazer_id>]` (checked off-chain at setup)."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "lazer_id",
+            "type": "u32"
+          },
+          {
+            "name": "exponent",
+            "docs": [
+              "|exponent| from Pyth's list (e.g. 8 for SOL, 10 for BONK). The feed account's own",
+              "exponent field is never read (spike 01: it says 8 for every feed)."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "enabled",
+            "docs": [
+              "Disabled: no new buys; sells and valuation still work."
+            ],
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ArenaUpdated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "arena_id",
+            "type": "u16"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Protocol",
+      "docs": [
+        "Seeds `[\"protocol\"]`. Global caps, admin-adjustable behind a Squads multisig (V2)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "docs": [
+              "Squads vault on mainnet."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "treasury",
+            "docs": [
+              "Rent-exempt system account (checked at init/update)."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "max_entry_lamports",
+            "docs": [
+              "Global entry cap; 0 = free play only (Stage 2)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "match_fee_lamports",
+            "docs": [
+              "D1: reimburses the joiner's MagicBlock delegation fee."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "settler_tip_lamports",
+            "docs": [
+              "<= MAX_SETTLER_TIP_LAMPORTS."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "max_rake_bps",
+            "docs": [
+              "<= MAX_FEE_BPS; arenas cannot exceed it."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "paused",
+            "docs": [
+              "Blocks create/join/sponsor; never blocks exits (cancel, settle, refund, close)."
+            ],
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProtocolArgs",
+      "docs": [
+        "The numeric `Protocol` fields. `admin` is the signer (init) or an explicit argument",
+        "(update); `treasury` is an account."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "max_entry_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "match_fee_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "settler_tip_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "max_rake_bps",
+            "type": "u16"
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProtocolUpdated",
+      "docs": [
+        "v2 PRD §8. Notifications only; clients read state from accounts."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "admin",
+            "type": "pubkey"
+          },
+          {
+            "name": "treasury",
+            "type": "pubkey"
+          },
+          {
+            "name": "max_entry_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "match_fee_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "settler_tip_lamports",
+            "type": "u64"
+          },
+          {
+            "name": "max_rake_bps",
+            "type": "u16"
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          }
+        ]
+      }
+    }
+  ]
+}
