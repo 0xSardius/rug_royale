@@ -56,4 +56,8 @@ pub mod rug_royale_v2 {
     pub fn join_match(ctx: Context<JoinMatch>, session_key: Pubkey) -> Result<()> {
         instructions::join_match::handle_join_match(ctx, session_key)
     }
+
+    pub fn cancel_match(ctx: Context<CancelMatch>) -> Result<()> {
+        instructions::cancel_match::handle_cancel_match(ctx)
+    }
 }

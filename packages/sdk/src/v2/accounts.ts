@@ -106,3 +106,23 @@ export const joinMatchAccounts = (a: {
   opponentStats: findPlayerStats(a.programId, a.opponent)[0],
   systemProgram: SystemProgram.programId,
 });
+
+/**
+ * Accounts for cancel_match. Pass `sponsor: null` when the pot has no sponsor
+ * (Pot.sponsor == default); never pass the default pubkey as a writable account.
+ */
+export const cancelMatchAccounts = (a: {
+  programId: PublicKey;
+  caller: PublicKey;
+  pot: PublicKey;
+  creator: PublicKey;
+  sponsor: PublicKey | null;
+  treasury: PublicKey;
+}) => ({
+  caller: a.caller,
+  protocol: findProtocol(a.programId)[0],
+  pot: a.pot,
+  creator: a.creator,
+  sponsor: a.sponsor,
+  treasury: a.treasury,
+});

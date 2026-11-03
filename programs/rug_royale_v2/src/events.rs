@@ -45,3 +45,11 @@ pub struct MatchJoined {
     pub start_ts: i64,
     pub end_ts: i64,
 }
+
+#[event]
+pub struct MatchCancelled {
+    pub match_account: Pubkey,
+    /// Entry + fee share returned to the creator.
+    pub refunded_entry: u64,
+    pub refunded_sponsored: u64,
+}

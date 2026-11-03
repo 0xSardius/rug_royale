@@ -14,6 +14,83 @@ export type RugRoyaleV2 = {
   },
   "instructions": [
     {
+      "name": "cancelMatch",
+      "discriminator": [
+        142,
+        136,
+        247,
+        45,
+        92,
+        112,
+        180,
+        83
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "signer": true
+        },
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "pot",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pot.matchAccount",
+                "account": "pot"
+              }
+            ]
+          }
+        },
+        {
+          "name": "creator",
+          "writable": true
+        },
+        {
+          "name": "sponsor",
+          "docs": [
+            "(default) pubkey as a writable account."
+          ],
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "treasury",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "createArena",
       "discriminator": [
         174,
@@ -830,6 +907,19 @@ export type RugRoyaleV2 = {
       ]
     },
     {
+      "name": "matchCancelled",
+      "discriminator": [
+        99,
+        86,
+        22,
+        122,
+        82,
+        247,
+        60,
+        113
+      ]
+    },
+    {
       "name": "matchCreated",
       "discriminator": [
         151,
@@ -1500,6 +1590,29 @@ export type RugRoyaleV2 = {
               "Oldest `publish_time` among the marks used."
             ],
             "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "matchCancelled",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "matchAccount",
+            "type": "pubkey"
+          },
+          {
+            "name": "refundedEntry",
+            "docs": [
+              "Entry + fee share returned to the creator."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "refundedSponsored",
+            "type": "u64"
           }
         ]
       }

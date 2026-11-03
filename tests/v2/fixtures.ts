@@ -379,3 +379,48 @@ export async function joinMatch(
     .instruction();
   return ctx.sender.send([ix], opponent);
 }
+
+/**
+ * cancel_match. By default the pinned accounts come from the pot and protocol; override
+ * them to test the address constraints. `sponsor: null` omits the optional account.
+ */
+export async function cancelMatch(
+  ctx: V2Ctx,
+  ref: MatchRef,
+  caller: Keypair,
+  o: {
+    creator?: PublicKey;
+    sponsor?: PublicKey | null;
+    treasury?: PublicKey;
+  } = {}
+): Promise<TxResult> {
+  const pot = await fetchPot(ctx, ref.pot);
+  const protocol = await fetchProtocol(ctx);
+  const sponsor =
+    o.sponsor !== undefined
+      ? o.sponsor
+      : pot.sponsor.equals(PublicKey.default)
+      ? null
+      : pot.sponsor;
+  const ix = await ctx.program.methods
+    .cancelMatch()
+    .accountsStrict(
+      v2.cancelMatchAccounts({
+        programId: ctx.programId,
+        caller: caller.publicKey,
+        pot: ref.pot,
+        creator: o.creator ?? pot.creator,
+        sponsor,
+        treasury: o.treasury ?? protocol.treasury,
+      })
+    )
+    .instruction();
+  return ctx.sender.send([ix], caller);
+}
+
+/** LiteSVM only: zero a wallet's lamports, as if the player swept it. */
+export function emptyWallet(ctx: V2Ctx, pk: PublicKey) {
+  const acc = ctx.sender.svm.getAccount(pk);
+  if (!acc) throw new Error("account not found");
+  ctx.sender.svm.setAccount(pk, { ...acc, lamports: 0 });
+}
