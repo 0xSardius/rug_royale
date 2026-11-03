@@ -8,11 +8,13 @@ pub mod errors;
 pub mod events;
 pub mod instructions;
 pub mod math;
+pub mod oracle;
 pub mod state;
 
 use instructions::admin_checks::{ArenaArgs, ProtocolArgs};
 use instructions::create_match::CreateMatchArgs;
 use instructions::*;
+use state::Side;
 
 declare_id!("2hcR5rib7mNkcFHnPEfjhH1yJdNsPmK6SVkU3dDjD9Cr");
 
@@ -68,5 +70,16 @@ pub mod rug_royale_v2 {
 
     pub fn delegate_match(ctx: Context<DelegateMatch>) -> Result<()> {
         instructions::delegate_match::handle_delegate_match(ctx)
+    }
+
+    // Live-price duel mode (§6.3), executed in the ER
+    pub fn trade(
+        ctx: Context<Trade>,
+        asset_index: u8,
+        side: Side,
+        amount: u64,
+        limit_price: u64,
+    ) -> Result<()> {
+        instructions::trade::handle_trade(ctx, asset_index, side, amount, limit_price)
     }
 }

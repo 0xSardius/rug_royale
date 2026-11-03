@@ -147,3 +147,17 @@ export const delegateMatchAccounts = (a: {
   delegationProgram: DELEGATION_PROGRAM_ID,
   systemProgram: SystemProgram.programId,
 });
+
+/** Accounts for trade (sent to the match's ER endpoint). `signer` = wallet or session key. */
+export const tradeAccounts = (a: {
+  programId: PublicKey;
+  signer: PublicKey;
+  matchAccount: PublicKey;
+  arenaId: number;
+  priceFeed: PublicKey;
+}) => ({
+  signer: a.signer,
+  matchAccount: a.matchAccount,
+  arena: findArena(a.programId, a.arenaId)[0],
+  priceFeed: a.priceFeed,
+});

@@ -7,6 +7,7 @@ pub mod delegate_match;
 pub mod init_protocol;
 pub mod join_match;
 pub mod sponsor_match;
+pub mod trade;
 pub mod update_arena;
 pub mod update_protocol;
 
@@ -17,5 +18,6 @@ pub use delegate_match::*;
 pub use init_protocol::*;
 pub use join_match::*;
 pub use sponsor_match::*;
+pub use trade::*;
 pub use update_arena::*;
 pub use update_protocol::*;

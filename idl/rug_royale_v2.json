@@ -991,6 +991,106 @@
       ]
     },
     {
+      "name": "trade",
+      "discriminator": [
+        178,
+        144,
+        26,
+        216,
+        241,
+        187,
+        206,
+        130
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "docs": [
+            "The seat's wallet or session key."
+          ],
+          "signer": true
+        },
+        {
+          "name": "match_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  116,
+                  99,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "match_account.seats [0].player",
+                "account": "Match"
+              },
+              {
+                "kind": "account",
+                "path": "match_account.nonce",
+                "account": "Match"
+              }
+            ]
+          }
+        },
+        {
+          "name": "arena",
+          "docs": [
+            "Base-layer account; the ER clones it read-only."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  114,
+                  101,
+                  110,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "match_account.arena_id",
+                "account": "Match"
+              }
+            ]
+          }
+        },
+        {
+          "name": "price_feed"
+        }
+      ],
+      "args": [
+        {
+          "name": "asset_index",
+          "type": "u8"
+        },
+        {
+          "name": "side",
+          "type": {
+            "defined": {
+              "name": "Side"
+            }
+          }
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "limit_price",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "update_arena",
       "discriminator": [
         179,
@@ -1264,6 +1364,19 @@
         117,
         63,
         218
+      ]
+    },
+    {
+      "name": "Traded",
+      "discriminator": [
+        225,
+        202,
+        73,
+        175,
+        147,
+        43,
+        160,
+        150
       ]
     }
   ],
@@ -2377,6 +2490,66 @@
           {
             "name": "trades",
             "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Side",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Buy"
+          },
+          {
+            "name": "Sell"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Traded",
+      "docs": [
+        "Emitted in the ER; the client reads it from its own transaction result."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "match_account",
+            "type": "pubkey"
+          },
+          {
+            "name": "seat",
+            "type": "u8"
+          },
+          {
+            "name": "asset_index",
+            "type": "u8"
+          },
+          {
+            "name": "side",
+            "docs": [
+              "0 = buy, 1 = sell."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "amount_in",
+            "type": "u64"
+          },
+          {
+            "name": "amount_out",
+            "type": "u64"
+          },
+          {
+            "name": "price",
+            "type": "u64"
+          },
+          {
+            "name": "publish_time",
+            "type": "i64"
           }
         ]
       }

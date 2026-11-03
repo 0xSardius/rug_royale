@@ -997,6 +997,106 @@ export type RugRoyaleV2 = {
       ]
     },
     {
+      "name": "trade",
+      "discriminator": [
+        178,
+        144,
+        26,
+        216,
+        241,
+        187,
+        206,
+        130
+      ],
+      "accounts": [
+        {
+          "name": "signer",
+          "docs": [
+            "The seat's wallet or session key."
+          ],
+          "signer": true
+        },
+        {
+          "name": "matchAccount",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  116,
+                  99,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "matchAccount.seats0.player",
+                "account": "match"
+              },
+              {
+                "kind": "account",
+                "path": "matchAccount.nonce",
+                "account": "match"
+              }
+            ]
+          }
+        },
+        {
+          "name": "arena",
+          "docs": [
+            "Base-layer account; the ER clones it read-only."
+          ],
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  114,
+                  101,
+                  110,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "matchAccount.arenaId",
+                "account": "match"
+              }
+            ]
+          }
+        },
+        {
+          "name": "priceFeed"
+        }
+      ],
+      "args": [
+        {
+          "name": "assetIndex",
+          "type": "u8"
+        },
+        {
+          "name": "side",
+          "type": {
+            "defined": {
+              "name": "side"
+            }
+          }
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "limitPrice",
+          "type": "u64"
+        }
+      ]
+    },
+    {
       "name": "updateArena",
       "discriminator": [
         179,
@@ -1270,6 +1370,19 @@ export type RugRoyaleV2 = {
         117,
         63,
         218
+      ]
+    },
+    {
+      "name": "traded",
+      "discriminator": [
+        225,
+        202,
+        73,
+        175,
+        147,
+        43,
+        160,
+        150
       ]
     }
   ],
@@ -2383,6 +2496,66 @@ export type RugRoyaleV2 = {
           {
             "name": "trades",
             "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "side",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "buy"
+          },
+          {
+            "name": "sell"
+          }
+        ]
+      }
+    },
+    {
+      "name": "traded",
+      "docs": [
+        "Emitted in the ER; the client reads it from its own transaction result."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "matchAccount",
+            "type": "pubkey"
+          },
+          {
+            "name": "seat",
+            "type": "u8"
+          },
+          {
+            "name": "assetIndex",
+            "type": "u8"
+          },
+          {
+            "name": "side",
+            "docs": [
+              "0 = buy, 1 = sell."
+            ],
+            "type": "u8"
+          },
+          {
+            "name": "amountIn",
+            "type": "u64"
+          },
+          {
+            "name": "amountOut",
+            "type": "u64"
+          },
+          {
+            "name": "price",
+            "type": "u64"
+          },
+          {
+            "name": "publishTime",
+            "type": "i64"
           }
         ]
       }

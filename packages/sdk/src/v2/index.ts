@@ -2,4 +2,5 @@
 export * from "./accounts";
 export * from "./idl";
 export * from "./math";
+export * from "./oracle";
 export * from "./pdas";

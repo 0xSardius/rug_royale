@@ -53,3 +53,17 @@ pub struct MatchCancelled {
     pub refunded_entry: u64,
     pub refunded_sponsored: u64,
 }
+
+/// Emitted in the ER; the client reads it from its own transaction result.
+#[event]
+pub struct Traded {
+    pub match_account: Pubkey,
+    pub seat: u8,
+    pub asset_index: u8,
+    /// 0 = buy, 1 = sell.
+    pub side: u8,
+    pub amount_in: u64,
+    pub amount_out: u64,
+    pub price: u64,
+    pub publish_time: i64,
+}

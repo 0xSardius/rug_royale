@@ -487,3 +487,146 @@ export async function joinAndDelegate(
     opponent
   );
 }
+
+// ---------------------------------------------------------------------------
+// Oracle feeds + trading
+
+export interface FeedState {
+  price: bigint;
+  /** Unix seconds; defaults to the cluster clock. */
+  publishTime?: bigint;
+  postedSlot?: bigint;
+  /** The account's own exponent field; real feeds say 8 even for BONK (spike 01). */
+  exponentField?: number;
+  verification?: "full" | "partial";
+  /** Overrides the owner (default: the oracle program). */
+  owner?: PublicKey;
+}
+
+/** LiteSVM only: write a MagicBlock oracle feed (PriceUpdateV2 layout) at the lazer id's PDA. */
+export async function setFeed(ctx: V2Ctx, lazerId: number, f: FeedState) {
+  const partial = f.verification === "partial";
+  const msg = partial ? 42 : 41;
+  const data = Buffer.alloc(msg + 92);
+  data[40] = partial ? 0 : 1;
+  if (partial) data[41] = 3;
+  data.writeBigInt64LE(f.price, msg + 32);
+  data.writeInt32LE(f.exponentField ?? 8, msg + 48);
+  const t = f.publishTime ?? (await ctx.sender.now());
+  data.writeBigInt64LE(t, msg + 52);
+  data.writeBigInt64LE(t, msg + 60);
+  data.writeBigUInt64LE(f.postedSlot ?? 1n, msg + 84);
+  const [pda] = v2.findPriceFeed(lazerId);
+  ctx.sender.svm.setAccount(pda, {
+    lamports: 2_000_000,
+    data,
+    owner: f.owner ?? v2.ORACLE_PROGRAM_ID,
+    executable: false,
+  });
+  return pda;
+}
+
+/** Spike-01 prices for the Solana Arena (raw, at each asset's list exponent). */
+export const PRICES: Record<string, bigint> = {
+  SOL: 9_436_170_000n, // $94.3617 (e=8)
+  JUP: 25_764_558n,
+  JTO: 37_301_700n,
+  RAY: 162_158_000n,
+  PYTH: 6_543_420n,
+  BONK: 29_220n, // $0.000002922 (e=10)
+  WIF: 17_697_400n,
+  POPCAT: 4_070_150n,
+  PENGU: 727_000n,
+  TRUMP: 171_226_000n,
+};
+
+/** Arena index of a symbol. */
+export const ix = (sym: string) => SOLANA_ARENA.findIndex(([s]) => s === sym);
+export const lazer = (sym: string) => SOLANA_ARENA[ix(sym)][1];
+
+/** Fresh feeds for every Solana Arena asset at the current clock. */
+export async function setAllFeeds(ctx: V2Ctx) {
+  for (const [sym, id] of SOLANA_ARENA)
+    await setFeed(ctx, id, { price: PRICES[sym] });
+}
+
+export interface TradeParams {
+  asset: number;
+  side: "buy" | "sell";
+  amount: bigint;
+  /** Defaults to "anything" (u64 max for buys, 0 for sells). */
+  limitPrice?: bigint;
+  /** Override the feed passed (default: the arena asset's feed PDA). */
+  priceFeed?: PublicKey;
+}
+
+const U64_MAX = 2n ** 64n - 1n;
+
+export async function trade(
+  ctx: V2Ctx,
+  ref: MatchRef,
+  signer: Keypair,
+  t: TradeParams,
+  feePayer?: Keypair
+): Promise<TxResult> {
+  const lazerId = SOLANA_ARENA[t.asset]?.[1] ?? 6;
+  const ixn = await ctx.program.methods
+    .trade(
+      t.asset,
+      t.side === "buy" ? { buy: {} } : { sell: {} },
+      new BN(t.amount.toString()),
+      new BN((t.limitPrice ?? (t.side === "buy" ? U64_MAX : 0n)).toString())
+    )
+    .accountsStrict(
+      v2.tradeAccounts({
+        programId: ctx.programId,
+        signer: signer.publicKey,
+        matchAccount: ref.matchAccount,
+        arenaId: ref.arenaId,
+        priceFeed: t.priceFeed ?? v2.findPriceFeed(lazerId)[0],
+      })
+    )
+    .instruction();
+  return feePayer
+    ? ctx.sender.send([ixn], feePayer, [signer])
+    : ctx.sender.send([ixn], signer);
+}
+
+/**
+ * Protocol + arena, a joined match (not delegated: LiteSVM runs trade on base, where Match
+ * is owned by the program, exactly as the ER sees it), both seats with session keys, fresh
+ * feeds, clock at start_ts.
+ */
+export async function activeMatch(
+  ctx: V2Ctx,
+  p: Partial<CreateMatchParams> = {}
+) {
+  const admin = await setupAdmin(ctx);
+  const creator = await newWallet(ctx);
+  const opponent = await newWallet(ctx);
+  const creatorSession = await newWallet(ctx, 1);
+  const opponentSession = await newWallet(ctx, 1);
+  const { res, ref } = await createMatch(ctx, {
+    creator,
+    sessionKey: creatorSession.publicKey,
+    ...p,
+  });
+  if (!res.ok) throw new Error(`createMatch: ${res.errorName}`);
+  const j = await joinMatch(ctx, ref, opponent, opponentSession.publicKey);
+  if (!j.ok) throw new Error(`joinMatch: ${j.errorName}`);
+  const m = await fetchMatch(ctx, ref.matchAccount);
+  const startTs = BigInt(m.startTs.toString());
+  const endTs = BigInt(m.endTs.toString());
+  ctx.sender.warpTo(startTs);
+  await setAllFeeds(ctx);
+  return {
+    ...admin,
+    ref,
+    creator,
+    opponent,
+    creatorSession,
+    opponentSession,
+    startTs,
+    endTs,
+  };
+}
