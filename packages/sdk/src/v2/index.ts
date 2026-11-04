@@ -1,6 +1,8 @@
 // Rug Royale v2 (live-price duels). Exported from the SDK root as `v2`.
 export * from "./accounts";
 export * from "./decode";
+export * from "./errors";
+export * from "./events";
 export * from "./layout";
 export * from "./idl";
 export * from "./math";

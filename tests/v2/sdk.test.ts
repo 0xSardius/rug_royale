@@ -2,6 +2,7 @@ import { expect } from "chai";
 import { Keypair, PublicKey } from "@solana/web3.js";
 import { v2 } from "@rug-royale/sdk";
 import {
+  PRICES,
   VALIDATORS,
   activeMatch,
   cancelMatch,
@@ -9,10 +10,15 @@ import {
   createMatch,
   defaultArenaArgs,
   expectOk,
+  finalizeMatch,
   joinMatch,
+  lazer,
   newWallet,
+  setFeed,
+  settle,
   setupAdmin,
   sponsorMatch,
+  trade,
   v2Ctx,
 } from "./fixtures";
 
@@ -174,5 +180,76 @@ describe("v2 sdk: decoders, layout, lobby filters", () => {
     expect(
       select(v2.playerPotFilters(Keypair.generate().publicKey, "creator"))
     ).to.deep.equal([]);
+  });
+});
+
+describe("v2 sdk: errors and events", () => {
+  it("every program error code maps to a message; codes are contiguous from 6000 in enum order", () => {
+    const errs = v2.IDL_JSON.errors;
+    expect(errs).to.have.length(46);
+    errs.forEach((e, i) => {
+      expect(e.code).to.equal(6000 + i);
+      expect(v2.programError(e.code)?.name).to.equal(e.name);
+      expect(v2.programErrorCode(e.name)).to.equal(e.code);
+    });
+    expect(
+      v2.programError(v2.programErrorCode("PriceStale")!)?.message
+    ).to.equal("The price feed is lagging. Try again in a moment.");
+    expect(v2.programError(9999)).to.equal(null);
+  });
+
+  it("programErrorFromLogs finds the error in a real failed transaction", async () => {
+    const ctx = v2Ctx();
+    const a = await activeMatch(ctx);
+    const res = await trade(ctx, a.ref, a.creatorSession, {
+      asset: 0,
+      side: "buy",
+      amount: 0n,
+    });
+    expect(res.ok).to.equal(false);
+    const info = v2.programErrorFromLogs(res.logs)!;
+    expect([info.name, info.code]).to.deep.equal([
+      "ZeroAmount",
+      v2.programErrorCode("ZeroAmount"),
+    ]);
+  });
+
+  it("parses Traded, MatchFinalized and MatchSettled from real transactions", async () => {
+    const ctx = v2Ctx();
+    const a = await activeMatch(ctx, { entryLamports: 100_000_000n });
+    const t = await trade(ctx, a.ref, a.opponentSession, {
+      asset: 0,
+      side: "buy",
+      amount: 1_000_000_000n,
+    });
+    expectOk(t);
+    const [ev] = v2.parseTradedEvents(t.logs);
+    expect(ev.matchAccount.equals(a.ref.matchAccount)).to.equal(true);
+    expect([ev.seat, ev.assetIndex, ev.side]).to.deep.equal([1, 0, "buy"]);
+    expect(ev.amountIn).to.equal(1_000_000_000n);
+    expect(ev.amountOut).to.equal(
+      v2.buyQuote(1_000_000_000n, ev.price, 8, 10).qtyOut
+    );
+
+    ctx.sender.warpTo(a.endTs);
+    await setFeed(ctx, lazer("SOL"), {
+      price: PRICES.SOL,
+      publishTime: a.endTs,
+    });
+    const f = await finalizeMatch(ctx, a.ref, a.creator);
+    expectOk(f);
+    const fin = v2.parseFinalizedEvent(f.logs)!;
+    const m = v2.decodeMatch(
+      (await ctx.sender.accountData(a.ref.matchAccount))!
+    );
+    expect(fin.finalValues).to.deep.equal(m.finalValues);
+    expect(fin.result).to.equal(m.result);
+
+    const s = await settle(ctx, a.ref, a.creator);
+    expectOk(s);
+    const st = v2.parseSettledEvent(s.logs)!;
+    expect(st.result).to.equal(m.result);
+    expect(st.prize + st.rake + st.matchFee + st.tip).to.equal(200_000_000n);
+    expect(v2.parseSettledEvent(t.logs)).to.equal(null);
   });
 });
