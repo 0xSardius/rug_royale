@@ -16,7 +16,7 @@ import {
 } from "@rug-royale/sdk";
 import {
   PROGRAM_ID,
-  RPC_URL,
+  RPC_HOST,
   connection,
   loadKeypair,
   readCoins,
@@ -72,7 +72,7 @@ async function main() {
     swapFeeBps: DEFAULTS.swapFeeBps,
   };
 
-  console.log(`rpc     ${RPC_URL}`);
+  console.log(`rpc     ${RPC_HOST}`);
   console.log(`program ${PROGRAM_ID.toBase58()}`);
   console.log(`config  ${configPda.toBase58()}\n`);
   console.log(JSON.stringify(expected, null, 2));

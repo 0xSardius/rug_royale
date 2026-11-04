@@ -21,7 +21,7 @@ import {
 } from "@rug-royale/sdk";
 import {
   PROGRAM_ID,
-  RPC_URL,
+  RPC_HOST,
   connection,
   loadKeypair,
   readCoins,
@@ -36,7 +36,7 @@ async function main() {
   if (coins.coins.length !== 10)
     throw new Error(`coins.json must list 10 coins, has ${coins.coins.length}`);
 
-  console.log(`rpc       ${RPC_URL}`);
+  console.log(`rpc       ${RPC_HOST}`);
   console.log(`payer     ${payer.publicKey.toBase58()}`);
   console.log(`authority ${authority.toBase58()} (MintAuthority PDA)\n`);
 

@@ -19,7 +19,7 @@ import {
   type Duel,
   type DuelRef,
 } from "@rug-royale/sdk";
-import { PROGRAM_ID, RPC_URL, connection, loadKeypair } from "./lib/env";
+import { PROGRAM_ID, RPC_HOST, connection, loadKeypair } from "./lib/env";
 import { programFor } from "./lib/program";
 import { sendTx } from "./lib/tx";
 import {
@@ -131,7 +131,7 @@ async function main() {
   const { treasury } = decodeConfig(configInfo.data);
 
   log(
-    `crank up  rpc=${RPC_URL}  settler=${settler.publicKey.toBase58()}  every ${INTERVAL_MS} ms`
+    `crank up  rpc=${RPC_HOST}  settler=${settler.publicKey.toBase58()}  every ${INTERVAL_MS} ms`
   );
   for (let n = 0; ; n++) {
     try {

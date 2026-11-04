@@ -18,6 +18,22 @@ export const RPC_URL = process.env.RPC_URL ?? "https://api.devnet.solana.com";
 
 export const connection = () => new Connection(RPC_URL, "confirmed");
 
+/**
+ * RPC_URL safe to print: host only. Provider URLs carry API keys in the query string
+ * (e.g. Helius `?api-key=`) or the path, and script output ends up in host logs and CI.
+ */
+export function redactUrl(url: string): string {
+  try {
+    const u = new URL(url);
+    return `${u.protocol}//${u.host}${
+      u.pathname !== "/" || u.search ? "/…" : ""
+    }`;
+  } catch {
+    return "<unparseable RPC URL>";
+  }
+}
+export const RPC_HOST = redactUrl(RPC_URL);
+
 const expandHome = (p: string) =>
   p.startsWith("~") ? path.join(os.homedir(), p.slice(1)) : p;
 
