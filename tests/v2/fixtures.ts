@@ -701,3 +701,42 @@ export function setOwner(ctx: V2Ctx, pk: PublicKey, owner: PublicKey) {
   if (!acc) throw new Error("account not found");
   ctx.sender.svm.setAccount(pk, { ...acc, owner });
 }
+
+export const STALE_AFTER_SECS = 86_400n;
+
+/** refund_stale; pinned accounts default to the pot's/protocol's. */
+export async function refundStale(
+  ctx: V2Ctx,
+  ref: MatchRef,
+  caller: Keypair,
+  o: {
+    creator?: PublicKey;
+    opponent?: PublicKey;
+    sponsor?: PublicKey | null;
+    treasury?: PublicKey;
+  } = {}
+): Promise<TxResult> {
+  const pot = await fetchPot(ctx, ref.pot);
+  const protocol = await fetchProtocol(ctx);
+  const sponsor =
+    o.sponsor !== undefined
+      ? o.sponsor
+      : pot.sponsor.equals(PublicKey.default)
+      ? null
+      : pot.sponsor;
+  const ixn = await ctx.program.methods
+    .refundStale()
+    .accountsStrict(
+      v2.refundStaleAccounts({
+        programId: ctx.programId,
+        caller: caller.publicKey,
+        pot: ref.pot,
+        creator: o.creator ?? pot.creator,
+        opponent: o.opponent ?? pot.opponent,
+        sponsor,
+        treasury: o.treasury ?? protocol.treasury,
+      })
+    )
+    .instruction();
+  return ctx.sender.send([ixn], caller);
+}

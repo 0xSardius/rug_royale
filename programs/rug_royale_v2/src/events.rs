@@ -88,3 +88,11 @@ pub struct MatchSettled {
     pub match_fee: u64,
     pub tip: u64,
 }
+
+#[event]
+pub struct MatchRefunded {
+    pub match_account: Pubkey,
+    /// Entry + fee share returned to each player.
+    pub refunded_each: u64,
+    pub refunded_sponsored: u64,
+}

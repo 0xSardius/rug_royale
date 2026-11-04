@@ -1006,6 +1006,84 @@ export type RugRoyaleV2 = {
       ]
     },
     {
+      "name": "refundStale",
+      "discriminator": [
+        7,
+        154,
+        200,
+        33,
+        10,
+        183,
+        0,
+        95
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "signer": true
+        },
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "pot",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pot.matchAccount",
+                "account": "pot"
+              }
+            ]
+          }
+        },
+        {
+          "name": "creator",
+          "writable": true
+        },
+        {
+          "name": "opponent",
+          "writable": true
+        },
+        {
+          "name": "sponsor",
+          "writable": true,
+          "optional": true
+        },
+        {
+          "name": "treasury",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "settle",
       "discriminator": [
         175,
@@ -1568,6 +1646,19 @@ export type RugRoyaleV2 = {
         126,
         100,
         39
+      ]
+    },
+    {
+      "name": "matchRefunded",
+      "discriminator": [
+        185,
+        57,
+        210,
+        244,
+        121,
+        237,
+        113,
+        232
       ]
     },
     {
@@ -2364,6 +2455,29 @@ export type RugRoyaleV2 = {
           {
             "name": "endTs",
             "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "matchRefunded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "matchAccount",
+            "type": "pubkey"
+          },
+          {
+            "name": "refundedEach",
+            "docs": [
+              "Entry + fee share returned to each player."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "refundedSponsored",
+            "type": "u64"
           }
         ]
       }

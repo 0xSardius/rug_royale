@@ -203,3 +203,22 @@ export const settleAccounts = (a: {
   opponent: a.opponent,
   treasury: a.treasury,
 });
+
+/** Accounts for refund_stale. `sponsor: null` when the pot has no sponsor. Never reads Match. */
+export const refundStaleAccounts = (a: {
+  programId: PublicKey;
+  caller: PublicKey;
+  pot: PublicKey;
+  creator: PublicKey;
+  opponent: PublicKey;
+  sponsor: PublicKey | null;
+  treasury: PublicKey;
+}) => ({
+  caller: a.caller,
+  protocol: findProtocol(a.programId)[0],
+  pot: a.pot,
+  creator: a.creator,
+  opponent: a.opponent,
+  sponsor: a.sponsor,
+  treasury: a.treasury,
+});

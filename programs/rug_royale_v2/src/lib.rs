@@ -72,6 +72,10 @@ pub mod rug_royale_v2 {
         instructions::settle::handle_settle(ctx)
     }
 
+    pub fn refund_stale(ctx: Context<RefundStale>) -> Result<()> {
+        instructions::refund_stale::handle_refund_stale(ctx)
+    }
+
     pub fn delegate_match(ctx: Context<DelegateMatch>) -> Result<()> {
         instructions::delegate_match::handle_delegate_match(ctx)
     }
