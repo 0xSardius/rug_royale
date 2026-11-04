@@ -96,3 +96,10 @@ pub struct MatchRefunded {
     pub refunded_each: u64,
     pub refunded_sponsored: u64,
 }
+
+#[event]
+pub struct MatchClosed {
+    pub match_account: Pubkey,
+    /// False when Match is still delegated (a stale-refunded match): only the Pot closed.
+    pub match_closed: bool,
+}

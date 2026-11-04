@@ -740,3 +740,25 @@ export async function refundStale(
     .instruction();
   return ctx.sender.send([ixn], caller);
 }
+
+export async function closeMatch(
+  ctx: V2Ctx,
+  ref: MatchRef,
+  caller: Keypair,
+  o: { creator?: PublicKey; matchAccount?: PublicKey } = {}
+): Promise<TxResult> {
+  const ixn = await ctx.program.methods
+    .closeMatch()
+    .accountsStrict({
+      ...v2.closeMatchAccounts({
+        programId: ctx.programId,
+        caller: caller.publicKey,
+        matchAccount: ref.matchAccount,
+        creator: ref.creator,
+      }),
+      ...(o.creator ? { creator: o.creator } : {}),
+      ...(o.matchAccount ? { matchAccount: o.matchAccount } : {}),
+    })
+    .instruction();
+  return ctx.sender.send([ixn], caller);
+}

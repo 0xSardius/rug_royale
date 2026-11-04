@@ -1,5 +1,6 @@
 pub mod admin_checks;
 pub mod cancel_match;
+pub mod close_match;
 pub mod create_arena;
 pub mod create_match;
 pub mod credit;
@@ -15,6 +16,7 @@ pub mod update_arena;
 pub mod update_protocol;
 
 pub use cancel_match::*;
+pub use close_match::*;
 pub use create_arena::*;
 pub use create_match::*;
 pub use delegate_match::*;

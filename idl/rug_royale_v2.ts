@@ -96,6 +96,55 @@ export type RugRoyaleV2 = {
       "args": []
     },
     {
+      "name": "closeMatch",
+      "discriminator": [
+        79,
+        174,
+        36,
+        80,
+        233,
+        185,
+        176,
+        239
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "signer": true
+        },
+        {
+          "name": "pot",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pot.matchAccount",
+                "account": "pot"
+              }
+            ]
+          }
+        },
+        {
+          "name": "matchAccount",
+          "writable": true
+        },
+        {
+          "name": "creator",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "createArena",
       "discriminator": [
         174,
@@ -1610,6 +1659,19 @@ export type RugRoyaleV2 = {
       ]
     },
     {
+      "name": "matchClosed",
+      "discriminator": [
+        230,
+        66,
+        193,
+        250,
+        30,
+        97,
+        94,
+        247
+      ]
+    },
+    {
       "name": "matchCreated",
       "discriminator": [
         151,
@@ -2355,6 +2417,25 @@ export type RugRoyaleV2 = {
           {
             "name": "refundedSponsored",
             "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "matchClosed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "matchAccount",
+            "type": "pubkey"
+          },
+          {
+            "name": "matchClosed",
+            "docs": [
+              "False when Match is still delegated (a stale-refunded match): only the Pot closed."
+            ],
+            "type": "bool"
           }
         ]
       }

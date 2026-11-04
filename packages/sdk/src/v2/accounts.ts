@@ -222,3 +222,16 @@ export const refundStaleAccounts = (a: {
   sponsor: a.sponsor,
   treasury: a.treasury,
 });
+
+/** Accounts for close_match (rent back to the creator). */
+export const closeMatchAccounts = (a: {
+  programId: PublicKey;
+  caller: PublicKey;
+  matchAccount: PublicKey;
+  creator: PublicKey;
+}) => ({
+  caller: a.caller,
+  pot: findPot(a.programId, a.matchAccount)[0],
+  matchAccount: a.matchAccount,
+  creator: a.creator,
+});

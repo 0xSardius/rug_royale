@@ -76,6 +76,10 @@ pub mod rug_royale_v2 {
         instructions::refund_stale::handle_refund_stale(ctx)
     }
 
+    pub fn close_match(ctx: Context<CloseMatch>) -> Result<()> {
+        instructions::close_match::handle_close_match(ctx)
+    }
+
     pub fn delegate_match(ctx: Context<DelegateMatch>) -> Result<()> {
         instructions::delegate_match::handle_delegate_match(ctx)
     }

@@ -90,6 +90,55 @@
       "args": []
     },
     {
+      "name": "close_match",
+      "discriminator": [
+        79,
+        174,
+        36,
+        80,
+        233,
+        185,
+        176,
+        239
+      ],
+      "accounts": [
+        {
+          "name": "caller",
+          "signer": true
+        },
+        {
+          "name": "pot",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pot.match_account",
+                "account": "Pot"
+              }
+            ]
+          }
+        },
+        {
+          "name": "match_account",
+          "writable": true
+        },
+        {
+          "name": "creator",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "create_arena",
       "discriminator": [
         174,
@@ -1604,6 +1653,19 @@
       ]
     },
     {
+      "name": "MatchClosed",
+      "discriminator": [
+        230,
+        66,
+        193,
+        250,
+        30,
+        97,
+        94,
+        247
+      ]
+    },
+    {
       "name": "MatchCreated",
       "discriminator": [
         151,
@@ -2349,6 +2411,25 @@
           {
             "name": "refunded_sponsored",
             "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MatchClosed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "match_account",
+            "type": "pubkey"
+          },
+          {
+            "name": "match_closed",
+            "docs": [
+              "False when Match is still delegated (a stale-refunded match): only the Pot closed."
+            ],
+            "type": "bool"
           }
         ]
       }
