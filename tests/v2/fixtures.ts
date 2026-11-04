@@ -659,3 +659,45 @@ export async function finalizeMatch(
     .instruction();
   return ctx.sender.send([ixn], payer);
 }
+
+/** settle; pinned accounts default to the pot's/protocol's, override to test constraints. */
+export async function settle(
+  ctx: V2Ctx,
+  ref: MatchRef,
+  settler: Keypair,
+  o: {
+    creator?: PublicKey;
+    opponent?: PublicKey;
+    treasury?: PublicKey;
+    matchAccount?: PublicKey;
+  } = {}
+): Promise<TxResult> {
+  const pot = await fetchPot(ctx, ref.pot);
+  const protocol = await fetchProtocol(ctx);
+  const accounts = v2.settleAccounts({
+    programId: ctx.programId,
+    settler: settler.publicKey,
+    matchAccount: ref.matchAccount,
+    creator: pot.creator,
+    opponent: pot.opponent,
+    treasury: protocol.treasury,
+  });
+  const ixn = await ctx.program.methods
+    .settle()
+    .accountsStrict({
+      ...accounts,
+      creator: o.creator ?? accounts.creator,
+      opponent: o.opponent ?? accounts.opponent,
+      treasury: o.treasury ?? accounts.treasury,
+      matchAccount: o.matchAccount ?? accounts.matchAccount,
+    })
+    .instruction();
+  return ctx.sender.send([ixn], settler);
+}
+
+/** LiteSVM only: set an account's owner (e.g. simulate Match still delegated). */
+export function setOwner(ctx: V2Ctx, pk: PublicKey, owner: PublicKey) {
+  const acc = ctx.sender.svm.getAccount(pk);
+  if (!acc) throw new Error("account not found");
+  ctx.sender.svm.setAccount(pk, { ...acc, owner });
+}

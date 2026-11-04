@@ -68,6 +68,10 @@ pub mod rug_royale_v2 {
         instructions::cancel_match::handle_cancel_match(ctx)
     }
 
+    pub fn settle(ctx: Context<Settle>) -> Result<()> {
+        instructions::settle::handle_settle(ctx)
+    }
+
     pub fn delegate_match(ctx: Context<DelegateMatch>) -> Result<()> {
         instructions::delegate_match::handle_delegate_match(ctx)
     }

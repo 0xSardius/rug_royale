@@ -183,3 +183,23 @@ export const finalizeMatchAccounts = (a: {
 
 export const finalizeFeeds = (feeds: PublicKey[]) =>
   feeds.map((pubkey) => ({ pubkey, isSigner: false, isWritable: false }));
+
+/** Accounts for settle (base layer, after the finalized Match is back from the ER). */
+export const settleAccounts = (a: {
+  programId: PublicKey;
+  settler: PublicKey;
+  matchAccount: PublicKey;
+  creator: PublicKey;
+  opponent: PublicKey;
+  treasury: PublicKey;
+}) => ({
+  settler: a.settler,
+  protocol: findProtocol(a.programId)[0],
+  pot: findPot(a.programId, a.matchAccount)[0],
+  matchAccount: a.matchAccount,
+  creatorStats: findPlayerStats(a.programId, a.creator)[0],
+  opponentStats: findPlayerStats(a.programId, a.opponent)[0],
+  creator: a.creator,
+  opponent: a.opponent,
+  treasury: a.treasury,
+});

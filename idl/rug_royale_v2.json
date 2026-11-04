@@ -1000,6 +1000,137 @@
       ]
     },
     {
+      "name": "settle",
+      "discriminator": [
+        175,
+        42,
+        185,
+        87,
+        144,
+        131,
+        102,
+        212
+      ],
+      "accounts": [
+        {
+          "name": "settler",
+          "docs": [
+            "Receives the settler tip."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "pot",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pot.match_account",
+                "account": "Pot"
+              }
+            ]
+          }
+        },
+        {
+          "name": "match_account",
+          "docs": [
+            "and data are checked in the handler (`MatchStillDelegated`, `MatchNotFinalized`)."
+          ]
+        },
+        {
+          "name": "creator_stats",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pot.creator",
+                "account": "Pot"
+              }
+            ]
+          }
+        },
+        {
+          "name": "opponent_stats",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pot.opponent",
+                "account": "Pot"
+              }
+            ]
+          }
+        },
+        {
+          "name": "creator",
+          "writable": true
+        },
+        {
+          "name": "opponent",
+          "writable": true
+        },
+        {
+          "name": "treasury",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "sponsor_match",
       "discriminator": [
         94,
@@ -1431,6 +1562,19 @@
         126,
         100,
         39
+      ]
+    },
+    {
+      "name": "MatchSettled",
+      "discriminator": [
+        243,
+        201,
+        134,
+        151,
+        193,
+        131,
+        223,
+        150
       ]
     },
     {
@@ -2214,6 +2358,50 @@
           {
             "name": "end_ts",
             "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MatchSettled",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "match_account",
+            "type": "pubkey"
+          },
+          {
+            "name": "result",
+            "type": "u8"
+          },
+          {
+            "name": "final_values",
+            "type": {
+              "array": [
+                "u64",
+                2
+              ]
+            }
+          },
+          {
+            "name": "prize",
+            "type": "u64"
+          },
+          {
+            "name": "rake",
+            "type": "u64"
+          },
+          {
+            "name": "match_fee",
+            "docs": [
+              "Match fee reimbursed to the joiner (D1, Q1)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "tip",
+            "type": "u64"
           }
         ]
       }

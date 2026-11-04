@@ -1006,6 +1006,137 @@ export type RugRoyaleV2 = {
       ]
     },
     {
+      "name": "settle",
+      "discriminator": [
+        175,
+        42,
+        185,
+        87,
+        144,
+        131,
+        102,
+        212
+      ],
+      "accounts": [
+        {
+          "name": "settler",
+          "docs": [
+            "Receives the settler tip."
+          ],
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "protocol",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  114,
+                  111,
+                  116,
+                  111,
+                  99,
+                  111,
+                  108
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "pot",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  111,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pot.matchAccount",
+                "account": "pot"
+              }
+            ]
+          }
+        },
+        {
+          "name": "matchAccount",
+          "docs": [
+            "and data are checked in the handler (`MatchStillDelegated`, `MatchNotFinalized`)."
+          ]
+        },
+        {
+          "name": "creatorStats",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pot.creator",
+                "account": "pot"
+              }
+            ]
+          }
+        },
+        {
+          "name": "opponentStats",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  121,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "pot.opponent",
+                "account": "pot"
+              }
+            ]
+          }
+        },
+        {
+          "name": "creator",
+          "writable": true
+        },
+        {
+          "name": "opponent",
+          "writable": true
+        },
+        {
+          "name": "treasury",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "sponsorMatch",
       "discriminator": [
         94,
@@ -1437,6 +1568,19 @@ export type RugRoyaleV2 = {
         126,
         100,
         39
+      ]
+    },
+    {
+      "name": "matchSettled",
+      "discriminator": [
+        243,
+        201,
+        134,
+        151,
+        193,
+        131,
+        223,
+        150
       ]
     },
     {
@@ -2220,6 +2364,50 @@ export type RugRoyaleV2 = {
           {
             "name": "endTs",
             "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "matchSettled",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "matchAccount",
+            "type": "pubkey"
+          },
+          {
+            "name": "result",
+            "type": "u8"
+          },
+          {
+            "name": "finalValues",
+            "type": {
+              "array": [
+                "u64",
+                2
+              ]
+            }
+          },
+          {
+            "name": "prize",
+            "type": "u64"
+          },
+          {
+            "name": "rake",
+            "type": "u64"
+          },
+          {
+            "name": "matchFee",
+            "docs": [
+              "Match fee reimbursed to the joiner (D1, Q1)."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "tip",
+            "type": "u64"
           }
         ]
       }

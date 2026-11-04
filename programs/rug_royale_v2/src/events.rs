@@ -76,3 +76,15 @@ pub struct MatchFinalized {
     pub final_values: [u64; 2],
     pub mark_publish_time: i64,
 }
+
+#[event]
+pub struct MatchSettled {
+    pub match_account: Pubkey,
+    pub result: u8,
+    pub final_values: [u64; 2],
+    pub prize: u64,
+    pub rake: u64,
+    /// Match fee reimbursed to the joiner (D1, Q1).
+    pub match_fee: u64,
+    pub tip: u64,
+}
