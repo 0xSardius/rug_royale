@@ -30,8 +30,15 @@ export interface DuelLive {
   opponent: VaultBalances | null;
 }
 
-const balance = (pk: PublicKey, info: { data: Buffer; owner: PublicKey; lamports: number; executable: boolean } | null) =>
-  info ? unpackAccount(pk, info, TOKEN_2022_PROGRAM_ID).amount : 0n;
+const balance = (
+  pk: PublicKey,
+  info: {
+    data: Buffer;
+    owner: PublicKey;
+    lamports: number;
+    executable: boolean;
+  } | null
+) => (info ? unpackAccount(pk, info, TOKEN_2022_PROGRAM_ID).amount : 0n);
 
 /**
  * Duel, pool, and all four vault balances in one getMultipleAccountsInfo call, polled every
@@ -67,8 +74,16 @@ export function useDuelLive(address: PublicKey | null) {
         duel,
         ref,
         pool: infos[0] ? decodePool(infos[0].data) : null,
-        creator: { quote: balance(c.quote, infos[1]), coin: balance(c.coin, infos[2]) },
-        opponent: o ? { quote: balance(o.quote, infos[3]), coin: balance(o.coin, infos[4]) } : null,
+        creator: {
+          quote: balance(c.quote, infos[1]),
+          coin: balance(c.coin, infos[2]),
+        },
+        opponent: o
+          ? {
+              quote: balance(o.quote, infos[3]),
+              coin: balance(o.coin, infos[4]),
+            }
+          : null,
       };
     },
   });

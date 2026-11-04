@@ -6,7 +6,10 @@ import { useEffect, useState } from "react";
 export function useNow(intervalMs = 1_000) {
   const [now, setNow] = useState(() => Math.floor(Date.now() / 1000));
   useEffect(() => {
-    const id = setInterval(() => setNow(Math.floor(Date.now() / 1000)), intervalMs);
+    const id = setInterval(
+      () => setNow(Math.floor(Date.now() / 1000)),
+      intervalMs
+    );
     return () => clearInterval(id);
   }, [intervalMs]);
   return now;

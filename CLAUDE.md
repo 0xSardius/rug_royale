@@ -31,7 +31,7 @@ pnpm crank [--once]                # settle/cancel/close bot; decisions in scrip
 pnpm sim [--duels N] [--seed S]    # PRD §10.5 duel sim: first-buyer win rate + value spread per ratio/fee
 pnpm test:offchain                 # math + vectors + crank plan (what CI runs)
 pnpm test:devnet                   # graded devnet suite: real duels vs the deployed program (~3 min)
-pnpm --filter @rug-royale/app dev  # frontend at localhost:3000 (app/.env.local: NEXT_PUBLIC_RPC_URL)
+pnpm --filter @rug-royale/app dev  # frontend at localhost:3000 (app/.env.local: RPC_URL, server-only; see app/.env.example)
 pnpm --filter @rug-royale/app build && pnpm --filter @rug-royale/app lint
 ```
 
@@ -76,6 +76,7 @@ Key cross-file facts:
 - Before calling a task done, run `anchor build` and the full test suite and paste the summary. CI (`.github/workflows/ci.yml`) only runs the checks that need no Solana toolchain: Rust unit tests, typecheck, prettier, the math-vector check (`pnpm test:offchain`), and the frontend build. Program PRs must include the local `pnpm test` summary.
 - Any change to the Rust math must change `packages/sdk/src/math.ts` in the same PR, and invariant I12 must pass.
 - Keypairs, `.env`, and RPC keys are gitignored. The program keypair in `target/deploy/` is shared out of band (see STATUS open questions).
+- Never expose an RPC API key: the app reads it from the server-only `RPC_URL` behind the `/api/rpc` proxy (never a `NEXT_PUBLIC_*` variable, which Next.js inlines into the client bundle), and scripts print `RPC_HOST` (host only), never `RPC_URL`.
 
 ## Progress tracking
 

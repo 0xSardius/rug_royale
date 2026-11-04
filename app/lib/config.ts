@@ -1,18 +1,30 @@
-const DEFAULT_RPC_URL = "https://api.devnet.solana.com";
+const PUBLIC_DEVNET_RPC = "https://api.devnet.solana.com";
 
 /**
- * NEXT_PUBLIC_RPC_URL with forgiving parsing: trims whitespace and stray quotes, and falls
- * back to public devnet if the value is empty or not an http(s) URL. A bad env var must not
- * break the build: ConnectionProvider throws on anything that isn't http(s), even at prerender.
+ * JSON-RPC endpoint for the browser: the same-origin /api/rpc proxy, which forwards to the
+ * server-only RPC_URL (so a provider API key never ships in the client bundle). During
+ * prerender there is no window; ConnectionProvider still needs an http(s) URL, so use public
+ * devnet there (no requests are made at prerender).
+ * Never reference a NEXT_PUBLIC_* variable holding a keyed URL: Next.js inlines it.
  */
-function resolveRpcUrl(raw: string | undefined): string {
-  const value = (raw ?? "").trim().replace(/^["']|["']$/g, "").trim();
-  if (/^https?:\/\/\S+$/.test(value)) return value;
-  if (value) console.warn(`NEXT_PUBLIC_RPC_URL is not an http(s) URL; using ${DEFAULT_RPC_URL}`);
-  return DEFAULT_RPC_URL;
-}
+export const RPC_URL =
+  typeof window === "undefined"
+    ? PUBLIC_DEVNET_RPC
+    : `${window.location.origin}/api/rpc`;
 
-export const RPC_URL = resolveRpcUrl(process.env.NEXT_PUBLIC_RPC_URL);
+/**
+ * WebSocket endpoint for subscriptions (transaction confirmations). Serverless routes can't
+ * proxy WebSockets, so this goes to a public endpoint. It must NOT contain an API key.
+ */
+function resolveWsUrl(raw: string | undefined): string {
+  const value = (raw ?? "")
+    .trim()
+    .replace(/^["']|["']$/g, "")
+    .trim();
+  if (/^wss?:\/\/\S+$/.test(value) && !/api[-_]?key/i.test(value)) return value;
+  return "wss://api.devnet.solana.com";
+}
+export const WS_URL = resolveWsUrl(process.env.NEXT_PUBLIC_WS_URL);
 export const CLUSTER = "devnet";
 
 export const explorerUrl = (kind: "address" | "tx", id: string) =>

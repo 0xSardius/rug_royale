@@ -34,7 +34,9 @@ export function useConfig() {
   });
 }
 
-function decodeAll(accounts: readonly { pubkey: PublicKey; account: { data: Buffer } }[]): DuelWithAddress[] {
+function decodeAll(
+  accounts: readonly { pubkey: PublicKey; account: { data: Buffer } }[]
+): DuelWithAddress[] {
   const out: DuelWithAddress[] = [];
   for (const a of accounts) {
     try {
@@ -52,7 +54,9 @@ export function useOpenDuels() {
   return useQuery({
     queryKey: ["duels", "open"],
     queryFn: async () => {
-      const accounts = await connection.getProgramAccounts(PROGRAM_ID, { filters: duelsByStatus(DuelStatus.Open) });
+      const accounts = await connection.getProgramAccounts(PROGRAM_ID, {
+        filters: duelsByStatus(DuelStatus.Open),
+      });
       const now = BigInt(Math.floor(Date.now() / 1000));
       return decodeAll(accounts)
         .filter((d) => d.joinDeadline > now)
@@ -70,10 +74,16 @@ export function useMyDuels(wallet: PublicKey | null) {
     enabled: !!wallet,
     queryFn: async () => {
       const [asCreator, asOpponent] = await Promise.all([
-        connection.getProgramAccounts(PROGRAM_ID, { filters: duelsAsCreator(wallet!) }),
-        connection.getProgramAccounts(PROGRAM_ID, { filters: duelsAsOpponent(wallet!) }),
+        connection.getProgramAccounts(PROGRAM_ID, {
+          filters: duelsAsCreator(wallet!),
+        }),
+        connection.getProgramAccounts(PROGRAM_ID, {
+          filters: duelsAsOpponent(wallet!),
+        }),
       ]);
-      return decodeAll([...asCreator, ...asOpponent]).sort((a, b) => Number(b.joinDeadline - a.joinDeadline));
+      return decodeAll([...asCreator, ...asOpponent]).sort((a, b) =>
+        Number(b.joinDeadline - a.joinDeadline)
+      );
     },
   });
 }
