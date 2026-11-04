@@ -12,7 +12,7 @@ export const RESULT_PENDING = 0;
 export const RESULT_CREATOR = 1;
 export const RESULT_OPPONENT = 2;
 export const RESULT_TIE = 3;
-export type MatchResult = 0 | 1 | 2 | 3;
+export type MatchResultCode = 0 | 1 | 2 | 3;
 
 const u64 = (v: bigint): bigint => {
   if (v < 0n || v > U64_MAX) throw new Error("MathOverflow");
@@ -62,7 +62,7 @@ export function portfolioValue(
   return u64(v);
 }
 
-export const matchResult = (v0: bigint, v1: bigint): MatchResult =>
+export const matchResult = (v0: bigint, v1: bigint): MatchResultCode =>
   v0 > v1 ? RESULT_CREATOR : v0 < v1 ? RESULT_OPPONENT : RESULT_TIE;
 
 /** V7 / Q1: each player's match-fee deposit. Only free duels (entry 0) deposit. */
@@ -76,7 +76,7 @@ export interface PayoutInput {
   feeShare: bigint;
   settlerTip: bigint;
   rakeBps: number;
-  result: MatchResult;
+  result: MatchResultCode;
 }
 
 export interface Payout {
