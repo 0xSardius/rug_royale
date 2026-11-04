@@ -271,9 +271,115 @@ async function main() {
       m.seats[1].sessionKey.equals(session.publicKey) ? "✓" : "✗"
     }; trading starts ${new Date(Number(m.startTs) * 1000).toISOString()}`
   );
+  if (process.argv.includes("--trade"))
+    await tradeInEr(program, erUrl, matchAccount, session, Number(m.startTs));
   console.log(
     "\nThe match now lives in the ER until finalize_match (build item 6) commits and undelegates it.\n" +
       "It stays delegated on devnet for now; that's expected for this smoke test."
+  );
+}
+
+/**
+ * Build item 5: trade inside the ER with the opponent's session key (0 SOL), priced by
+ * MagicBlock's live oracle feeds, then read the seat back from the ER.
+ */
+async function tradeInEr(
+  program: Program<v2.RugRoyaleV2>,
+  erUrl: string,
+  matchAccount: PublicKey,
+  session: Keypair,
+  startTs: number
+) {
+  const { Connection, Transaction } = await import("@solana/web3.js");
+  const er = new Connection(erUrl, {
+    commitment: "confirmed",
+    wsEndpoint: erUrl.replace("https", "wss"),
+  });
+  const wait = startTs - Math.floor(Date.now() / 1000) + 1;
+  step(
+    7,
+    `trade in the ER with the session key (${await er.getBalance(
+      session.publicKey
+    )} lamports); waiting ${Math.max(wait, 0)} s for start_ts`
+  );
+  if (wait > 0) await sleep(wait * 1000);
+
+  const orders: [string, number, number, bigint][] = [
+    ["SOL", 0, 8, 1_000_000_000n], // $1,000
+    ["BONK", 5, 10, 500_000_000n], // $500
+  ];
+  for (const [sym, asset, exp, cash] of orders) {
+    const feed = v2.findPriceFeed(ARENA[asset][1])[0];
+    const live = v2.decodePriceFeed((await er.getAccountInfo(feed))!.data)!;
+    const limit = (live.price * 1005n) / 1000n; // 0.5% slippage
+    for (let attempt = 1; ; attempt++) {
+      const ixn = await program.methods
+        .trade(
+          asset,
+          { buy: {} },
+          new BN(cash.toString()),
+          new BN(limit.toString())
+        )
+        .accountsStrict(
+          v2.tradeAccounts({
+            programId: program.programId,
+            signer: session.publicKey,
+            matchAccount,
+            arenaId: 1,
+            priceFeed: feed,
+          })
+        )
+        .instruction();
+      const tx = new Transaction().add(ixn);
+      tx.feePayer = session.publicKey; // ER transactions are fee-free
+      tx.recentBlockhash = (await er.getLatestBlockhash()).blockhash;
+      tx.sign(session);
+      const t0 = performance.now();
+      const sig = await er.sendRawTransaction(tx.serialize(), {
+        skipPreflight: true,
+      });
+      const res = await er.confirmTransaction(sig, "confirmed");
+      const ms = (performance.now() - t0).toFixed(0);
+      if (!res.value.err) {
+        console.log(
+          `    buy $${Number(cash) / 1e6} ${sym} @ $${v2.displayPrice(
+            live.price,
+            exp
+          )}: ok in ${ms} ms (${sig.slice(0, 16)}…)`
+        );
+        break;
+      }
+      const logs =
+        (await er.getTransaction(sig, { maxSupportedTransactionVersion: 0 }))
+          ?.meta?.logMessages ?? [];
+      const why =
+        logs.find((l) => l.includes("Error Code") || l.includes("Fallback")) ??
+        JSON.stringify(res.value.err);
+      // Spike 04: right after an upgrade the ER can briefly run the previous binary.
+      if (attempt < 12 && /InstructionFallbackNotFound|Fallback/.test(why)) {
+        console.log(
+          `    ER still on the old program binary (attempt ${attempt}); retrying in 5 s`
+        );
+        await sleep(5000);
+        continue;
+      }
+      throw new Error(`trade ${sym} failed: ${why}`);
+    }
+  }
+
+  step(8, "read seat 1 back from the ER");
+  const m = v2.coder.accounts.decode(
+    "match",
+    (await er.getAccountInfo(matchAccount))!.data
+  );
+  const seat = m.seats[1];
+  console.log(`    cash $${Number(seat.cash) / 1e6}, trades ${seat.trades}`);
+  console.log(`    SOL  ${Number(seat.qty[0]) / 1e6}  (≈ $999 / price)`);
+  console.log(`    BONK ${Number(seat.qty[5]) / 1e6}`);
+  console.log(
+    `    session key still holds ${await er.getBalance(
+      session.publicKey
+    )} lamports`
   );
 }
 
