@@ -8,9 +8,7 @@ const PUBLIC_DEVNET_RPC = "https://api.devnet.solana.com";
  * Never reference a NEXT_PUBLIC_* variable holding a keyed URL: Next.js inlines it.
  */
 export const RPC_URL =
-  typeof window === "undefined"
-    ? PUBLIC_DEVNET_RPC
-    : `${window.location.origin}/api/rpc`;
+  typeof window === "undefined" ? PUBLIC_DEVNET_RPC : `${window.location.origin}/api/rpc`;
 
 /**
  * WebSocket endpoint for subscriptions (transaction confirmations). Serverless routes can't

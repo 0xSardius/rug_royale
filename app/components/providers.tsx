@@ -1,10 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import {
-  ConnectionProvider,
-  WalletProvider,
-} from "@solana/wallet-adapter-react";
+import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RPC_URL, WS_URL } from "@/lib/config";
@@ -18,10 +15,7 @@ export function Providers({ children }: { children: ReactNode }) {
   );
   return (
     <QueryClientProvider client={queryClient}>
-      <ConnectionProvider
-        endpoint={RPC_URL}
-        config={{ commitment: "confirmed", wsEndpoint: WS_URL }}
-      >
+      <ConnectionProvider endpoint={RPC_URL} config={{ commitment: "confirmed", wsEndpoint: WS_URL }}>
         {/* Wallet Standard detects installed wallets (Phantom, Backpack, Solflare...) without adapters. */}
         <WalletProvider wallets={[]} autoConnect>
           <WalletModalProvider>{children}</WalletModalProvider>

@@ -31,14 +31,11 @@ export const ALLOWED_METHODS = new Set([
 export const MAX_BODY_BYTES = 64 * 1024;
 export const MAX_BATCH = 20;
 
-export type RpcCheck =
-  | { ok: true; body: unknown }
-  | { ok: false; status: number; error: string };
+export type RpcCheck = { ok: true; body: unknown } | { ok: false; status: number; error: string };
 
 /** Validates a raw JSON-RPC request body (single request or batch). */
 export function checkRpcBody(raw: string): RpcCheck {
-  if (raw.length > MAX_BODY_BYTES)
-    return { ok: false, status: 413, error: "request too large" };
+  if (raw.length > MAX_BODY_BYTES) return { ok: false, status: 413, error: "request too large" };
   let body: unknown;
   try {
     body = JSON.parse(raw);
