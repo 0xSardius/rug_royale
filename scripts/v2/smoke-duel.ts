@@ -11,6 +11,7 @@
 //  7. check final values / result against the SDK math using the recorded marks
 //  8. settle: payouts vs the SDK, pot left at rent
 //  9. close_match: Pot + Match rent back to the creator
+// With --crank, steps 5-9 are left to a running `pnpm v2:crank`; the script only watches.
 import {
   Connection,
   Keypair,
@@ -293,6 +294,18 @@ async function main() {
     }]`
   );
 
+  if (process.argv.includes("--crank")) {
+    await watchExternalCrank(
+      conn,
+      pid,
+      pot,
+      matchAccount,
+      opponent.publicKey,
+      endTs
+    );
+    return;
+  }
+
   step(
     5,
     "crank: finalize_match at end_ts (marks must be published in [end_ts, end_ts + 5])"
@@ -474,6 +487,98 @@ async function main() {
     !(await conn.getAccountInfo(matchAccount));
   console.log(`    Pot and Match closed: ${gone ? "✓" : "✗"}`);
   if (!gone) process.exitCode = 1;
+}
+
+/**
+ * `--crank` mode: a separately running `pnpm v2:crank` must finalize at end_ts, wait for the
+ * commit and settle. Watch the base layer and time it.
+ */
+async function watchExternalCrank(
+  conn: Connection,
+  pid: PublicKey,
+  pot: PublicKey,
+  matchAccount: PublicKey,
+  opponent: PublicKey,
+  endTs: number
+) {
+  step(
+    5,
+    "hands off: waiting for the external crank (pnpm v2:crank) to finalize + settle"
+  );
+  const oppBefore = BigInt(await conn.getBalance(opponent));
+  const deadline = Date.now() + (endTs - nowS() + 90) * 1000;
+  let home = 0;
+  while (Date.now() < deadline) {
+    const [mInfo, pInfo] = await conn.getMultipleAccountsInfo(
+      [matchAccount, pot],
+      "confirmed"
+    );
+    if (
+      !home &&
+      mInfo &&
+      v2.matchLocationFromInfo(mInfo, pid) === "base" &&
+      v2.decodeMatch(mInfo.data).status === v2.MatchStatus.Finalized
+    ) {
+      home = Date.now();
+      console.log(
+        `    match finalized + home at +${(
+          (home - endTs * 1000) /
+          1000
+        ).toFixed(1)} s after end_ts`
+      );
+    }
+    if (pInfo && v2.decodePot(pInfo.data).status === v2.PotStatus.Settled) {
+      const p = v2.decodePot(pInfo.data);
+      const m = v2.decodeMatch(mInfo!.data);
+      const want = v2.payout({
+        entry: p.entryLamports,
+        sponsored: p.sponsoredLamports,
+        matchFee: p.matchFeeLamports,
+        feeShare: p.feeShareLamports,
+        settlerTip: p.settlerTipLamports,
+        rakeBps: p.rakeBps,
+        result: m.result,
+      });
+      // Measure the settle transaction itself: MagicBlock also refunds the joiner's leftover
+      // delegation deposit at undelegation (deposits - 0.003 SOL fee), just before settle.
+      // Failed attempts (e.g. a second crank losing the race) also touch the pot: skip them.
+      const sigs = await conn.getSignaturesForAddress(
+        pot,
+        { limit: 10 },
+        "confirmed"
+      );
+      const sig = sigs.find((x) => x.err === null)!;
+      const tx = await conn.getTransaction(sig.signature, {
+        commitment: "confirmed",
+        maxSupportedTransactionVersion: 0,
+      });
+      const keys = tx!.transaction.message.getAccountKeys().staticAccountKeys;
+      const i = keys.findIndex((k) => k.equals(opponent));
+      const got = BigInt(tx!.meta!.postBalances[i] - tx!.meta!.preBalances[i]);
+      const refund = BigInt(await conn.getBalance(opponent)) - oppBefore - got;
+      console.log(
+        `    settled by the crank at +${(
+          (Date.now() - endTs * 1000) /
+          1000
+        ).toFixed(1)} s after end_ts`
+      );
+      console.log(
+        `    result ${
+          ["pending", "creator", "opponent", "tie"][m.result]
+        }; settle paid the opponent ${got} (SDK ${want.toOpponent}) ${
+          got === want.toOpponent ? "✓" : "✗"
+        }`
+      );
+      console.log(
+        `    + MagicBlock refunded the opponent's leftover delegation deposit at undelegation: ${refund} lamports`
+      );
+      if (got !== want.toOpponent) process.exitCode = 1;
+      return;
+    }
+    await sleep(500);
+  }
+  console.log("    ✗ not settled within 90 s of end_ts");
+  process.exitCode = 1;
 }
 
 main()
