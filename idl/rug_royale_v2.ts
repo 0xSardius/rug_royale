@@ -515,6 +515,86 @@ export type RugRoyaleV2 = {
       "args": []
     },
     {
+      "name": "finalizeMatch",
+      "discriminator": [
+        6,
+        103,
+        47,
+        7,
+        66,
+        1,
+        85,
+        207
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "matchAccount",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  116,
+                  99,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "matchAccount.seats0.player",
+                "account": "match"
+              },
+              {
+                "kind": "account",
+                "path": "matchAccount.nonce",
+                "account": "match"
+              }
+            ]
+          }
+        },
+        {
+          "name": "arena",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  114,
+                  101,
+                  110,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "matchAccount.arenaId",
+                "account": "match"
+              }
+            ]
+          }
+        },
+        {
+          "name": "magicProgram",
+          "address": "Magic11111111111111111111111111111111111111"
+        },
+        {
+          "name": "magicContext",
+          "writable": true,
+          "address": "MagicContext1111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "initProtocol",
       "discriminator": [
         3,
@@ -1334,6 +1414,19 @@ export type RugRoyaleV2 = {
       ]
     },
     {
+      "name": "matchFinalized",
+      "discriminator": [
+        234,
+        71,
+        250,
+        217,
+        155,
+        97,
+        21,
+        217
+      ]
+    },
+    {
       "name": "matchJoined",
       "discriminator": [
         94,
@@ -2071,6 +2164,38 @@ export type RugRoyaleV2 = {
           {
             "name": "validator",
             "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "matchFinalized",
+      "docs": [
+        "Emitted in the ER when the result is final (before the commit lands on base)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "matchAccount",
+            "type": "pubkey"
+          },
+          {
+            "name": "result",
+            "type": "u8"
+          },
+          {
+            "name": "finalValues",
+            "type": {
+              "array": [
+                "u64",
+                2
+              ]
+            }
+          },
+          {
+            "name": "markPublishTime",
+            "type": "i64"
           }
         ]
       }

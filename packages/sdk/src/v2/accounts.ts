@@ -3,6 +3,8 @@
 import { PublicKey, SystemProgram } from "@solana/web3.js";
 import {
   DELEGATION_PROGRAM_ID,
+  MAGIC_CONTEXT_ID,
+  MAGIC_PROGRAM_ID,
   findArena,
   findDelegationBuffer,
   findDelegationMetadata,
@@ -161,3 +163,23 @@ export const tradeAccounts = (a: {
   arena: findArena(a.programId, a.arenaId)[0],
   priceFeed: a.priceFeed,
 });
+
+/**
+ * Accounts for finalize_match (sent to the match's ER endpoint). Pass the arena's feeds for
+ * every asset 0..asset_count, in index order, via `.remainingAccounts(finalizeFeeds(...))`.
+ */
+export const finalizeMatchAccounts = (a: {
+  programId: PublicKey;
+  payer: PublicKey;
+  matchAccount: PublicKey;
+  arenaId: number;
+}) => ({
+  payer: a.payer,
+  matchAccount: a.matchAccount,
+  arena: findArena(a.programId, a.arenaId)[0],
+  magicProgram: MAGIC_PROGRAM_ID,
+  magicContext: MAGIC_CONTEXT_ID,
+});
+
+export const finalizeFeeds = (feeds: PublicKey[]) =>
+  feeds.map((pubkey) => ({ pubkey, isSigner: false, isWritable: false }));

@@ -67,3 +67,12 @@ pub struct Traded {
     pub price: u64,
     pub publish_time: i64,
 }
+
+/// Emitted in the ER when the result is final (before the commit lands on base).
+#[event]
+pub struct MatchFinalized {
+    pub match_account: Pubkey,
+    pub result: u8,
+    pub final_values: [u64; 2],
+    pub mark_publish_time: i64,
+}

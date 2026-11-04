@@ -82,4 +82,8 @@ pub mod rug_royale_v2 {
     ) -> Result<()> {
         instructions::trade::handle_trade(ctx, asset_index, side, amount, limit_price)
     }
+
+    pub fn finalize_match<'info>(ctx: Context<'info, FinalizeMatch<'info>>) -> Result<()> {
+        instructions::finalize_match::handle_finalize_match(ctx)
+    }
 }

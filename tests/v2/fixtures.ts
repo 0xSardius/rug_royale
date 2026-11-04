@@ -38,6 +38,13 @@ export function v2Ctx(): V2Ctx {
       `${dlp} missing: run \`pnpm v2:programs\` (dumps MagicBlock's Delegation Program from devnet)`
     );
   svm.addProgram(v2.DELEGATION_PROGRAM_ID, readFileSync(dlp));
+  // Stand-in for MagicBlock's Magic program (part of the ER validator, not loadable here):
+  // finalize_match's commit + undelegate CPI succeeds as a no-op, so Match stays owned by the
+  // program afterwards, which is what base looks like once the real undelegation lands.
+  svm.addProgram(
+    v2.MAGIC_PROGRAM_ID,
+    readFileSync(path.join(__dirname, "programs/magic_noop.so"))
+  );
   const program = new Program<v2.RugRoyaleV2>(
     v2.IDL_JSON,
     new AnchorProvider({} as Connection, new Wallet(Keypair.generate()), {})
@@ -629,4 +636,26 @@ export async function activeMatch(
     startTs,
     endTs,
   };
+}
+
+/** finalize_match with the arena's feeds as remaining accounts (override to test the checks). */
+export async function finalizeMatch(
+  ctx: V2Ctx,
+  ref: MatchRef,
+  payer: Keypair,
+  feeds: PublicKey[] = SOLANA_ARENA.map(([, id]) => v2.findPriceFeed(id)[0])
+): Promise<TxResult> {
+  const ixn = await ctx.program.methods
+    .finalizeMatch()
+    .accountsStrict(
+      v2.finalizeMatchAccounts({
+        programId: ctx.programId,
+        payer: payer.publicKey,
+        matchAccount: ref.matchAccount,
+        arenaId: ref.arenaId,
+      })
+    )
+    .remainingAccounts(v2.finalizeFeeds(feeds))
+    .instruction();
+  return ctx.sender.send([ixn], payer);
 }

@@ -509,6 +509,86 @@
       "args": []
     },
     {
+      "name": "finalize_match",
+      "discriminator": [
+        6,
+        103,
+        47,
+        7,
+        66,
+        1,
+        85,
+        207
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "match_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  116,
+                  99,
+                  104
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "match_account.seats [0].player",
+                "account": "Match"
+              },
+              {
+                "kind": "account",
+                "path": "match_account.nonce",
+                "account": "Match"
+              }
+            ]
+          }
+        },
+        {
+          "name": "arena",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  114,
+                  101,
+                  110,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "match_account.arena_id",
+                "account": "Match"
+              }
+            ]
+          }
+        },
+        {
+          "name": "magic_program",
+          "address": "Magic11111111111111111111111111111111111111"
+        },
+        {
+          "name": "magic_context",
+          "writable": true,
+          "address": "MagicContext1111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
       "name": "init_protocol",
       "discriminator": [
         3,
@@ -1328,6 +1408,19 @@
       ]
     },
     {
+      "name": "MatchFinalized",
+      "discriminator": [
+        234,
+        71,
+        250,
+        217,
+        155,
+        97,
+        21,
+        217
+      ]
+    },
+    {
       "name": "MatchJoined",
       "discriminator": [
         94,
@@ -2065,6 +2158,38 @@
           {
             "name": "validator",
             "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MatchFinalized",
+      "docs": [
+        "Emitted in the ER when the result is final (before the commit lands on base)."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "match_account",
+            "type": "pubkey"
+          },
+          {
+            "name": "result",
+            "type": "u8"
+          },
+          {
+            "name": "final_values",
+            "type": {
+              "array": [
+                "u64",
+                2
+              ]
+            }
+          },
+          {
+            "name": "mark_publish_time",
+            "type": "i64"
           }
         ]
       }

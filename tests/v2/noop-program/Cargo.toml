@@ -1,0 +1,13 @@
+# LiteSVM stand-in for MagicBlock's Magic program (Magic1111…), which is built into the ER
+# validator and can't be loaded locally. Accepts every instruction and does nothing, so
+# finalize_match's commit + undelegate scheduling CPI succeeds in tests; the real commit is
+# verified on devnet. Built by `pnpm v2:programs`.
+[package]
+name = "magic_noop"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[workspace]

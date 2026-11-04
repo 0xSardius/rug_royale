@@ -83,3 +83,11 @@ export const findDelegationMetadata = (delegated: PublicKey) =>
     [seed("delegation-metadata"), delegated.toBuffer()],
     DELEGATION_PROGRAM_ID
   );
+
+/** MagicBlock's Magic program (built into the ER validator) and its intent queue account. */
+export const MAGIC_PROGRAM_ID = new PublicKey(
+  "Magic11111111111111111111111111111111111111"
+);
+export const MAGIC_CONTEXT_ID = new PublicKey(
+  "MagicContext1111111111111111111111111111111"
+);

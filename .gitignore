@@ -19,3 +19,4 @@ rug_royale_internal/
 
 # Third-party program binaries for LiteSVM tests (pnpm v2:programs)
 tests/v2/programs/
+tests/v2/noop-program/target/
