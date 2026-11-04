@@ -14,6 +14,7 @@
     "snapshot": "tsx scripts/snapshot.ts",
     "setup-mints": "tsx scripts/setup-mints.ts",
     "v2:smoke-delegate": "tsx scripts/v2/smoke-delegate.ts",
+    "v2:smoke-duel": "tsx scripts/v2/smoke-duel.ts",
     "v2:smoke-trade": "tsx scripts/v2/smoke-delegate.ts us --trade",
     "v2:programs": "mkdir -p tests/v2/programs && solana program dump DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh tests/v2/programs/dlp.so --url devnet && cargo build-sbf --manifest-path tests/v2/noop-program/Cargo.toml --sbf-out-dir tests/v2/programs",
     "math:vectors": "tsx scripts/gen-math-vectors.ts && tsx scripts/gen-math-vectors-v2.ts",
