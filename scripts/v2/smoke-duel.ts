@@ -9,6 +9,8 @@
 //  5. crank: finalize_match at end_ts (retry until a mark published at/after end_ts exists)
 //  6. wait for commit + undelegate: Match owned by rug_royale_v2 again on the base layer
 //  7. check final values / result against the SDK math using the recorded marks
+//  8. settle: payouts vs the SDK, pot left at rent
+//  9. close_match: Pot + Match rent back to the creator
 import {
   Connection,
   Keypair,
@@ -400,6 +402,78 @@ async function main() {
     }`
   );
   if (!ok) process.exitCode = 1;
+
+  step(
+    8,
+    "settle on the base layer (the crank/winner's Settle button): payouts vs the SDK"
+  );
+  const potAcc = v2.coder.accounts.decode(
+    "pot",
+    (await conn.getAccountInfo(pot))!.data
+  );
+  const want = v2.payout({
+    entry: BigInt(potAcc.entryLamports.toString()),
+    sponsored: BigInt(potAcc.sponsoredLamports.toString()),
+    matchFee: BigInt(potAcc.matchFeeLamports.toString()),
+    feeShare: BigInt(potAcc.feeShareLamports.toString()),
+    settlerTip: BigInt(potAcc.settlerTipLamports.toString()),
+    rakeBps: potAcc.rakeBps,
+    result: m.result,
+  });
+  // The admin wallet is creator, treasury and settler here, so check the opponent (joiner),
+  // who must receive the match-fee reimbursement (+ the prize if they won), and the pot.
+  const oppBefore = BigInt(await conn.getBalance(opponent.publicKey));
+  const treasury = v2.coder.accounts.decode(
+    "protocol",
+    (await conn.getAccountInfo(v2.findProtocol(pid)[0]))!.data
+  ).treasury;
+  const settleIx = await program.methods
+    .settle()
+    .accountsStrict(
+      v2.settleAccounts({
+        programId: pid,
+        settler: admin.publicKey,
+        matchAccount,
+        creator: admin.publicKey,
+        opponent: opponent.publicKey,
+        treasury,
+      })
+    )
+    .instruction();
+  await must("settle", sendTx(conn, admin, [settleIx]));
+  const oppGot = BigInt(await conn.getBalance(opponent.publicKey)) - oppBefore;
+  const potRent = BigInt(await conn.getMinimumBalanceForRentExemption(8 + 258));
+  const potLeft = BigInt(await conn.getBalance(pot));
+  console.log(
+    `    opponent received ${oppGot} lamports (SDK: ${want.toOpponent}) ${
+      oppGot === want.toOpponent ? "✓" : "✗"
+    }`
+  );
+  console.log(
+    `    pot left at rent: ${
+      potLeft === potRent ? "✓" : `✗ (${potLeft} vs ${potRent})`
+    }`
+  );
+  if (oppGot !== want.toOpponent || potLeft !== potRent) process.exitCode = 1;
+
+  step(9, "close_match: Pot + Match rent back to the creator");
+  const closeIx = await program.methods
+    .closeMatch()
+    .accountsStrict(
+      v2.closeMatchAccounts({
+        programId: pid,
+        caller: admin.publicKey,
+        matchAccount,
+        creator: admin.publicKey,
+      })
+    )
+    .instruction();
+  await must("close_match", sendTx(conn, admin, [closeIx]));
+  const gone =
+    !(await conn.getAccountInfo(pot)) &&
+    !(await conn.getAccountInfo(matchAccount));
+  console.log(`    Pot and Match closed: ${gone ? "✓" : "✗"}`);
+  if (!gone) process.exitCode = 1;
 }
 
 main()
