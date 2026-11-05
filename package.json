@@ -19,7 +19,7 @@
     "v2:smoke-trade": "tsx scripts/v2/smoke-delegate.ts us --trade",
     "v2:programs": "mkdir -p tests/v2/programs && solana program dump DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh tests/v2/programs/dlp.so --url devnet && cargo build-sbf --manifest-path tests/v2/noop-program/Cargo.toml --sbf-out-dir tests/v2/programs",
     "math:vectors": "tsx scripts/gen-math-vectors.ts && tsx scripts/gen-math-vectors-v2.ts",
-    "test:offchain": "mocha -n import=tsx \"tests/math.test.ts\" \"tests/v2-math.test.ts\" \"tests/crank.test.ts\" \"tests/crank-v2.test.ts\" \"tests/app-rpc-proxy.test.ts\" \"tests/sim.test.ts\"",
+    "test:offchain": "mocha -n import=tsx \"tests/math.test.ts\" \"tests/v2-math.test.ts\" \"tests/crank.test.ts\" \"tests/crank-v2.test.ts\" \"tests/app-rpc-proxy.test.ts\" \"tests/app-rate-limit.test.ts\" \"tests/sim.test.ts\"",
     "init-config": "tsx scripts/init-config.ts",
     "crank": "tsx scripts/crank.ts",
     "sim": "tsx scripts/sim.ts",
