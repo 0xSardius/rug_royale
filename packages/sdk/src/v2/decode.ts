@@ -291,3 +291,12 @@ export function matchesFilters(
     return want.length === got.length && want.every((b, i) => b === got[i]);
   });
 }
+
+const ARENA_DISCRIMINATOR = Uint8Array.from(
+  IDL.accounts.find((a) => a.name === "arena")!.discriminator
+);
+
+/** Every Arena account (for tooling: feed monitor, admin scripts). */
+export const arenaFilters = (): GetProgramAccountsFilter[] => [
+  { memcmp: { offset: 0, bytes: b58(ARENA_DISCRIMINATOR) } },
+];
