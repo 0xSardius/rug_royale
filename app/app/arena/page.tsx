@@ -47,7 +47,12 @@ export default function ArenaLobbyPage() {
             clock runs out, the program marks both portfolios and pays the bigger one.
           </p>
         </div>
-        <RegionStrip pings={pings.data} pending={pings.isPending} />
+        <div className="flex flex-col gap-3 md:items-end">
+          <RegionStrip pings={pings.data} pending={pings.isPending} />
+          <Link href="/arena/create" className={buttonClasses("accent", "lg")}>
+            Create a duel
+          </Link>
+        </div>
       </section>
 
       <section aria-labelledby="arenas-heading" className="flex flex-col gap-4">
@@ -189,7 +194,12 @@ function OpenPots({ arenas, pings }: { arenas: ArenaWithAddress[] | undefined; p
     return (
       <EmptyState
         title="No open duels"
-        body="Nobody is waiting for an opponent right now. Creating duels from the app is the next build step."
+        body="Nobody is waiting for an opponent right now. Start one and send the link to a rival."
+        action={
+          <Link href="/arena/create" className={buttonClasses("primary")}>
+            Create a duel
+          </Link>
+        }
       />
     );
   }

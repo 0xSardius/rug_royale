@@ -26,6 +26,8 @@ export async function sendIxs(
   connection: Connection,
   wallet: WalletContextState,
   ixs: TransactionInstruction[],
+  /** Maps program logs to an error (v1 by default; v2 pages pass `v2.programErrorFromLogs`). */
+  errorFromLogs: (logs: string[]) => { message: string } | null = programErrorFromLogs,
 ): Promise<SendOutcome> {
   if (!wallet.publicKey) return { ok: false, cancelled: false, message: "Connect a wallet first." };
   const tx = new Transaction().add(...ixs);
@@ -38,13 +40,13 @@ export async function sendIxs(
     if (conf.value.err) {
       const info = await connection.getTransaction(signature, { commitment: "confirmed", maxSupportedTransactionVersion: 0 });
       const logs = info?.meta?.logMessages ?? [];
-      return { ok: false, cancelled: false, message: programErrorFromLogs(logs)?.message ?? "Transaction failed.", logs };
+      return { ok: false, cancelled: false, message: errorFromLogs(logs)?.message ?? "Transaction failed.", logs };
     }
     return { ok: true, signature };
   } catch (e) {
     if (isUserRejection(e)) return { ok: false, cancelled: true };
     const logs = e instanceof SendTransactionError ? ((await e.getLogs(connection).catch(() => [])) ?? []) : [];
-    const fromLogs = programErrorFromLogs(logs)?.message;
+    const fromLogs = errorFromLogs(logs)?.message;
     const raw = e instanceof Error ? e.message : String(e);
     return {
       ok: false,
