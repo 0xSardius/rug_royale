@@ -122,3 +122,53 @@ export function usePriceFeeds(feeds: PublicKey[], region: v2.Region | null, refe
     placeholderData: (prev) => prev,
   });
 }
+
+/** One Pot by address (base layer; Pot is never delegated). Polls faster while it can change. */
+export function usePot(address: PublicKey | null) {
+  const { connection } = useConnection();
+  return useQuery({
+    queryKey: ["v2", "pot", address?.toBase58()],
+    enabled: !!address,
+    queryFn: async (): Promise<PotWithAddress | null> => {
+      const info = await connection.getAccountInfo(address!);
+      if (!info) return null;
+      const pot = v2.decodePot(info.data);
+      return { ...pot, address: address!, region: v2.regionOf(pot.validator) };
+    },
+    refetchInterval: (q) => {
+      const s = q.state.data?.status;
+      return s === v2.PotStatus.Open || s === v2.PotStatus.Active ? 2_000 : false;
+    },
+    placeholderData: (prev) => prev,
+  });
+}
+
+export interface MatchView {
+  match: v2.Match;
+  /** Where this copy was read: the match's ER while the duel is live, otherwise base. */
+  source: "er" | "base";
+}
+
+/**
+ * The Match for a pot. While the pot is Active the live state is in the pinned ER region
+ * (polled every second, straight to the ER, not through the RPC proxy); before the join and
+ * after undelegation it is read from base.
+ */
+export function useMatchState(pot: PotWithAddress | null | undefined) {
+  const { connection } = useConnection();
+  const live = pot?.status === v2.PotStatus.Active && !!pot.region;
+  return useQuery({
+    queryKey: ["v2", "match", pot?.matchAccount.toBase58(), live ? pot!.region : "base"],
+    enabled: !!pot,
+    queryFn: async (): Promise<MatchView | null> => {
+      if (live) {
+        const info = await erConnectionFor(pot!.region!).getAccountInfo(pot!.matchAccount);
+        if (info) return { match: v2.decodeMatch(info.data), source: "er" };
+      }
+      const info = await connection.getAccountInfo(pot!.matchAccount);
+      return info ? { match: v2.decodeMatch(info.data), source: "base" } : null;
+    },
+    refetchInterval: live ? 1_000 : pot?.status === v2.PotStatus.Open ? 10_000 : false,
+    placeholderData: (prev) => prev,
+  });
+}
