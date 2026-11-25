@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { PublicKey } from "@solana/web3.js";
+import { type Keypair, PublicKey } from "@solana/web3.js";
 import { v2 } from "@rug-royale/sdk";
 import { Badge, Card, Skeleton } from "@/components/ui/card";
 import { Button, buttonClasses } from "@/components/ui/button";
@@ -25,9 +25,11 @@ import {
   usePot,
   usePriceFeeds,
   useProtocol,
+  useSettledRecord,
 } from "@/lib/v2/queries";
+import { ResultCard, type ResultData } from "./result-card";
 import { getSessionKey, newSessionKey, storeSessionKey } from "@/lib/v2/session-keys";
-import { timedSendErIxs, type ErSigner } from "@/lib/v2/er-send";
+import { sendErIxs, timedSendErIxs, type ErSigner } from "@/lib/v2/er-send";
 
 const SLIPPAGE_BPS = 50;
 const BUY_PRESETS_USD = [100, 500, 1_000, 2_500];
@@ -49,6 +51,8 @@ export function DuelRoom({ address }: { address: string }) {
   const potAddress = useMemo(() => parseAddress(address), [address]);
   const pot = usePot(potAddress);
   const arenas = useArenas();
+  const settledStatus = pot.data?.status === v2.PotStatus.Settled;
+  const history = useSettledRecord(potAddress, pot.data === null || settledStatus);
 
   if (!potAddress) {
     return <EmptyState title="Not a duel" body="That link doesn't point to a valid duel address." action={<BackLink />} />;
@@ -56,6 +60,23 @@ export function DuelRoom({ address }: { address: string }) {
   if (pot.isError) return <ErrorState message="The devnet RPC didn't answer. It rate-limits often." onRetry={() => pot.refetch()} />;
   if (pot.isPending || arenas.isPending) return <RoomSkeleton />;
   if (!pot.data) {
+    if (history.isPending) return <RoomSkeleton />;
+    if (history.data) {
+      const h = history.data;
+      return (
+        <ResultCard
+          data={{
+            creator: h.creator,
+            opponent: h.opponent,
+            result: h.event.result,
+            finalValues: h.event.finalValues,
+            prize: h.event.prize,
+            bankroll: null,
+            settleSignature: h.signature,
+          }}
+        />
+      );
+    }
     return (
       <EmptyState
         title="Duel not found"
@@ -66,7 +87,7 @@ export function DuelRoom({ address }: { address: string }) {
   }
   const arena = arenas.data?.find((a) => a.arenaId === pot.data!.arenaId);
   if (!arena) return <ErrorState message="Couldn't load this duel's arena." onRetry={() => arenas.refetch()} />;
-  return <Room pot={pot.data} arena={arena} />;
+  return <Room pot={pot.data} arena={arena} settleSignature={history.data?.signature} />;
 }
 
 function BackLink() {
@@ -107,7 +128,15 @@ function phaseOf(pot: PotWithAddress, match: v2.Match | null, now: number): Phas
   return "ended";
 }
 
-function Room({ pot, arena }: { pot: PotWithAddress; arena: ArenaWithAddress }) {
+function Room({
+  pot,
+  arena,
+  settleSignature,
+}: {
+  pot: PotWithAddress;
+  arena: ArenaWithAddress;
+  settleSignature?: string;
+}) {
   const wallet = useWallet();
   const now = useNow(250);
   const matchQ = useMatchState(pot);
@@ -120,6 +149,11 @@ function Room({ pot, arena }: { pot: PotWithAddress; arena: ArenaWithAddress }) 
     pot.status === v2.PotStatus.Active ? 1_000 : 5_000,
   );
   const phase = phaseOf(pot, match, now);
+
+  const session = getSessionKey(pot.matchAccount);
+  const sessionValid =
+    !!session && !!match && match.seats.some((s) => s.sessionKey && s.sessionKey.equals(session.publicKey));
+  useAutoFinalize(pot, arena, phase === "ended" && sessionValid ? session : null, match ? Number(match.endTs) : 0);
 
   const me = wallet.publicKey;
   const mySeat = !me ? null : me.equals(pot.creator) ? 0 : pot.opponent && me.equals(pot.opponent) ? 1 : null;
@@ -158,10 +192,12 @@ function Room({ pot, arena }: { pot: PotWithAddress; arena: ArenaWithAddress }) 
       )}
       {match && phase !== "open" && phase !== "cancelled" && phase !== "refunded" && (
         <>
-          <RaceBar pot={pot} match={match} values={values} bankroll={arena.bankroll} mySeat={mySeat} phase={phase} />
-          {(phase === "settling" || phase === "ended" || phase === "settled") && (
-            <SettlePanel pot={pot} match={match} phase={phase} now={now} />
+          {phase === "settled" ? (
+            <ResultCard data={resultData(pot, arena, match, settleSignature)} />
+          ) : (
+            <RaceBar pot={pot} match={match} values={values} bankroll={arena.bankroll} mySeat={mySeat} phase={phase} />
           )}
+          {(phase === "settling" || phase === "ended") && <SettlePanel pot={pot} match={match} phase={phase} now={now} />}
           {(phase === "starting" || phase === "live") && mySeat !== null && (
             <TradePanel
               pot={pot}
@@ -682,23 +718,6 @@ function SettlePanel({
     }
   }
 
-  if (phase === "settled") {
-    const result = match.result;
-    const winner =
-      result === v2.MatchResult.Tie
-        ? "It's a tie. The pot was split."
-        : result === v2.MatchResult.Creator
-          ? `${wallet.publicKey?.equals(pot.creator) ? "You" : truncateAddress(pot.creator)} won.`
-          : `${pot.opponent && wallet.publicKey?.equals(pot.opponent) ? "You" : truncateAddress(pot.opponent ?? PublicKey.default)} won.`;
-    return (
-      <Card className="flex flex-col gap-3 bg-win text-win-foreground">
-        <h2 className="text-2xl font-black uppercase">{winner}</h2>
-        <p className="text-sm">Paid out on Solana. Final values are marked at the first fresh price after the window ended.</p>
-        <BackLink />
-      </Card>
-    );
-  }
-
   return (
     <Card className="flex flex-col gap-3">
       <h2 className="text-xl font-black uppercase">{phase === "ended" ? "Finalizing" : "Settling"}</h2>
@@ -722,4 +741,71 @@ function SettlePanel({
       )}
     </Card>
   );
+}
+
+function resultData(pot: PotWithAddress, arena: ArenaWithAddress, match: v2.Match, settleSignature?: string): ResultData {
+  const pay = v2.payout({
+    entry: pot.entryLamports,
+    sponsored: pot.sponsoredLamports,
+    matchFee: pot.matchFeeLamports,
+    feeShare: pot.feeShareLamports,
+    settlerTip: pot.settlerTipLamports,
+    rakeBps: pot.rakeBps,
+    result: match.result as v2.MatchResultCode,
+  });
+  const marks = arena.assets.slice(0, match.assetCount).flatMap((a, i) =>
+    match.markPrices[i] > 0n
+      ? [{ symbol: coinForFeed(a.feed)?.symbol ?? `#${i}`, price: v2.displayPrice(match.markPrices[i], a.exponent) }]
+      : [],
+  );
+  return {
+    creator: pot.creator,
+    opponent: pot.opponent!,
+    result: match.result,
+    finalValues: match.finalValues,
+    prize: pay.prize,
+    bankroll: arena.bankroll,
+    trades: [match.seats[0].trades, match.seats[1].trades],
+    marks,
+    settleSignature,
+    rematch: { arenaId: pot.arenaId, windowSecs: pot.windowSecs, entryLamports: pot.entryLamports },
+  };
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Backup for the crank: a player's tab finalizes the match itself right after the window
+ * ends, signed by its session key (fee-free on the ER; verified on devnet with an unfunded
+ * key). finalize_match only accepts marks published within MARK_TOLERANCE_S (5 s) of end_ts,
+ * so this has to run automatically, not behind a button. Failures (crank got there first,
+ * window not quite over) are retried until the tolerance passes; they cost nothing.
+ */
+function useAutoFinalize(pot: PotWithAddress, arena: ArenaWithAddress, session: Keypair | null, endTs: number) {
+  const sessionId = session?.publicKey.toBase58();
+  useEffect(() => {
+    if (!session || !pot.region || !endTs) return;
+    const er = erConnectionFor(pot.region);
+    let stopped = false;
+    (async () => {
+      // Give the crank (which fires at end_ts + 200 ms) the first shot.
+      await sleep(1_200 + Math.random() * 600);
+      while (!stopped && Date.now() / 1000 < endTs + 5) {
+        try {
+          const ix = await v2.finalizeMatchIx(programV2, { payer: session.publicKey, matchAccount: pot.matchAccount, arena });
+          const res = await sendErIxs(er, { kind: "session", keypair: session }, [ix], 4_000);
+          if (res.ok) return;
+          if (!res.cancelled && res.logs?.some((l) => /MatchNotActive/.test(l))) return;
+        } catch {
+          // Network blip: retry until the mark tolerance passes.
+        }
+        await sleep(500);
+      }
+    })();
+    return () => {
+      stopped = true;
+    };
+    // sessionId stands in for the session keypair, which is stable per match.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId, pot.region, pot.matchAccount, endTs, arena]);
 }

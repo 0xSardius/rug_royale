@@ -172,3 +172,52 @@ export function useMatchState(pot: PotWithAddress | null | undefined) {
     placeholderData: (prev) => prev,
   });
 }
+
+export interface SettledRecord {
+  signature: string;
+  blockTime: number | null;
+  creator: PublicKey;
+  opponent: PublicKey;
+  event: v2.SettledEvent;
+}
+
+/**
+ * The settle transaction for a pot, from its signature history: works after close_match has
+ * deleted Pot and Match, so result links keep working. Players come from the settle
+ * instruction's accounts (IDL order: settler, protocol, pot, match, creator_stats,
+ * opponent_stats, creator, opponent, treasury).
+ */
+export function useSettledRecord(pot: PublicKey | null, enabled: boolean) {
+  const { connection } = useConnection();
+  return useQuery({
+    queryKey: ["v2", "settled", pot?.toBase58()],
+    enabled: !!pot && enabled,
+    staleTime: Infinity,
+    queryFn: async (): Promise<SettledRecord | null> => {
+      const sigs = await connection.getSignaturesForAddress(pot!, { limit: 20 });
+      for (const s of sigs) {
+        if (s.err) continue;
+        const tx = await connection.getTransaction(s.signature, {
+          commitment: "confirmed",
+          maxSupportedTransactionVersion: 0,
+        });
+        const event = v2.parseSettledEvent(tx?.meta?.logMessages ?? [], PROGRAM_ID_V2);
+        if (!tx || !event) continue;
+        const msg = tx.transaction.message;
+        const keys = msg.getAccountKeys().staticAccountKeys;
+        const ix = msg.compiledInstructions.find(
+          (i) => keys[i.programIdIndex]?.equals(PROGRAM_ID_V2) && keys[i.accountKeyIndexes[2]]?.equals(pot!),
+        );
+        if (!ix) continue;
+        return {
+          signature: s.signature,
+          blockTime: s.blockTime ?? null,
+          creator: keys[ix.accountKeyIndexes[6]],
+          opponent: keys[ix.accountKeyIndexes[7]],
+          event,
+        };
+      }
+      return null;
+    },
+  });
+}
