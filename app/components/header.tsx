@@ -9,7 +9,11 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { href: "/", label: "Lobby" },
   { href: "/create", label: "Create duel" },
+  { href: "/arena", label: "Live arena", prefix: true },
 ];
+
+const isActive = (pathname: string, n: (typeof NAV)[number]) =>
+  "prefix" in n && n.prefix ? pathname === n.href || pathname.startsWith(`${n.href}/`) : pathname === n.href;
 
 export function Header() {
   const pathname = usePathname();
@@ -27,11 +31,11 @@ export function Header() {
             <Link
               key={n.href}
               href={n.href}
-              aria-current={pathname === n.href ? "page" : undefined}
+              aria-current={isActive(pathname, n) ? "page" : undefined}
               className={cn(
                 "flex h-10 items-center border-[3px] px-3 text-sm font-bold uppercase",
                 "focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring",
-                pathname === n.href ? "border-border bg-primary text-primary-foreground" : "border-transparent hover:border-border",
+                isActive(pathname, n) ? "border-border bg-primary text-primary-foreground" : "border-transparent hover:border-border",
               )}
             >
               {n.label}
