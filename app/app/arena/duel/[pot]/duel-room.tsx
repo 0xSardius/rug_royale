@@ -25,6 +25,7 @@ import {
   usePot,
   usePriceFeeds,
   useProtocol,
+  useMatchHome,
   useSettledRecord,
 } from "@/lib/v2/queries";
 import { ResultCard, type ResultData } from "./result-card";
@@ -700,16 +701,39 @@ function SettlePanel({
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const finalized = phase === "settling";
+  const home = useMatchHome(pot, finalized);
   const sinceEnd = now - Number(match.endTs);
 
+  const me = wallet.publicKey;
+  const tie = match.result === v2.MatchResult.Tie;
+  const winner = match.result === v2.MatchResult.Creator ? pot.creator : match.result === v2.MatchResult.Opponent ? pot.opponent : null;
+  const isPlayer = !!me && (me.equals(pot.creator) || (!!pot.opponent && me.equals(pot.opponent)));
+  const iWon = !!me && !!winner && me.equals(winner);
+  const pay = finalized
+    ? v2.payout({
+        entry: pot.entryLamports,
+        sponsored: pot.sponsoredLamports,
+        matchFee: pot.matchFeeLamports,
+        feeShare: pot.feeShareLamports,
+        settlerTip: pot.settlerTipLamports,
+        rakeBps: pot.rakeBps,
+        result: match.result as v2.MatchResultCode,
+      })
+    : null;
+  // The winner claims (or either player on a tie). Anyone else gets the button only if
+  // nobody has settled after 20 s, as a fallback; whoever settles earns the settler tip.
+  const canClaim = finalized && !!me && (iWon || (tie && isPlayer));
+  const canFallback = finalized && !!me && !canClaim && sinceEnd > 20;
+
   async function settle() {
-    if (!wallet.publicKey || !protocol.data) return;
+    if (!me || !protocol.data) return;
     setBusy(true);
     setMessage(null);
     try {
-      const ix = await v2.settleIx(programV2, { settler: wallet.publicKey, pot, treasury: protocol.data.treasury });
+      const ix = await v2.settleIx(programV2, { settler: me, pot, treasury: protocol.data.treasury });
       const res = await sendIxs(connection, wallet, [ix], v2.programErrorFromLogs);
-      if (res.ok) await queryClient.invalidateQueries({ queryKey: ["v2"] });
+      if (res.ok || (!res.cancelled && /already/i.test(res.message))) await queryClient.invalidateQueries({ queryKey: ["v2"] });
       else if (!res.cancelled) setMessage(res.message);
     } catch (e) {
       setMessage(unexpectedError(e));
@@ -718,20 +742,38 @@ function SettlePanel({
     }
   }
 
+  // What this wallet receives if it settles: its payout share plus the settler tip.
+  const mine =
+    pay && me ? (me.equals(pot.creator) ? pay.toCreator : pot.opponent && me.equals(pot.opponent) ? pay.toOpponent : 0n) + pay.toSettler : 0n;
+  const claimLabel = mine > 0n && (iWon || tie) ? `Claim ${formatSol(mine)} SOL` : "Record the result";
+
   return (
-    <Card className="flex flex-col gap-3">
-      <h2 className="text-xl font-black uppercase">{phase === "ended" ? "Finalizing" : "Settling"}</h2>
+    <Card className={cn("flex flex-col gap-3", canClaim && iWon && "bg-win text-win-foreground")}>
+      <h2 className="text-xl font-black uppercase">
+        {!finalized ? "Finalizing" : iWon ? "You won" : tie ? "It's a tie" : "Final values are in"}
+      </h2>
       <p className="text-sm">
-        {phase === "ended"
-          ? "The window is over. The crank marks both portfolios at the end price on the rollup and moves the duel back to Solana."
-          : "Final values are in. The payout lands on Solana in a few seconds."}
+        {!finalized
+          ? "The window is over. Both portfolios are being marked at the end price on the rollup, then the duel moves back to Solana."
+          : canClaim
+            ? mine > 0n
+              ? "Claim to pay the pot out on Solana. One wallet approval; the settler tip covers the network fee."
+              : "Free duel: this records the result on Solana and pays the match fee back to the player who joined. One wallet approval."
+            : "Waiting for the winner to claim the payout on Solana."}
       </p>
-      {phase === "settling" && sinceEnd > 20 && wallet.publicKey && (
+      {(canClaim || canFallback) && (
         <div className="flex flex-wrap items-center gap-3">
-          <p className="text-sm">Taking longer than usual. Anyone can settle; the settler earns the tip.</p>
-          <Button variant="secondary" onClick={settle} loading={busy} disabled={!protocol.data}>
-            Settle now
+          <Button
+            variant={canClaim ? "accent" : "secondary"}
+            size={canClaim ? "lg" : "md"}
+            onClick={settle}
+            loading={busy || (finalized && !home.data)}
+            disabled={!protocol.data || !home.data}
+          >
+            {canClaim ? claimLabel : "Settle for them"}
           </Button>
+          {!home.data && <span className="text-xs">Waiting for the duel to come back from the rollup (a few seconds).</span>}
+          {canFallback && home.data && <span className="text-xs">Nobody has claimed yet. Anyone can settle; the settler earns the tip.</span>}
         </div>
       )}
       {message && (

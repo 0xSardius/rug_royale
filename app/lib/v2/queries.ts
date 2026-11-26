@@ -221,3 +221,17 @@ export function useSettledRecord(pot: PublicKey | null, enabled: boolean) {
     },
   });
 }
+
+/**
+ * Whether a finalized Match is back on base (owned by the program again), which `settle`
+ * requires. The base-layer owner is the source of truth, not the router (magicblock.ts).
+ */
+export function useMatchHome(pot: PotWithAddress, enabled: boolean) {
+  const { connection } = useConnection();
+  return useQuery({
+    queryKey: ["v2", "match-home", pot.matchAccount.toBase58()],
+    enabled,
+    queryFn: async () => v2.matchLocationFromInfo(await connection.getAccountInfo(pot.matchAccount), PROGRAM_ID_V2) === "base",
+    refetchInterval: (q) => (q.state.data ? false : 1_500),
+  });
+}
