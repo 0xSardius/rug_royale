@@ -357,7 +357,7 @@ function OpenPanel({
             Share this page&apos;s link. Trading starts {arena.startDelaySecs} s after someone joins, so keep this tab
             open.
             {!getSessionKey(pot.matchAccount) &&
-              " This tab doesn't hold your trading session key (the page was reloaded), so each trade will ask your wallet to approve."}
+              " This browser doesn't have your trading key for this duel (it was created in another browser, or site data was cleared). Trades will ask your wallet to sign, and some wallets block them."}
           </p>
         </>
       ) : (
@@ -552,8 +552,10 @@ function TradePanel({
       </div>
       {!sessionValid && (
         <p className="border-[3px] border-border bg-muted p-2 text-sm">
-          This tab doesn&apos;t hold your session key (the page was reloaded or opened elsewhere), so each trade asks
-          your wallet to approve. Trades are still free.
+          This browser doesn&apos;t have your trading key for this duel (it was set up in another browser, or site data
+          was cleared). Trades will ask your wallet to sign instead. Some wallets, including Phantom, refuse because
+          they check the trade against Solana instead of the rollup; if yours does, trading from this seat isn&apos;t
+          possible here. Next time, play the duel in the browser you created or joined it from.
         </p>
       )}
       {phase === "starting" && <p className="text-sm font-bold">Trading opens when the countdown hits zero.</p>}
