@@ -12,17 +12,20 @@ export interface PriceFeed {
   verification: "partial" | "full";
 }
 
+// Reads use DataView, not Buffer.readBigInt64LE: the browser Buffer polyfill bundled by
+// Next.js has no BigInt methods (same issue as pdas.ts), so a Buffer-based decoder throws in
+// the app while working in Node.
 export function decodePriceFeed(data: Uint8Array): PriceFeed | null {
-  const b = Buffer.from(data);
-  const tag = b[40];
+  const tag = data[40];
   if (tag !== 0 && tag !== 1) return null;
   const msg = tag === 0 ? 42 : 41;
-  if (b.length < msg + 92) return null;
+  if (data.length < msg + 92) return null;
+  const v = new DataView(data.buffer, data.byteOffset, data.byteLength);
   return {
-    price: b.readBigInt64LE(msg + 32),
-    exponentField: b.readInt32LE(msg + 48),
-    publishTime: b.readBigInt64LE(msg + 52),
-    postedSlot: b.readBigUInt64LE(msg + 84),
+    price: v.getBigInt64(msg + 32, true),
+    exponentField: v.getInt32(msg + 48, true),
+    publishTime: v.getBigInt64(msg + 52, true),
+    postedSlot: v.getBigUint64(msg + 84, true),
     verification: tag === 0 ? "partial" : "full",
   };
 }
