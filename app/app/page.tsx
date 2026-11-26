@@ -17,6 +17,15 @@ export default function LobbyPage() {
 
   return (
     <div className="flex flex-col gap-8">
+      <Link
+        href="/arena"
+        className="flex flex-col gap-1 border-[3px] border-border bg-accent p-4 text-accent-foreground shadow-brutal focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring md:flex-row md:items-center md:justify-between"
+      >
+        <span className="text-lg font-black uppercase">New: v2 live arena</span>
+        <span className="text-sm font-bold">
+          Duel on live Solana prices. Gasless trades on MagicBlock, no wallet popups. Play now &rarr;
+        </span>
+      </Link>
       <section className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div className="max-w-2xl">
           <h1 className="text-4xl font-black uppercase leading-none tracking-tight md:text-6xl">

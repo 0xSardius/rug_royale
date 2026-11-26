@@ -7,9 +7,9 @@ import { WalletButton } from "@/components/wallet-button";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { href: "/", label: "Lobby" },
-  { href: "/create", label: "Create duel" },
   { href: "/arena", label: "Live arena", prefix: true },
+  { href: "/", label: "Classic lobby" },
+  { href: "/create", label: "Classic create" },
 ];
 
 const isActive = (pathname: string, n: (typeof NAV)[number]) =>
