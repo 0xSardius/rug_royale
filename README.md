@@ -15,6 +15,10 @@ Turbin3 capstone by Justin ([@0xSardius](https://github.com/0xSardius)) and Yami
 | **Live app (devnet)** | [rug-royale-seven.vercel.app](https://rug-royale-seven.vercel.app) (Next.js 16, `app/`) |
 | **Specs** | [architecture PDF](docs/architecture.pdf); the PRD is team-internal |
 
+## v2: live-price duels on MagicBlock (Blitz)
+
+**v2 is the next version:** 1v1 duels on live Solana coin prices, with trades running gasless on a MagicBlock Ephemeral Rollup and session keys (no wallet popups). Play it at [rug-royale-seven.vercel.app/arena](https://rug-royale-seven.vercel.app/arena); program [`2hcR5rib…D9Cr`](https://explorer.solana.com/address/2hcR5rib7mNkcFHnPEfjhH1yJdNsPmK6SVkU3dDjD9Cr?cluster=devnet) in `programs/rug_royale_v2`. How it works, the architecture and what MagicBlock does for it: **[docs/v2.md](docs/v2.md)**. The rest of this README documents v1, the Turbin3 capstone.
+
 ## Devnet tests
 
 **27 passing on devnet** against the deployed program:
