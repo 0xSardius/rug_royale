@@ -13,7 +13,7 @@ import { WalletButton } from "@/components/wallet-button";
 import { useNow } from "@/lib/use-now";
 import { cn } from "@/lib/utils";
 import { formatCountdown, formatSol, formatWindow, truncateAddress } from "@/lib/format";
-import { sendIxs, unexpectedError } from "@/lib/send";
+import { type SendStage, sendIxs, unexpectedError } from "@/lib/send";
 import { formatMicroUsd, formatUsdPrice } from "@/lib/v2/format";
 import { arenaName, coinForFeed, programV2 } from "@/lib/v2/program";
 import {
@@ -30,7 +30,7 @@ import {
 } from "@/lib/v2/queries";
 import { ResultCard, type ResultData } from "./result-card";
 import { getSessionKey, newSessionKey, storeSessionKey } from "@/lib/v2/session-keys";
-import { sendErIxs, timedSendErIxs, type ErSigner } from "@/lib/v2/er-send";
+import { sendErIxs, timedSendErIxs } from "@/lib/v2/er-send";
 
 const SLIPPAGE_BPS = 50;
 const BUY_PRESETS_USD = [100, 500, 1_000, 2_500];
@@ -357,7 +357,7 @@ function OpenPanel({
             Share this page&apos;s link. Trading starts {arena.startDelaySecs} s after someone joins, so keep this tab
             open.
             {!getSessionKey(pot.matchAccount) &&
-              " This browser doesn't have your trading key for this duel (it was created in another browser, or site data was cleared). Trades will ask your wallet to sign, and some wallets block them."}
+              " This browser doesn't have your trading key for this duel (it was created in another browser, or site data was cleared), so you won't be able to trade from here."}
           </p>
         </>
       ) : (
@@ -494,18 +494,16 @@ function TradePanel({
   now: number;
   onTraded: () => void;
 }) {
-  const wallet = useWallet();
   const [pending, setPending] = useState<Record<number, boolean>>({});
   const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
   const s = match.seats[seat];
   const session = getSessionKey(pot.matchAccount);
   const sessionValid = !!session && !!s.sessionKey && session.publicKey.equals(s.sessionKey);
-  const signer: ErSigner = sessionValid ? { kind: "session", keypair: session! } : { kind: "wallet", wallet };
-  const live = phase === "live";
+  const live = phase === "live" && sessionValid;
 
   async function trade(i: number, side: "buy" | "sell", amount: bigint) {
     const price = prices[i];
-    if (!pot.region || price == null || amount <= 0n) return;
+    if (!pot.region || price == null || amount <= 0n || !sessionValid) return;
     const symbol = coinForFeed(arena.assets[i].feed)?.symbol ?? `#${i}`;
     setPending((p) => ({ ...p, [i]: true }));
     setStatus(null);
@@ -516,7 +514,7 @@ function TradePanel({
         return;
       }
       const ix = await v2.tradeIx(programV2, {
-        signer: sessionValid ? session!.publicKey : wallet.publicKey!,
+        signer: session!.publicKey,
         matchAccount: pot.matchAccount,
         arena,
         assetIndex: i,
@@ -524,7 +522,7 @@ function TradePanel({
         amount,
         limitPrice: preview.limitPrice,
       });
-      const { res, ms } = await timedSendErIxs(erConnectionFor(pot.region), signer, [ix]);
+      const { res, ms } = await timedSendErIxs(erConnectionFor(pot.region), { kind: "session", keypair: session! }, [ix]);
       if (res.ok) {
         setStatus({
           ok: true,
@@ -552,10 +550,9 @@ function TradePanel({
       </div>
       {!sessionValid && (
         <p className="border-[3px] border-border bg-muted p-2 text-sm">
-          This browser doesn&apos;t have your trading key for this duel (it was set up in another browser, or site data
-          was cleared). Trades will ask your wallet to sign instead. Some wallets, including Phantom, refuse because
-          they check the trade against Solana instead of the rollup; if yours does, trading from this seat isn&apos;t
-          possible here. Next time, play the duel in the browser you created or joined it from.
+          This browser doesn&apos;t have your trading key for this duel, so it can&apos;t trade here. Trades are signed
+          by a key saved in the browser you created or joined the duel from (wallets can&apos;t sign rollup trades).
+          Open the duel there to trade. You can still claim winnings from any browser once it ends.
         </p>
       )}
       {phase === "starting" && <p className="text-sm font-bold">Trading opens when the countdown hits zero.</p>}
@@ -703,6 +700,7 @@ function SettlePanel({
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [stage, setStage] = useState<{ stage: SendStage; signature?: string } | null>(null);
   const finalized = phase === "settling";
   const home = useMatchHome(pot, finalized);
   const sinceEnd = now - Number(match.endTs);
@@ -734,13 +732,16 @@ function SettlePanel({
     setMessage(null);
     try {
       const ix = await v2.settleIx(programV2, { settler: me, pot, treasury: protocol.data.treasury });
-      const res = await sendIxs(connection, wallet, [ix], v2.programErrorFromLogs);
-      if (res.ok || (!res.cancelled && /already/i.test(res.message))) await queryClient.invalidateQueries({ queryKey: ["v2"] });
+      const res = await sendIxs(connection, wallet, [ix], v2.programErrorFromLogs, (st, signature) =>
+        setStage({ stage: st, signature }),
+      );
+      if (res.ok || (!res.cancelled && /already|not active/i.test(res.message))) await queryClient.invalidateQueries({ queryKey: ["v2"] });
       else if (!res.cancelled) setMessage(res.message);
     } catch (e) {
       setMessage(unexpectedError(e));
     } finally {
       setBusy(false);
+      setStage(null);
     }
   }
 
@@ -772,11 +773,17 @@ function SettlePanel({
             loading={busy || (finalized && !home.data)}
             disabled={!protocol.data || !home.data}
           >
-            {canClaim ? claimLabel : "Settle for them"}
+            {!home.data ? "Waiting for the rollup…" : canClaim ? claimLabel : "Settle for them"}
           </Button>
-          {!home.data && <span className="text-xs">Waiting for the duel to come back from the rollup (a few seconds).</span>}
+          {!home.data && <span className="text-xs">The duel is moving back from the rollup to Solana (a few seconds).</span>}
           {canFallback && home.data && <span className="text-xs">Nobody has claimed yet. Anyone can settle; the settler earns the tip.</span>}
         </div>
+      )}
+      {stage && (
+        <p aria-live="polite" className="text-sm font-bold">
+          {stage.stage === "signing" ? "Approve the transaction in your wallet…" : "Sent. Confirming on Solana…"}
+          {stage.signature && <ExplorerTx signature={stage.signature} />}
+        </p>
       )}
       {message && (
         <p role="alert" className="text-sm font-bold text-rug">
@@ -784,6 +791,19 @@ function SettlePanel({
         </p>
       )}
     </Card>
+  );
+}
+
+function ExplorerTx({ signature }: { signature: string }) {
+  return (
+    <a
+      href={`https://explorer.solana.com/tx/${signature}?cluster=devnet`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="ml-2 underline"
+    >
+      View transaction
+    </a>
   );
 }
 
